@@ -62,6 +62,15 @@ iPhone notification, and normal Apple Watch mirroring. Notification routing,
 previews, sounds, and optional Siri Announce Notifications remain controlled by
 Apple system settings.
 
+### macOS icon appearance
+
+macOS controls app-icon appearance separately from window appearance. If the
+PiPing Dock or notification icon remains light while windows have switched to
+Dark Mode, open **System Settings > Appearance**, set **Icon & widget style** to
+**Dark**, and choose **Auto** for that style. This allows the system to select
+PiPing's light or dark icon alongside the current appearance. The similarly
+named automatic folder-color option affects Finder folders only.
+
 ## Explicit per-session Pi hook
 
 The tracked hook has been verified by loading it by path for one Pi run. It is

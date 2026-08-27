@@ -23,5 +23,16 @@ struct MenuBarContent: View {
         .onAppear {
             store.acknowledgeAttention()
         }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: NSMenu.didBeginTrackingNotification
+            )
+        ) { notification in
+            guard let menu = notification.object as? NSMenu,
+                  menu.items.contains(where: { $0.title == "Quit PiPing" }) else {
+                return
+            }
+            store.acknowledgeAttention()
+        }
     }
 }

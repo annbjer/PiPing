@@ -7,4 +7,9 @@ PIPING_IOS_BUNDLE_IDENTIFIER = org.example.PiPing.iOS
 PIPING_CLOUDKIT_CONTAINER_IDENTIFIER = iCloud.org.example.PiPing
 PIPING_CLOUDKIT_ACTIVATION = NO
 
+// Standard Apple bundle versioning. Increment CURRENT_PROJECT_VERSION for
+// every installable build so system services can invalidate cached metadata.
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 2
+
 #include? "Local.xcconfig"
