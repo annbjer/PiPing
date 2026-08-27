@@ -1,0 +1,22 @@
+{
+  "name": "piping",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local Pi integration edge for the native PiPing apps",
+  "license": "UNLICENSED",
+  "keywords": [
+    "pi-package"
+  ],
+  "type": "module",
+  "pi": {
+    "extensions": [
+      "./Integration/Pi/piping.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test Tests/PiHookTests/*.test.mjs"
+  }
+}

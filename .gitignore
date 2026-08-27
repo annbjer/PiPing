@@ -1,0 +1,26 @@
+.DS_Store
+.build/
+.swiftpm/
+DerivedData/
+dist/
+
+# Xcode user and signing state
+*.xcuserstate
+*.xcuserdata/
+*.mobileprovision
+*.provisionprofile
+*.p8
+*.p12
+*.cer
+*.key
+*.pem
+Local.xcconfig
+*.local.xcconfig
+
+# Local configuration and runtime material
+.env
+.env.*
+!.env.example
+.pi/
+.piping/
+*.log

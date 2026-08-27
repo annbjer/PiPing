@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.swift text diff=swift
+*.ts text
+*.md text

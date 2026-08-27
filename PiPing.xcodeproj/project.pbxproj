@@ -1,0 +1,395 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		100000000000000000000001 /* PiPingMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000001 /* PiPingMacApp.swift */; };
+		100000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000002 /* ContentView.swift */; };
+		100000000000000000000003 /* MenuBarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000003 /* MenuBarContent.swift */; };
+		100000000000000000000004 /* NotificationPreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000004 /* NotificationPreviewCard.swift */; };
+		100000000000000000000005 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000005 /* SettingsView.swift */; };
+		100000000000000000000006 /* LocalSignalListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000006 /* LocalSignalListener.swift */; };
+		100000000000000000000007 /* SystemLocalNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000007 /* SystemLocalNotificationService.swift */; };
+		100000000000000000000008 /* MacAppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000008 /* MacAppStore.swift */; };
+		100000000000000000000009 /* PiPingIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000009 /* PiPingIOSApp.swift */; };
+		10000000000000000000000A /* MobileSetupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000A /* MobileSetupStore.swift */; };
+		10000000000000000000000B /* MobileRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000B /* MobileRootView.swift */; };
+		10000000000000000000000C /* MobileStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000C /* MobileStatusView.swift */; };
+		10000000000000000000000D /* PrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000D /* PrivacyView.swift */; };
+		10000000000000000000000E /* PiPingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 900000000000000000000001 /* PiPingCore */; };
+		10000000000000000000000F /* PiPingCloudKit in Frameworks */ = {isa = PBXBuildFile; productRef = 900000000000000000000002 /* PiPingCloudKit */; };
+		100000000000000000000010 /* PiPingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 900000000000000000000001 /* PiPingCore */; };
+		100000000000000000000011 /* PiPingCloudKit in Frameworks */ = {isa = PBXBuildFile; productRef = 900000000000000000000002 /* PiPingCloudKit */; };
+		100000000000000000000012 /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000015 /* MenuBarLabel.swift */; };
+		100000000000000000000013 /* PiPingMenuBar.svg in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000016 /* PiPingMenuBar.svg */; };
+		100000000000000000000014 /* PiPingMenuBarAttentionLight.svg in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000017 /* PiPingMenuBarAttentionLight.svg */; };
+		100000000000000000000015 /* PiPing.icon in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000018 /* PiPing.icon */; };
+		100000000000000000000016 /* PiPing.icon in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000018 /* PiPing.icon */; };
+		100000000000000000000017 /* PiPingMenuBarAttentionDark.svg in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000019 /* PiPingMenuBarAttentionDark.svg */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		200000000000000000000001 /* PiPingMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiPingMacApp.swift; sourceTree = "<group>"; };
+		200000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		200000000000000000000003 /* MenuBarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContent.swift; sourceTree = "<group>"; };
+		200000000000000000000004 /* NotificationPreviewCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPreviewCard.swift; sourceTree = "<group>"; };
+		200000000000000000000005 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		200000000000000000000006 /* LocalSignalListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalSignalListener.swift; sourceTree = "<group>"; };
+		200000000000000000000007 /* SystemLocalNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLocalNotificationService.swift; sourceTree = "<group>"; };
+		200000000000000000000008 /* MacAppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAppStore.swift; sourceTree = "<group>"; };
+		200000000000000000000009 /* PiPingIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiPingIOSApp.swift; sourceTree = "<group>"; };
+		20000000000000000000000A /* MobileSetupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSetupStore.swift; sourceTree = "<group>"; };
+		20000000000000000000000B /* MobileRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRootView.swift; sourceTree = "<group>"; };
+		20000000000000000000000C /* MobileStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileStatusView.swift; sourceTree = "<group>"; };
+		20000000000000000000000D /* PrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyView.swift; sourceTree = "<group>"; };
+		20000000000000000000000E /* PiPing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PiPing.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		20000000000000000000000F /* PiPing-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PiPing-iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		200000000000000000000010 /* PiPing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = PiPing.xcconfig; sourceTree = "<group>"; };
+		200000000000000000000011 /* PiPing-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PiPing-macOS.entitlements"; sourceTree = "<group>"; };
+		200000000000000000000012 /* PiPing-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PiPing-iOS.entitlements"; sourceTree = "<group>"; };
+		200000000000000000000013 /* PiPing-macOS-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "PiPing-macOS-Info.plist"; sourceTree = "<group>"; };
+		200000000000000000000014 /* PiPing-iOS-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "PiPing-iOS-Info.plist"; sourceTree = "<group>"; };
+		200000000000000000000015 /* MenuBarLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabel.swift; sourceTree = "<group>"; };
+		200000000000000000000016 /* PiPingMenuBar.svg */ = {isa = PBXFileReference; lastKnownFileType = image.svg; name = PiPingMenuBar.svg; path = Assets/Brand/Runtime/MenuBar/PiPingMenuBar.svg; sourceTree = SOURCE_ROOT; };
+		200000000000000000000017 /* PiPingMenuBarAttentionLight.svg */ = {isa = PBXFileReference; lastKnownFileType = image.svg; name = PiPingMenuBarAttentionLight.svg; path = Assets/Brand/Runtime/MenuBar/PiPingMenuBarAttentionLight.svg; sourceTree = SOURCE_ROOT; };
+		200000000000000000000018 /* PiPing.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; name = PiPing.icon; path = Assets/Brand/AppIcon/PiPing.icon; sourceTree = SOURCE_ROOT; };
+		200000000000000000000019 /* PiPingMenuBarAttentionDark.svg */ = {isa = PBXFileReference; lastKnownFileType = image.svg; name = PiPingMenuBarAttentionDark.svg; path = Assets/Brand/Runtime/MenuBar/PiPingMenuBarAttentionDark.svg; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		300000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				10000000000000000000000E /* PiPingCore in Frameworks */,
+				10000000000000000000000F /* PiPingCloudKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		300000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000010 /* PiPingCore in Frameworks */,
+				100000000000000000000011 /* PiPingCloudKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		400000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				40000000000000000000000D /* Brand Assets */,
+				40000000000000000000000C /* Config */,
+				400000000000000000000002 /* PiPingMac */,
+				400000000000000000000007 /* PiPingIOS */,
+				40000000000000000000000B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		400000000000000000000002 /* PiPingMac */ = {
+			isa = PBXGroup;
+			children = (
+				400000000000000000000003 /* App */,
+				400000000000000000000004 /* Views */,
+				400000000000000000000005 /* Services */,
+				400000000000000000000006 /* Stores */,
+			);
+			name = PiPingMac;
+			path = Sources/PiPingMac;
+			sourceTree = SOURCE_ROOT;
+		};
+		400000000000000000000003 /* App */ = {isa = PBXGroup; children = (200000000000000000000001 /* PiPingMacApp.swift */,); path = App; sourceTree = "<group>"; };
+		400000000000000000000004 /* Views */ = {isa = PBXGroup; children = (200000000000000000000002 /* ContentView.swift */, 200000000000000000000003 /* MenuBarContent.swift */, 200000000000000000000015 /* MenuBarLabel.swift */, 200000000000000000000004 /* NotificationPreviewCard.swift */, 200000000000000000000005 /* SettingsView.swift */,); path = Views; sourceTree = "<group>"; };
+		400000000000000000000005 /* Services */ = {isa = PBXGroup; children = (200000000000000000000006 /* LocalSignalListener.swift */, 200000000000000000000007 /* SystemLocalNotificationService.swift */,); path = Services; sourceTree = "<group>"; };
+		400000000000000000000006 /* Stores */ = {isa = PBXGroup; children = (200000000000000000000008 /* MacAppStore.swift */,); path = Stores; sourceTree = "<group>"; };
+		400000000000000000000007 /* PiPingIOS */ = {
+			isa = PBXGroup;
+			children = (
+				400000000000000000000008 /* App */,
+				400000000000000000000009 /* Views */,
+				40000000000000000000000A /* Stores */,
+			);
+			name = PiPingIOS;
+			path = Sources/PiPingIOS;
+			sourceTree = SOURCE_ROOT;
+		};
+		400000000000000000000008 /* App */ = {isa = PBXGroup; children = (200000000000000000000009 /* PiPingIOSApp.swift */,); path = App; sourceTree = "<group>"; };
+		400000000000000000000009 /* Views */ = {isa = PBXGroup; children = (20000000000000000000000B /* MobileRootView.swift */, 20000000000000000000000C /* MobileStatusView.swift */, 20000000000000000000000D /* PrivacyView.swift */,); path = Views; sourceTree = "<group>"; };
+		40000000000000000000000A /* Stores */ = {isa = PBXGroup; children = (20000000000000000000000A /* MobileSetupStore.swift */,); path = Stores; sourceTree = "<group>"; };
+		40000000000000000000000B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				20000000000000000000000E /* PiPing.app */,
+				20000000000000000000000F /* PiPing-iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		40000000000000000000000C /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				200000000000000000000010 /* PiPing.xcconfig */,
+				200000000000000000000011 /* PiPing-macOS.entitlements */,
+				200000000000000000000012 /* PiPing-iOS.entitlements */,
+				200000000000000000000013 /* PiPing-macOS-Info.plist */,
+				200000000000000000000014 /* PiPing-iOS-Info.plist */,
+			);
+			path = Config;
+			sourceTree = SOURCE_ROOT;
+		};
+		40000000000000000000000D /* Brand Assets */ = {
+			isa = PBXGroup;
+			children = (
+				200000000000000000000018 /* PiPing.icon */,
+				200000000000000000000016 /* PiPingMenuBar.svg */,
+				200000000000000000000017 /* PiPingMenuBarAttentionLight.svg */,
+				200000000000000000000019 /* PiPingMenuBarAttentionDark.svg */,
+			);
+			name = "Brand Assets";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		500000000000000000000001 /* PiPing-macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 700000000000000000000002 /* Build configuration list for PBXNativeTarget "PiPing-macOS" */;
+			buildPhases = (
+				300000000000000000000003 /* Sources */,
+				300000000000000000000001 /* Frameworks */,
+				300000000000000000000005 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = "PiPing-macOS";
+			packageProductDependencies = (
+				900000000000000000000001 /* PiPingCore */,
+				900000000000000000000002 /* PiPingCloudKit */,
+			);
+			productName = PiPing;
+			productReference = 20000000000000000000000E /* PiPing.app */;
+			productType = "com.apple.product-type.application";
+		};
+		500000000000000000000002 /* PiPing-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 700000000000000000000003 /* Build configuration list for PBXNativeTarget "PiPing-iOS" */;
+			buildPhases = (
+				300000000000000000000004 /* Sources */,
+				300000000000000000000002 /* Frameworks */,
+				300000000000000000000006 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = "PiPing-iOS";
+			packageProductDependencies = (
+				900000000000000000000001 /* PiPingCore */,
+				900000000000000000000002 /* PiPingCloudKit */,
+			);
+			productName = "PiPing-iOS";
+			productReference = 20000000000000000000000F /* PiPing-iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		600000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					500000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+						SystemCapabilities = {
+							com.apple.iCloud = {enabled = 1; };
+						};
+					};
+					500000000000000000000002 = {
+						CreatedOnToolsVersion = 26.0;
+						SystemCapabilities = {
+							com.apple.Push = {enabled = 1; };
+							com.apple.iCloud = {enabled = 1; };
+						};
+					};
+				};
+			};
+			buildConfigurationList = 700000000000000000000001 /* Build configuration list for PBXProject "PiPing" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = 400000000000000000000001;
+			packageReferences = (800000000000000000000001 /* XCLocalSwiftPackageReference "." */,);
+			productRefGroup = 40000000000000000000000B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				500000000000000000000001 /* PiPing-macOS */,
+				500000000000000000000002 /* PiPing-iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		300000000000000000000005 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (100000000000000000000013 /* PiPingMenuBar.svg in Resources */, 100000000000000000000014 /* PiPingMenuBarAttentionLight.svg in Resources */, 100000000000000000000017 /* PiPingMenuBarAttentionDark.svg in Resources */, 100000000000000000000015 /* PiPing.icon in Resources */,); runOnlyForDeploymentPostprocessing = 0; };
+		300000000000000000000006 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (100000000000000000000016 /* PiPing.icon in Resources */,); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		300000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000001 /* PiPingMacApp.swift in Sources */,
+				100000000000000000000002 /* ContentView.swift in Sources */,
+				100000000000000000000003 /* MenuBarContent.swift in Sources */,
+				100000000000000000000012 /* MenuBarLabel.swift in Sources */,
+				100000000000000000000004 /* NotificationPreviewCard.swift in Sources */,
+				100000000000000000000005 /* SettingsView.swift in Sources */,
+				100000000000000000000006 /* LocalSignalListener.swift in Sources */,
+				100000000000000000000007 /* SystemLocalNotificationService.swift in Sources */,
+				100000000000000000000008 /* MacAppStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		300000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000009 /* PiPingIOSApp.swift in Sources */,
+				10000000000000000000000A /* MobileSetupStore.swift in Sources */,
+				10000000000000000000000B /* MobileRootView.swift in Sources */,
+				10000000000000000000000C /* MobileStatusView.swift in Sources */,
+				10000000000000000000000D /* PrivacyView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		710000000000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; SWIFT_VERSION = 6.0;}; name = Debug; };
+		710000000000000000000002 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_VERSION = 6.0;}; name = Release; };
+		710000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000010 /* PiPing.xcconfig */;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = PiPing;
+				CODE_SIGN_ENTITLEMENTS = "Config/PiPing-macOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(PIPING_DEVELOPMENT_TEAM)";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/PiPing-macOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = PiPing;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PIPING_MACOS_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = PiPing;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		710000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000010 /* PiPing.xcconfig */;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = PiPing;
+				CODE_SIGN_ENTITLEMENTS = "Config/PiPing-macOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(PIPING_DEVELOPMENT_TEAM)";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/PiPing-macOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = PiPing;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PIPING_MACOS_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = PiPing;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		710000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000010 /* PiPing.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = PiPing;
+				CODE_SIGN_ENTITLEMENTS = "Config/PiPing-iOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(PIPING_DEVELOPMENT_TEAM)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/PiPing-iOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = PiPing;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PIPING_IOS_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = "PiPing-iOS";
+				PIPING_APS_ENVIRONMENT = development;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		710000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000010 /* PiPing.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = PiPing;
+				CODE_SIGN_ENTITLEMENTS = "Config/PiPing-iOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(PIPING_DEVELOPMENT_TEAM)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/PiPing-iOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = PiPing;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PIPING_IOS_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = "PiPing-iOS";
+				PIPING_APS_ENVIRONMENT = production;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		700000000000000000000001 /* Build configuration list for PBXProject "PiPing" */ = {isa = XCConfigurationList; buildConfigurations = (710000000000000000000001 /* Debug */, 710000000000000000000002 /* Release */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		700000000000000000000002 /* Build configuration list for PBXNativeTarget "PiPing-macOS" */ = {isa = XCConfigurationList; buildConfigurations = (710000000000000000000003 /* Debug */, 710000000000000000000004 /* Release */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		700000000000000000000003 /* Build configuration list for PBXNativeTarget "PiPing-iOS" */ = {isa = XCConfigurationList; buildConfigurations = (710000000000000000000005 /* Debug */, 710000000000000000000006 /* Release */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		800000000000000000000001 /* XCLocalSwiftPackageReference "." */ = {isa = XCLocalSwiftPackageReference; relativePath = .; };
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		900000000000000000000001 /* PiPingCore */ = {isa = XCSwiftPackageProductDependency; package = 800000000000000000000001 /* XCLocalSwiftPackageReference "." */; productName = PiPingCore; };
+		900000000000000000000002 /* PiPingCloudKit */ = {isa = XCSwiftPackageProductDependency; package = 800000000000000000000001 /* XCLocalSwiftPackageReference "." */; productName = PiPingCloudKit; };
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 600000000000000000000001 /* Project object */;
+}

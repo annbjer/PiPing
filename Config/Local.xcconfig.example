@@ -1,0 +1,8 @@
+// Copy this file to ignored Local.xcconfig only after the signing and CloudKit
+// approval gate. Never commit account-specific values.
+
+PIPING_DEVELOPMENT_TEAM = TEAM_ID_PLACEHOLDER
+PIPING_MACOS_BUNDLE_IDENTIFIER = org.example.PiPing.macOS
+PIPING_IOS_BUNDLE_IDENTIFIER = org.example.PiPing.iOS
+PIPING_CLOUDKIT_CONTAINER_IDENTIFIER = iCloud.org.example.PiPing
+PIPING_CLOUDKIT_ACTIVATION = YES
