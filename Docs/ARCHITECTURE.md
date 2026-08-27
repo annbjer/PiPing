@@ -49,10 +49,12 @@ device. Normal iPhone notification routing determines whether the iPhone or
 paired Watch alerts. Siri Announce Notifications remains an optional system
 setting; PiPing does not implement speech or voice commands.
 
-The current private development build has verified the complete explicit-run
-path: Pi settled, the Mac notified, CloudKit accepted the rolling record, the
-iPhone notified, and the paired Apple Watch mirrored the alert. The Pi extension
-remains per-session and is not globally installed.
+The current private development build has verified the complete path with both
+an explicitly loaded hook and a newly started ordinary `pi` session: Pi settled,
+the Mac notified, CloudKit accepted the rolling record, the iPhone notified, and
+the paired Apple Watch mirrored the alert. Normal local use installs the
+repository through Pi's user-package mechanism; no notification or control data
+is added to Pi's configuration beyond the local package reference.
 
 ## Explicit exclusions
 

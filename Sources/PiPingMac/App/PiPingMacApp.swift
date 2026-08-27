@@ -36,7 +36,7 @@ struct PiPingMacApp: App {
         }
 
         Settings {
-            SettingsView()
+            SettingsView(store: store)
         }
     }
 }

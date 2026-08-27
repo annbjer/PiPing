@@ -8,7 +8,7 @@ struct MenuBarContent: View {
     var body: some View {
         Group {
             Label(store.status.label, systemImage: store.status.symbol)
-            Text("Threshold: \(Int(store.minimumDuration))s")
+            Text(thresholdLabel)
             Divider()
             Button("Open PiPing") {
                 openWindow(id: "main")
@@ -34,5 +34,12 @@ struct MenuBarContent: View {
             }
             store.acknowledgeAttention()
         }
+    }
+
+    private var thresholdLabel: String {
+        if store.notificationThreshold == .everyCompletion {
+            return "Threshold: Every completion"
+        }
+        return "Threshold: \(Int(store.minimumDuration))s"
     }
 }

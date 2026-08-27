@@ -145,8 +145,9 @@ vulnerabilities.
 5. Confirm notification permission, lock-screen preview, default sound, iPhone
    versus Watch routing, and optional Siri announce behavior as user-controlled
    system settings.
-6. Re-run the full explicit Pi extension path and confirm that the Mac reports
-   remote delivery only after the CloudKit write succeeds.
+6. Re-run both the explicit extension path and a newly started ordinary `pi`
+   session, and confirm that the Mac reports remote delivery only after the
+   CloudKit write succeeds.
 
 ## Severity calibration
 

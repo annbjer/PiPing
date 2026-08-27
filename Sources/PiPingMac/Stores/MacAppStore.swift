@@ -73,11 +73,12 @@ final class MacAppStore {
     private(set) var hasUnreadAttention = false
     private(set) var cloudDeliveryEnabled: Bool
     private(set) var cloudDeliveryStatus: CloudDeliveryStatus
+    private(set) var notificationThreshold: NotificationThreshold
 
-    let minimumDuration: TimeInterval
+    private(set) var minimumDuration: TimeInterval
 
     init(
-        minimumDuration: TimeInterval = LifecycleGate.defaultMinimumDuration,
+        notificationThreshold: NotificationThreshold? = nil,
         publisher: (any AttentionPublishing)? = nil,
         notifications: any LocalNotificationDelivering = SystemLocalNotificationService(),
         signalMailboxCapacity: Int = LocalSignalMailbox.defaultCapacity,
@@ -85,8 +86,15 @@ final class MacAppStore {
         cloudContainerIdentifier: String? = CloudKitConfiguration.containerIdentifier(),
         defaults: UserDefaults = .standard
     ) {
-        self.minimumDuration = minimumDuration
-        gate = LifecycleGate(minimumDuration: minimumDuration)
+        let storedThreshold = (defaults.object(
+            forKey: Self.notificationThresholdDefaultsKey
+        ) as? NSNumber).flatMap {
+            NotificationThreshold(rawValue: $0.intValue)
+        }
+        let resolvedThreshold = notificationThreshold ?? storedThreshold ?? .thirtySeconds
+        self.notificationThreshold = resolvedThreshold
+        minimumDuration = resolvedThreshold.minimumDuration
+        gate = LifecycleGate(minimumDuration: resolvedThreshold.minimumDuration)
         let cloudDeliveryAvailable = cloudActivationEnabled && cloudContainerIdentifier != nil
         if let publisher {
             self.publisher = publisher
@@ -198,6 +206,13 @@ final class MacAppStore {
         hasUnreadAttention = false
     }
 
+    func setNotificationThreshold(_ threshold: NotificationThreshold) {
+        notificationThreshold = threshold
+        minimumDuration = threshold.minimumDuration
+        gate.updateMinimumDuration(threshold.minimumDuration)
+        defaults.set(threshold.rawValue, forKey: Self.notificationThresholdDefaultsKey)
+    }
+
     func enableCloudDelivery() {
         guard cloudDeliveryAvailable else { return }
         defaults.set(true, forKey: Self.cloudApprovalDefaultsKey)
@@ -212,4 +227,5 @@ final class MacAppStore {
     }
 
     private static let cloudApprovalDefaultsKey = "PiPingCloudDeliveryApprovedV1"
+    private static let notificationThresholdDefaultsKey = "PiPingNotificationThresholdSecondsV1"
 }

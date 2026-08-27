@@ -29,11 +29,11 @@ public enum GateDecision: Equatable, Sendable {
 public struct LifecycleGate: Sendable {
     public static let defaultMinimumDuration: TimeInterval = 30
 
-    public let minimumDuration: TimeInterval
+    public private(set) var minimumDuration: TimeInterval
     private var startedAt: Date?
 
     public init(minimumDuration: TimeInterval = Self.defaultMinimumDuration) {
-        precondition(minimumDuration >= 1)
+        precondition(minimumDuration >= 0)
         self.minimumDuration = minimumDuration
     }
 
@@ -41,6 +41,11 @@ public struct LifecycleGate: Sendable {
 
     public mutating func reset() {
         startedAt = nil
+    }
+
+    public mutating func updateMinimumDuration(_ minimumDuration: TimeInterval) {
+        precondition(minimumDuration >= 0)
+        self.minimumDuration = minimumDuration
     }
 
     public mutating func receive(_ signal: LocalSignal, at now: Date) -> GateDecision {

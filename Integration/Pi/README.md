@@ -12,5 +12,6 @@ The hook:
 - ignores helper failures so it cannot block Pi indefinitely; and
 - provides no reverse channel, tool, command, approval, or remote action.
 
-Do not install this package globally during local scaffold verification. See
-`Docs/SETUP.md` for the later gated procedure.
+For an isolated trial, load the extension explicitly for one Pi run. For normal
+use, install the repository through Pi's user-package mechanism. Both procedures
+and the reversible uninstall command are documented in `Docs/SETUP.md`.

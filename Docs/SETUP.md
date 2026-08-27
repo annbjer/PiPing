@@ -71,16 +71,46 @@ Dark Mode, open **System Settings > Appearance**, set **Icon & widget style** to
 PiPing's light or dark icon alongside the current appearance. The similarly
 named automatic folder-color option affects Finder folders only.
 
-## Explicit per-session Pi hook
+## Notification threshold
 
-The tracked hook has been verified by loading it by path for one Pi run. It is
-not installed globally and does not alter Pi configuration. From the repository
-root, an isolated read-only exercise can use:
+PiPing defaults to notifying only after a Pi run lasts at least 30 seconds. A
+fast response is intentionally quiet; this does not mean the integration failed.
+In **PiPing > Settings**, **Notify me** offers three native, locally persisted
+choices:
+
+- **Every completion**
+- **After 15 seconds**
+- **After 30 seconds** (default)
+
+The preference changes only the native Mac lifecycle gate. It does not expand
+the two-token Pi protocol or add prompt, response, project, or session data to
+notifications.
+
+## Pi hook installation
+
+From the repository root, an isolated read-only exercise can load the tracked
+hook for one run without altering Pi's saved configuration:
 
 ```bash
 pi --extension Integration/Pi/piping.ts --no-session --tools read,grep,find,ls
 ```
 
-The bundled native helper must already exist at the path expected by the hook.
-Do not use `pi install` or edit global Pi settings without a separate approval.
-The package remains `private` and unlicensed to prevent accidental publication.
+For normal use, install the local repository through Pi's official user-package
+mechanism:
+
+```bash
+pi install .
+pi list
+```
+
+This adds the PiPing package to Pi's user settings. It does not replace other
+extensions, and it applies only to newly started Pi sessions. Remove the entry
+reversibly from the repository root with:
+
+```bash
+pi remove .
+```
+
+The bundled native helper must already exist at the repository-relative path
+expected by the hook. The package remains `private` and unlicensed to prevent
+accidental publication.

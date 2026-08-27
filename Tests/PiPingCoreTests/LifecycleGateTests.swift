@@ -9,6 +9,31 @@ struct LifecycleGateTests {
     @Test("uses a thirty-second default threshold")
     func defaultThreshold() {
         #expect(LifecycleGate.defaultMinimumDuration == 30)
+        #expect(NotificationThreshold.thirtySeconds.minimumDuration == 30)
+        #expect(NotificationThreshold.allCases.map(\.rawValue) == [0, 15, 30])
+    }
+
+    @Test("can notify for every completed run")
+    func everyCompletion() {
+        var gate = LifecycleGate(
+            minimumDuration: NotificationThreshold.everyCompletion.minimumDuration
+        )
+        #expect(gate.receive(.start, at: start) == .started)
+        #expect(
+            gate.receive(.settled, at: start)
+                == .attention(elapsed: 0)
+        )
+    }
+
+    @Test("updates the threshold without discarding an active run")
+    func updatesThreshold() {
+        var gate = LifecycleGate()
+        #expect(gate.receive(.start, at: start) == .started)
+        gate.updateMinimumDuration(15)
+        #expect(
+            gate.receive(.settled, at: start.addingTimeInterval(16))
+                == .attention(elapsed: 16)
+        )
     }
 
     @Test("ignores a settled signal without a start")

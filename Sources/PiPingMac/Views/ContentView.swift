@@ -15,7 +15,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(store.status.label)
                         .font(.title3.weight(.semibold))
-                    Text("Runs shorter than \(Int(store.minimumDuration)) seconds stay quiet.")
+                    Text(thresholdDescription)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -74,5 +74,12 @@ struct ContentView: View {
         case .denied: "Denied in System Settings"
         case .authorized: "Allowed"
         }
+    }
+
+    private var thresholdDescription: String {
+        if store.notificationThreshold == .everyCompletion {
+            return "Every completed Pi run notifies."
+        }
+        return "Runs shorter than \(Int(store.minimumDuration)) seconds stay quiet."
     }
 }

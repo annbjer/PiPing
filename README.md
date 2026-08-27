@@ -28,14 +28,15 @@ data, or approval details.
 - Public-safe tracked configuration with CloudKit disabled by default and an
   ignored private-local override path.
 - Signed Mac and iPhone development builds verified on real devices.
-- A genuine explicit Pi extension run delivered the fixed notification on the
-  Mac and iPhone, with normal system mirroring to the paired Apple Watch.
+- Genuine explicit and ordinary `pi` runs delivered the fixed notification on
+  the Mac and iPhone, with normal system mirroring to the paired Apple Watch.
 - The iOS 26.5 Simulator runtime is installed for local simulator validation.
 
 The signed Mac app runs as one listener window and reports remote delivery as
-sent only after CloudKit accepts the rolling-record write. The Pi extension is
-still loaded explicitly per session; it is not globally installed. No commit,
-remote repository, or publication has been performed.
+sent only after CloudKit accepts the rolling-record write. The private
+development machine loads the Pi extension through Pi's user-package mechanism,
+so each newly started ordinary `pi` session is observed automatically. No remote
+repository or publication has been performed.
 
 ## Local verification
 
