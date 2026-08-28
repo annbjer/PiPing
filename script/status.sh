@@ -41,8 +41,12 @@ git -C "$ROOT_DIR" status --short
 
 CANONICAL_APP="/Applications/PiPing.app"
 if [[ -d "$CANONICAL_APP" ]]; then
-  echo "Canonical installation:"
-  "$ROOT_DIR/script/check_installation.sh"
+  if "$ROOT_DIR/script/check_installation.sh" >/dev/null 2>&1; then
+    echo "Canonical installation: valid (private details hidden)"
+  else
+    echo "Canonical installation: validation failed (private details hidden)" >&2
+    exit 1
+  fi
 else
   echo "Canonical installation: absent"
 fi
