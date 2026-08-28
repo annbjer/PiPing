@@ -24,6 +24,7 @@ PENDING_APP="/Applications/.PiPing-installing-$$.app"
 PREVIOUS_APP="/Applications/.PiPing-previous-$$.app"
 restore_needed=false
 candidate_installed=false
+backup=""
 
 cleanup() {
   "$LSREGISTER" -u "$PENDING_APP" 2>/dev/null || true
@@ -35,10 +36,22 @@ cleanup() {
       "$LSREGISTER" -u "$CANONICAL_APP" 2>/dev/null || true
       rm -rf "$CANONICAL_APP"
     fi
-    if [[ "$restore_needed" == true && -e "$PREVIOUS_APP" ]]; then
-      mv "$PREVIOUS_APP" "$CANONICAL_APP" || true
-      "$LSREGISTER" -f "$CANONICAL_APP" 2>/dev/null || true
-      open "$CANONICAL_APP" 2>/dev/null || true
+    if [[ "$restore_needed" == true ]]; then
+      if [[ -e "$PREVIOUS_APP" ]]; then
+        mv "$PREVIOUS_APP" "$CANONICAL_APP" || true
+      elif [[ -n "$backup" && -f "$backup" ]]; then
+        restore_root="$(mktemp -d "$ROOT_DIR/.build/install-restore.XXXXXX")"
+        if ditto -x -k "$backup" "$restore_root" \
+          && [[ -d "$restore_root/PiPing.app" ]]; then
+          ditto "$restore_root/PiPing.app" "$CANONICAL_APP" || true
+        fi
+        rm -rf "$restore_root"
+      fi
+      if [[ -d "$CANONICAL_APP" ]] \
+        && "$ROOT_DIR/script/validate_signed_local_app.sh" "$CANONICAL_APP" >/dev/null 2>&1; then
+        "$LSREGISTER" -f "$CANONICAL_APP" 2>/dev/null || true
+        open "$CANONICAL_APP" 2>/dev/null || true
+      fi
     fi
   fi
 }
@@ -69,7 +82,6 @@ rm -rf "$PENDING_APP" "$PREVIOUS_APP"
 ditto "$SOURCE_APP" "$PENDING_APP"
 "$ROOT_DIR/script/validate_signed_local_app.sh" "$PENDING_APP"
 
-backup=""
 if [[ -d "$CANONICAL_APP" ]]; then
   backup="$ROOT_DIR/.build/install-backups/PiPing-before-$(date +%Y%m%dT%H%M%S).app.zip"
   ditto -c -k --sequesterRsrc --keepParent "$CANONICAL_APP" "$backup"
@@ -93,13 +105,13 @@ candidate_installed=true
 "$ROOT_DIR/script/validate_signed_local_app.sh" "$CANONICAL_APP"
 
 "$LSREGISTER" -u "$PREVIOUS_APP" 2>/dev/null || true
+rm -rf "$PREVIOUS_APP"
 "$LSREGISTER" -f "$CANONICAL_APP"
 open "$CANONICAL_APP"
 sleep 4
 env -u PIPING_CANONICAL_APP "$ROOT_DIR/script/check_installation.sh"
 candidate_installed=false
 restore_needed=false
-rm -rf "$PREVIOUS_APP"
 
 if [[ -n "$backup" ]]; then
   echo "Compressed rollback: $backup"
