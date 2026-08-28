@@ -8,9 +8,26 @@ DERIVED_DATA="$ROOT_DIR/.build/DerivedData-run"
 BUILT_APP="$DERIVED_DATA/Build/Products/Debug/PiPing.app"
 DIST_DIR="$ROOT_DIR/dist/unsigned"
 DIST_APP="$DIST_DIR/PiPing.app"
+PUBLIC_BUNDLE_IDENTIFIER="org.example.PiPing.macOS"
+STABLE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
+OFFICIAL_ICON_SOURCE="$ROOT_DIR/Assets/Brand/AppIcon/PiPing.icon"
 
-if [[ -z "${DEVELOPER_DIR:-}" && -d "/Applications/Xcode.app/Contents/Developer" ]]; then
-  export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
+if [[ ! -x "$STABLE_DEVELOPER_DIR/usr/bin/xcodebuild" ]]; then
+  echo "Stable Xcode is required at $STABLE_DEVELOPER_DIR" >&2
+  exit 1
+fi
+export DEVELOPER_DIR="$STABLE_DEVELOPER_DIR"
+
+if [[ ! -d "$OFFICIAL_ICON_SOURCE" ]]; then
+  echo "Official app icon is missing: $OFFICIAL_ICON_SOURCE" >&2
+  exit 1
+fi
+
+ICON_SOURCE_COUNT="$(find "$ROOT_DIR/Assets" -type d -name '*.icon' | wc -l | tr -d ' ')"
+FOUND_ICON_SOURCE="$(find "$ROOT_DIR/Assets" -type d -name '*.icon' -print -quit)"
+if [[ "$ICON_SOURCE_COUNT" -ne 1 || "$FOUND_ICON_SOURCE" != "$OFFICIAL_ICON_SOURCE" ]]; then
+  echo "Expected exactly one app icon source: $OFFICIAL_ICON_SOURCE" >&2
+  exit 1
 fi
 
 swift build \
@@ -24,24 +41,38 @@ xcodebuild \
   -configuration Debug \
   -destination "generic/platform=macOS" \
   -derivedDataPath "$DERIVED_DATA" \
+  PRODUCT_BUNDLE_IDENTIFIER="$PUBLIC_BUNDLE_IDENTIFIER" \
+  PIPING_CLOUDKIT_ACTIVATION=NO \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   build
 
 SIGNAL_BINARY="$(swift build --package-path "$ROOT_DIR" --scratch-path "$ROOT_DIR/.build/swiftpm" --show-bin-path)/PiPingSignal"
-rm -rf "$DIST_APP"
 mkdir -p "$DIST_DIR"
-ditto "$BUILT_APP" "$DIST_APP"
-mkdir -p "$DIST_APP/Contents/Helpers"
-cp "$SIGNAL_BINARY" "$DIST_APP/Contents/Helpers/PiPingSignal"
-chmod +x "$DIST_APP/Contents/Helpers/PiPingSignal"
+STAGE_ROOT="$(mktemp -d "$ROOT_DIR/.build/unsigned-stage.XXXXXX")"
+STAGED_APP="$STAGE_ROOT/PiPing.app"
+ditto "$BUILT_APP" "$STAGED_APP"
+mkdir -p "$STAGED_APP/Contents/Helpers"
+cp "$SIGNAL_BINARY" "$STAGED_APP/Contents/Helpers/PiPingSignal"
+chmod +x "$STAGED_APP/Contents/Helpers/PiPingSignal"
+
+if [[ -e "$DIST_APP" ]]; then
+  PREVIOUS_APP="$ROOT_DIR/.build/PiPing-unsigned-previous-$(date +%Y%m%dT%H%M%S).app"
+  mv "$DIST_APP" "$PREVIOUS_APP"
+fi
+mv "$STAGED_APP" "$DIST_APP"
 
 open_app() {
   /usr/bin/open -n "$DIST_APP"
 }
 
 stop_existing_app() {
-  pkill -x "$APP_NAME" >/dev/null 2>&1 || true
+  local executable="$DIST_APP/Contents/MacOS/$APP_NAME"
+  local pids
+  pids="$(pgrep -f "^${executable}$" || true)"
+  if [[ -n "$pids" ]]; then
+    kill $pids
+  fi
 }
 
 case "$MODE" in

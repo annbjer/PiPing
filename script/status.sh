@@ -2,10 +2,13 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+STABLE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 
-if [[ -z "${DEVELOPER_DIR:-}" && -d "/Applications/Xcode.app/Contents/Developer" ]]; then
-  export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
+if [[ ! -x "$STABLE_DEVELOPER_DIR/usr/bin/xcodebuild" ]]; then
+  echo "Stable Xcode is required at $STABLE_DEVELOPER_DIR" >&2
+  exit 1
 fi
+export DEVELOPER_DIR="$STABLE_DEVELOPER_DIR"
 
 echo "PiPing development status"
 xcodebuild -version
