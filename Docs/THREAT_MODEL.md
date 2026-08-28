@@ -10,11 +10,14 @@ additionally requires valid private-local configuration plus an explicit Mac
 enable action. Phase 2 controls remain disabled in source
 (`Sources/PiPingCore/FeatureGates.swift:3-26`).
 
-Phase 1 accepts only the lifecycle facts `start` and `settled`, applies a
-30-second minimum, and emits fixed notification copy. It intentionally has no
-reply or control channel. The fixed copy and event data are defined in
-`Sources/PiPingCore/AttentionContent.swift:3-19`; the threshold and state
-transitions are in `Sources/PiPingCore/LifecycleGate.swift:29-65`.
+Phase 1 accepts only the lifecycle facts `start` and `settled` paired with an
+extension-generated random UUID rotated after each settlement attempt, applies
+a configurable local threshold, and
+emits fixed notification copy. The UUID is not Pi's session ID and never leaves
+the local Mac lifecycle path. Phase 1 intentionally has no reply or control
+channel. The fixed copy is defined in
+`Sources/PiPingCore/AttentionContent.swift`; protocol validation and independent
+bounded state transitions are in `Sources/PiPingCore/LifecycleGate.swift`.
 
 The primary security objectives are:
 
@@ -35,7 +38,7 @@ The primary security objectives are:
 | --- | --- |
 | Pi task content | Must never be read, serialized, logged, or transmitted |
 | Notification content | Compile-time generic title and body only |
-| Lifecycle integrity | Only fixed `start`/`settled`; notify only after the threshold |
+| Lifecycle integrity | Only fixed `start`/`settled` plus a valid opaque UUID; notify only after the threshold for that UUID |
 | Directionality | Mac-to-device attention delivery only; no reply path |
 | Local IPC | Same-user, non-networked, bounded, exact allowlist |
 | Cloud records | Private database; one fixed rolling record name and timestamp field only |
@@ -46,10 +49,10 @@ The primary security objectives are:
 
 | Component or resource | Current role | Current exposure |
 | --- | --- | --- |
-| Pi TypeScript hook | Maps two documented lifecycle events to fixed helper arguments | Local Pi process only; no event fields read (`Integration/Pi/piping.ts:95-107`) |
-| Native `PiPingSignal` helper | Validates one argument and writes one fixed signal | Bundled only in the canonical installed Mac app; no network (`Sources/PiPingSignal/main.swift:22-39`) |
+| Pi TypeScript hook | Maps two documented lifecycle events to fixed signals plus one random UUID per active lifecycle cycle | Local Pi process only; no event/context fields read (`Integration/Pi/piping.ts`) |
+| Native `PiPingSignal` helper | Validates a fixed signal and canonical UUID, then writes one bounded line | Bundled only in the canonical installed Mac app; no network (`Sources/PiPingSignal/main.swift`) |
 | `$HOME/.piping/events.fifo` | Local one-way IPC | `0600` FIFO inside a validated `0700` directory (`Sources/PiPingCore/LocalIPC.swift:30-160`) |
-| Lifecycle gate | Replaces stale starts and suppresses missing or short runs | In-memory macOS process state only (`Sources/PiPingCore/LifecycleGate.swift:42-65`) |
+| Lifecycle gate | Tracks up to 256 opaque tokens independently; replaces only same-token starts and suppresses missing, expired, or short runs | In-memory macOS process state only (`Sources/PiPingCore/LifecycleGate.swift`) |
 | macOS UserNotifications | Presents fixed copy with normal system sound | Permission checked; local notification only (`Sources/PiPingMac/Services/SystemLocalNotificationService.swift:37-52`) |
 | Private CloudKit database | Mac-to-iPhone attention transport | Publishing requires valid private-local configuration and explicit user enablement (`Sources/PiPingMac/Stores/MacAppStore.swift:77-105`, `180-190`) |
 | CloudKit query subscription | Fixed iPhone notification | User-initiated setup; record creation and update, fixed copy/sound, no desired fields (`Sources/PiPingCloudKit/CloudKitSchema.swift:18-30`) |
@@ -59,24 +62,28 @@ The primary security objectives are:
 ### Trust boundaries
 
 1. **Pi runtime to extension hook.** Prompt and message objects are untrusted and
-   may contain secrets. The handlers ignore event fields and pass only literal
-   strings (`Integration/Pi/piping.ts:95-107`). Tests inject synthetic private
-   fields and verify only two signals escape (`Tests/PiHookTests/piping.test.mjs:26-40`).
+   may contain secrets. The handlers ignore all event/context fields and pass
+   only literal signals plus a random UUID created for the active lifecycle
+   cycle and cleared before its settlement helper call (`Integration/Pi/piping.ts`).
+   Tests inject synthetic private fields and
+   verify no content escapes (`Tests/PiHookTests/piping.test.mjs`).
 2. **Hook to native helper.** The hook uses `execFile` with the fixed canonical
-   path `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`, a single typed
-   argument, no shell, a one-second child timeout, and an independent 1.25-second
-   Promise deadline (`Integration/Pi/piping.ts:40-88`). Failure is reported
-   generically without blocking Pi, and there is no fallback to a development
-   or backup executable.
+   path `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`, two typed
+   arguments, no shell, a one-second child timeout, and an independent 1.25-second
+   Promise deadline. Failure is reported generically without blocking Pi, and
+   there is no fallback to a development or backup executable.
 3. **Helper to macOS companion.** Both sides validate FIFO type, owner, and
    permissions, reject extended ACLs, and open relative to a validated directory
-   descriptor with `O_NOFOLLOW`; the reader accepts at most 64 bytes per read
-   (`Sources/PiPingCore/LocalIPC.swift:30-182`,
-   `Sources/PiPingMac/Services/LocalSignalListener.swift:40-57`).
+   descriptor with `O_NOFOLLOW`. Each write is below `PIPE_BUF`; the listener's
+   bounded streaming decoder preserves valid lines across combined or split
+   reads and discards malformed or oversized lines (`Sources/PiPingCore/LocalIPC.swift`,
+   `Sources/PiPingCore/LocalSignalStreamDecoder.swift`).
 4. **Companion to local notification center.** Notification permission is an
    explicit user action, and delivery checks current authorization before using
-   the fixed title, body, and default sound
-   (`Sources/PiPingMac/Services/SystemLocalNotificationService.swift:23-52`).
+   the fixed title, body, and default sound. One fixed category has no actions
+   and uses Apple's public `.customDismissAction` solely so clicks and dismissals
+   acknowledge the exact local request UUID. No notification content is copied
+   or persisted (`Sources/PiPingMac/Services/SystemLocalNotificationService.swift`).
 5. **Companion to private CloudKit.** The adapter selects
    `privateCloudDatabase` and saves one allowlisted rolling record
    (`Sources/PiPingCloudKit/CloudKitAttentionPublisher.swift:12-32`). The
@@ -123,14 +130,14 @@ vulnerabilities.
 | --- | --- | --- | --- | --- |
 | TM-01 | Pi task text tries to become a notification body or command. | Privacy leak or control confusion | Hook ignores event fields; content is fixed in Swift; schema has one timestamp field. | A malicious source change could widen the boundary. Keep tests and review mandatory. |
 | TM-02 | Another local user pre-creates a file or symlink at the IPC path. | Signal interception, spoofing, or unsafe file access | Runtime directory is forced to `0700`; both ends open with `O_NOFOLLOW` and validate the pinned descriptors with `fstat`, requiring same-owner FIFO objects with no group/other bits or extended ACL. | Reassess sandbox/container paths before distribution. |
-| TM-03 | A same-user process writes repeated valid signals. | Nuisance notification spam or misleading attention state | Exact two-token allowlist, 30-second gate, latest-start replacement, no actions or authority. Stale and overlapping starts fail quiet rather than accumulating duration. | Same-user spoofing and missed per-session alerts during overlapping runs remain possible by design. Add identifiers only behind a separately reviewed privacy boundary. |
-| TM-04 | Oversized or malformed local input targets the parser. | Crash, truncation, or bypass | Reader bounds each read to 64 bytes; decoder accepts only exact `start`/`settled` forms (`Sources/PiPingCore/LifecycleGate.swift:3-18`). | Same-user writers can cause denial of service; fuzz the decoder/listener before device testing. |
+| TM-03 | A same-user process writes repeated valid signal/UUID pairs. | Nuisance notification spam, memory growth, or misleading attention state | Exact signal/UUID grammar, threshold gate, 64-event mailbox, 256-token gate, seven-day expiry, 64-delivery backlog, 256 unread IDs, same-token latest-start replacement, no actions or authority. Legitimate overlapping tokens remain independent. | A hostile same-user process can still cause bounded denial of service or nuisance alerts; PiPing does not isolate mutually hostile same-user code. |
+| TM-04 | Combined, split, oversized, or malformed local input targets the parser. | Lost events, crash, truncation, or bypass | A stateful decoder reassembles split lines, emits multiple combined lines, caps each line at 64 bytes, discards oversized input through the next newline, and accepts only fixed signals plus a canonical UUID. Unit tests cover each boundary. | Same-user writers can still consume bounded parser/mailbox capacity. Keep decoder and flood tests mandatory. |
 | TM-05 | CloudKit is configured with the wrong database, fields, or subscription payload. | Cross-user exposure or content leakage | Adapter hard-codes the private database; the record has one fixed name and only `occurredAt`; the subscription requests no record keys (`Tests/PiPingCloudKitTests/CloudKitSchemaTests.swift:9-36`). | Signed Mac and iOS entitlements and the end-to-end private delivery path were inspected and verified. Re-inspect exact release artifacts after material changes. |
 | TM-06 | A notification reveals sensitive content on a locked screen or through Siri/AirPods. | Shoulder-surfing or audible disclosure | Copy is generic and contains no node, project, session, prompt, output, or file data. | Users still control notification previews and Announce settings; setup docs must preserve that choice. |
 | TM-07 | Signing keys, Team IDs, device IDs, local paths, or CloudKit identifiers enter Git. | Credential compromise or irreversible public disclosure | Signing credentials remain in local Keychain/Xcode state; account-specific configuration, provisioning data, and build outputs are ignored. Source contains only public placeholders and entitlement templates. | `.gitignore` cannot repair history. Rotate credentials and clean/restart history if contamination ever occurs. |
-| TM-08 | Future yes/no/stop work reuses the notification pipeline as a hidden return channel. | Unauthorized remote action or command confusion | Phase 2 gate is false; no category, action, deep link, receiver, App Intent, or watch target exists. | Treat Phase 2 as a separate protocol, threat model, authorization design, and approval gate. |
+| TM-08 | Future yes/no/stop work reuses the notification pipeline as a hidden return channel. | Unauthorized remote action or command confusion | Phase 2 gate is false; the sole category is actionless and reports only local click/dismiss acknowledgement; no command action, deep link, App Intent, or watch target exists. | Treat Phase 2 as a separate protocol, threat model, authorization design, and approval gate. |
 | TM-09 | CloudKit, notifications, the app, or the FIFO is unavailable. | Missed attention alert | Failures are generic and content-free; the transport has no control authority. | Delivery is best effort. Do not use PiPing for safety-critical completion guarantees. |
-| TM-10 | Dashboard, presence, Tailscale, session, project, or file features creep into Phase 1. | Broader metadata and network attack surface | Current architecture explicitly excludes them and no data model exists. | Keep them in a separately approved backlog with a new privacy and connectivity review. |
+| TM-10 | Dashboard, presence, Tailscale, Pi session identity, terminal, project, or file features creep into Phase 1. | Broader metadata and network attack surface | The only correlation value is a locally generated random UUID with no Pi-derived metadata; current architecture has no model for those features. | Keep richer identity or navigation features in a separately approved backlog with a new privacy and connectivity review. |
 
 ### Defense-in-depth verification for device testing and release
 
@@ -148,9 +155,10 @@ vulnerabilities.
 5. Confirm notification permission, lock-screen preview, default sound, iPhone
    versus Watch routing, and optional Siri announce behavior as user-controlled
    system settings.
-6. Re-run both the explicit extension path and a newly started ordinary `pi`
-   session, and confirm that the Mac reports remote delivery only after the
-   CloudKit write succeeds.
+6. Re-run both the explicit extension path and newly started ordinary `pi`
+   sessions, including two overlapping runs that settle independently, and
+   confirm that each eligible completion notifies while the Mac reports remote
+   delivery only after its CloudKit write succeeds.
 
 ## Severity calibration
 

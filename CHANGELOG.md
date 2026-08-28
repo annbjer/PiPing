@@ -17,6 +17,11 @@ First public source-only release.
 - Configurable local notification thresholds.
 - Native Icon Composer artwork with automatic Light/Dark appearance.
 - Canonical installed-helper Pi integration with timeout and failure reporting.
+- Independent bounded lifecycle tracking for overlapping Pi sessions.
+- Bounded FIFO stream decoding for combined, split, malformed, and oversized
+  local input.
+- Native notification-click and dismissal acknowledgement for the menu-bar
+  attention indicator.
 - Public-safe build verification and release-audit documentation.
 
 ### Security

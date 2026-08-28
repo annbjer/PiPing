@@ -10,7 +10,10 @@ struct ContentView: View {
                 Image(systemName: store.status.symbol)
                     .font(.title2)
                     .foregroundStyle(
-                        store.status == .listenerError ? Color.orange : Color.accentColor
+                        store.status == .listenerError
+                            || store.status == .trackingLimitReached
+                            ? Color.orange
+                            : Color.accentColor
                     )
                 VStack(alignment: .leading, spacing: 2) {
                     Text(store.status.label)

@@ -4,10 +4,15 @@ PiPing is content-free by design.
 
 ## Allowed data
 
-The local lifecycle protocol contains exactly one of two strings: `start` or
-`settled`. CloudKit overwrites one fixed rolling record whose only
-application-defined field is the `occurredAt` timestamp. Notification title and
-body are compile-time constants.
+The local lifecycle protocol contains exactly one of two fixed signals—`start`
+or `settled`—plus a random UUID generated independently for each active
+lifecycle cycle. The UUID exists only to correlate overlapping local signal
+pairs and is rotated after every settlement attempt. It is not read from Pi,
+contains no session or project data, stays in Mac
+memory only, and is never included in a notification or CloudKit record.
+CloudKit overwrites one fixed rolling record whose only application-defined
+field is the `occurredAt` timestamp. Notification title and body are compile-time
+constants.
 
 ## Prohibited data
 
@@ -15,7 +20,7 @@ The app, helper, hook, tests, fixtures, and documentation must not collect,
 store, log, or transmit:
 
 - prompts, system prompts, model responses, or tool results;
-- code, files, logs, paths, project names, or session identifiers;
+- code, files, logs, paths, project names, or Pi session identifiers;
 - terminal output, commands, approvals, credentials, or model/provider names;
 - personal names, email addresses, device identifiers, or account identifiers.
 

@@ -41,5 +41,9 @@ let package = Package(
             name: "PiPingCloudKitTests",
             dependencies: ["PiPingCore", "PiPingCloudKit"]
         ),
+        .testTarget(
+            name: "PiPingMacTests",
+            dependencies: ["PiPingCore", "PiPingMac"]
+        ),
     ]
 )

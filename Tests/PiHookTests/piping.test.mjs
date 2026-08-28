@@ -6,6 +6,9 @@ import {
   registerPiPing,
 } from "../../Integration/Pi/piping.ts";
 
+const firstToken = "00000000-0000-0000-0000-000000000001";
+const secondToken = "00000000-0000-0000-0000-000000000002";
+
 function fakePi() {
   const handlers = new Map();
   return {
@@ -20,17 +23,21 @@ function fakePi() {
 
 test("registers only the two lifecycle handlers", () => {
   const pi = fakePi();
-  registerPiPing(pi.api, async () => {});
+  registerPiPing(pi.api, async () => {}, () => firstToken);
   assert.deepEqual([...pi.handlers.keys()].sort(), [
     "agent_settled",
     "before_agent_start",
   ]);
 });
 
-test("forwards only fixed start and settled signals", async () => {
+test("forwards only fixed signals and one opaque extension token", async () => {
   const pi = fakePi();
   const signals = [];
-  registerPiPing(pi.api, async (signal) => signals.push(signal));
+  registerPiPing(
+    pi.api,
+    async (signal, sessionToken) => signals.push({ signal, sessionToken }),
+    () => firstToken,
+  );
 
   await pi.handlers.get("before_agent_start")({
     prompt: "synthetic private prompt",
@@ -41,13 +48,85 @@ test("forwards only fixed start and settled signals", async () => {
     { isIdle: () => true },
   );
 
-  assert.deepEqual(signals, ["start", "settled"]);
+  assert.deepEqual(signals, [
+    { signal: "start", sessionToken: firstToken },
+    { signal: "settled", sessionToken: firstToken },
+  ]);
+});
+
+test("keeps overlapping Pi extension instances independently identifiable", async () => {
+  const firstPi = fakePi();
+  const secondPi = fakePi();
+  const signals = [];
+  const runSignal = async (signal, sessionToken) => {
+    signals.push({ signal, sessionToken });
+  };
+  registerPiPing(firstPi.api, runSignal, () => firstToken);
+  registerPiPing(secondPi.api, runSignal, () => secondToken);
+
+  await firstPi.handlers.get("before_agent_start")({});
+  await secondPi.handlers.get("before_agent_start")({});
+  await firstPi.handlers.get("agent_settled")({}, { isIdle: () => true });
+  await secondPi.handlers.get("agent_settled")({}, { isIdle: () => true });
+
+  assert.deepEqual(signals, [
+    { signal: "start", sessionToken: firstToken },
+    { signal: "start", sessionToken: secondToken },
+    { signal: "settled", sessionToken: firstToken },
+    { signal: "settled", sessionToken: secondToken },
+  ]);
+});
+
+test("reuses a token only within one active cycle and rotates after settlement", async () => {
+  const pi = fakePi();
+  const signals = [];
+  const availableTokens = [firstToken, secondToken];
+  registerPiPing(
+    pi.api,
+    async (signal, lifecycleToken) => signals.push({ signal, lifecycleToken }),
+    () => availableTokens.shift(),
+  );
+
+  await pi.handlers.get("before_agent_start")({});
+  await pi.handlers.get("before_agent_start")({});
+  await pi.handlers.get("agent_settled")({}, { isIdle: () => true });
+  await pi.handlers.get("before_agent_start")({});
+  await pi.handlers.get("agent_settled")({}, { isIdle: () => true });
+
+  assert.deepEqual(signals, [
+    { signal: "start", lifecycleToken: firstToken },
+    { signal: "start", lifecycleToken: firstToken },
+    { signal: "settled", lifecycleToken: firstToken },
+    { signal: "start", lifecycleToken: secondToken },
+    { signal: "settled", lifecycleToken: secondToken },
+  ]);
+});
+
+test("generates a distinct opaque UUID for each default extension instance", async () => {
+  const firstPi = fakePi();
+  const secondPi = fakePi();
+  const tokens = [];
+  const runSignal = async (_signal, sessionToken) => tokens.push(sessionToken);
+  registerPiPing(firstPi.api, runSignal);
+  registerPiPing(secondPi.api, runSignal);
+
+  await firstPi.handlers.get("before_agent_start")({});
+  await secondPi.handlers.get("before_agent_start")({});
+
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  assert.match(tokens[0], uuid);
+  assert.match(tokens[1], uuid);
+  assert.notEqual(tokens[0], tokens[1]);
 });
 
 test("does not emit settled when another extension made Pi active", async () => {
   const pi = fakePi();
   const signals = [];
-  registerPiPing(pi.api, async (signal) => signals.push(signal));
+  registerPiPing(
+    pi.api,
+    async (signal) => signals.push(signal),
+    () => firstToken,
+  );
 
   await pi.handlers.get("agent_settled")({}, { isIdle: () => false });
   assert.deepEqual(signals, []);
@@ -62,11 +141,11 @@ test("uses the installed helper and reports launch failures without throwing", a
   };
   const runner = makeNativeHelperRunner(execute, (message) => failures.push(message));
 
-  await runner("settled");
+  await runner("settled", firstToken);
 
   assert.deepEqual(invocations, [{
     file: canonicalHelperPath,
-    args: ["settled"],
+    args: ["settled", firstToken],
     options: { timeout: 1_000, windowsHide: true },
   }]);
   assert.deepEqual(failures, [
@@ -93,7 +172,7 @@ test("independently resolves when the helper completion never arrives", async ()
     },
   );
 
-  const run = runner("start");
+  const run = runner("start", firstToken);
   deadline();
   await run;
   helperCompletion(null);
@@ -115,7 +194,7 @@ test("converts a synchronous executor failure into non-throwing reporting", asyn
     (message) => failures.push(message),
   );
 
-  await runner("settled");
+  await runner("settled", firstToken);
 
   assert.deepEqual(failures, [
     "[PiPing] Could not deliver the settled lifecycle signal "

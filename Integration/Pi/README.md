@@ -6,12 +6,18 @@ existing extension runtime so PiPing can observe the documented
 
 The hook:
 
-- reads no prompt, message, model, path, session, tool, code, or result data;
-- sends only the fixed strings `start` and `settled` to the native helper;
+- reads no prompt, message, model, path, Pi session, tool, code, or result data;
+- generates a random UUID for each active lifecycle cycle and sends it only with
+  the fixed `start` and `settled` helper arguments, allowing overlapping Pi
+  processes to remain independent while preventing abandoned state from
+  matching a later cycle;
 - invokes only `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`,
   without a shell;
 - ignores helper failures so it cannot block Pi indefinitely; and
 - provides no reverse channel, tool, command, approval, or remote action.
+
+The opaque UUID is not Pi's session ID. It is not persisted by the extension,
+included in notification copy, or sent to CloudKit.
 
 For an isolated trial, load the extension explicitly for one Pi run. For normal
 use, install the repository through Pi's user-package mechanism. Both procedures

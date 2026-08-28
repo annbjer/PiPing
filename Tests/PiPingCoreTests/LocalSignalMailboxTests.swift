@@ -5,25 +5,30 @@ import Testing
 @Suite("Bounded local signal mailbox")
 struct LocalSignalMailboxTests {
     private let start = Date(timeIntervalSince1970: 1_700_000_000)
+    private let token = LocalSessionToken(
+        uuid: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+    )
 
     @Test("preserves a normal ordered start and settled pair")
     func preservesNormalPair() async {
         let mailbox = LocalSignalMailbox(capacity: 2)
-        #expect(mailbox.send(.start, receivedAt: start) == .enqueued)
+        let startEvent = event(.start)
+        let settledEvent = event(.settled)
+        #expect(mailbox.send(startEvent, receivedAt: start) == .enqueued)
         #expect(
-            mailbox.send(.settled, receivedAt: start.addingTimeInterval(30))
+            mailbox.send(settledEvent, receivedAt: start.addingTimeInterval(30))
                 == .enqueued
         )
 
         #expect(
             await mailbox.next()
-                == .signal(ReceivedLocalSignal(signal: .start, receivedAt: start))
+                == .signal(ReceivedLocalSignal(event: startEvent, receivedAt: start))
         )
         #expect(
             await mailbox.next()
                 == .signal(
                     ReceivedLocalSignal(
-                        signal: .settled,
+                        event: settledEvent,
                         receivedAt: start.addingTimeInterval(30)
                     )
                 )
@@ -33,12 +38,17 @@ struct LocalSignalMailboxTests {
     @Test("bounds a valid-token flood and resynchronizes before another pair")
     func boundsFlood() async {
         let mailbox = LocalSignalMailbox(capacity: 4)
+        let startEvent = event(.start)
+        let settledEvent = event(.settled)
         var enqueued = 0
         var overflowed = 0
         var dropped = 0
 
         for offset in 0..<10_000 {
-            switch mailbox.send(.start, receivedAt: start.addingTimeInterval(Double(offset))) {
+            switch mailbox.send(
+                startEvent,
+                receivedAt: start.addingTimeInterval(Double(offset))
+            ) {
             case .enqueued: enqueued += 1
             case .overflowed: overflowed += 1
             case .dropped: dropped += 1
@@ -51,9 +61,9 @@ struct LocalSignalMailboxTests {
         #expect(dropped == 9_995)
         #expect(await mailbox.next() == .overflow)
 
-        #expect(mailbox.send(.start, receivedAt: start) == .enqueued)
+        #expect(mailbox.send(startEvent, receivedAt: start) == .enqueued)
         #expect(
-            mailbox.send(.settled, receivedAt: start.addingTimeInterval(30))
+            mailbox.send(settledEvent, receivedAt: start.addingTimeInterval(30))
                 == .enqueued
         )
 
@@ -63,9 +73,9 @@ struct LocalSignalMailboxTests {
             Issue.record("Expected an ordered signal pair after resynchronization")
             return
         }
-        #expect(gate.receive(first.signal, at: first.receivedAt) == .started)
+        #expect(gate.receive(first.event, at: first.receivedAt) == .started)
         #expect(
-            gate.receive(second.signal, at: second.receivedAt)
+            gate.receive(second.event, at: second.receivedAt)
                 == .attention(elapsed: 30)
         )
     }
@@ -73,18 +83,25 @@ struct LocalSignalMailboxTests {
     @Test("overflow reset prevents a stale settled signal from notifying")
     func overflowResetsGate() async {
         var gate = LifecycleGate()
-        #expect(gate.receive(.start, at: start) == .started)
+        #expect(gate.receive(event(.start), at: start) == .started)
 
         let mailbox = LocalSignalMailbox(capacity: 2)
-        _ = mailbox.send(.start, receivedAt: start)
-        _ = mailbox.send(.start, receivedAt: start)
-        #expect(mailbox.send(.settled, receivedAt: start.addingTimeInterval(60)) == .overflowed)
+        _ = mailbox.send(event(.start), receivedAt: start)
+        _ = mailbox.send(event(.start), receivedAt: start)
+        #expect(
+            mailbox.send(event(.settled), receivedAt: start.addingTimeInterval(60))
+                == .overflowed
+        )
         #expect(await mailbox.next() == .overflow)
 
         gate.reset()
         #expect(
-            gate.receive(.settled, at: start.addingTimeInterval(60))
+            gate.receive(event(.settled), at: start.addingTimeInterval(60))
                 == .ignoredMissingStart
         )
+    }
+
+    private func event(_ signal: LocalSignal) -> LocalLifecycleEvent {
+        LocalLifecycleEvent(signal: signal, sessionToken: token)
     }
 }

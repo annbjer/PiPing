@@ -1,8 +1,13 @@
 import { execFile } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 export type PiPingSignal = "start" | "settled";
-export type SignalRunner = (signal: PiPingSignal) => Promise<void>;
+export type SignalRunner = (
+  signal: PiPingSignal,
+  lifecycleToken: string,
+) => Promise<void>;
+export type LifecycleTokenFactory = () => string;
 export type FailureReporter = (message: string) => void;
 export type DeadlineScheduler = (
   completion: () => void,
@@ -45,7 +50,7 @@ export function makeNativeHelperRunner(
   reportFailure: FailureReporter = reportToPiTerminal,
   schedule: DeadlineScheduler = scheduleDeadline,
 ): SignalRunner {
-  return async (signal) => new Promise<void>((resolvePromise) => {
+  return async (signal, lifecycleToken) => new Promise<void>((resolvePromise) => {
     let finished = false;
     let cancelDeadline = () => {};
     const finish = (reason?: string) => {
@@ -73,7 +78,7 @@ export function makeNativeHelperRunner(
     try {
       execute(
         canonicalHelperPath,
-        [signal],
+        [signal, lifecycleToken],
         { timeout: helperExecutionTimeoutMilliseconds, windowsHide: true },
         (error) => {
           if (!error) {
@@ -95,15 +100,21 @@ export const runNativeHelper: SignalRunner = makeNativeHelperRunner();
 export function registerPiPing(
   pi: Pick<ExtensionAPI, "on">,
   runSignal: SignalRunner = runNativeHelper,
+  makeLifecycleToken: LifecycleTokenFactory = randomUUID,
 ): void {
+  let activeLifecycleToken: string | undefined;
+
   pi.on("before_agent_start", async () => {
-    await runSignal("start");
+    const lifecycleToken = activeLifecycleToken ?? makeLifecycleToken();
+    activeLifecycleToken = lifecycleToken;
+    await runSignal("start", lifecycleToken);
   });
 
   pi.on("agent_settled", async (_event, context) => {
-    if (context.isIdle()) {
-      await runSignal("settled");
-    }
+    if (!context.isIdle() || activeLifecycleToken === undefined) return;
+    const lifecycleToken = activeLifecycleToken;
+    activeLifecycleToken = undefined;
+    await runSignal("settled", lifecycleToken);
   });
 }
 

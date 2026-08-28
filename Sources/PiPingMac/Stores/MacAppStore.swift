@@ -13,6 +13,7 @@ final class MacAppStore {
         case sendingAttention
         case attentionSent
         case attentionFailed
+        case trackingLimitReached
         case listenerError
 
         var label: String {
@@ -23,6 +24,7 @@ final class MacAppStore {
             case .sendingAttention: "Sending attention"
             case .attentionSent: "Attention sent"
             case .attentionFailed: "Notification not sent"
+            case .trackingLimitReached: "Local capacity reached"
             case .listenerError: "Listener unavailable"
             }
         }
@@ -35,7 +37,7 @@ final class MacAppStore {
             case .sendingAttention: "bell"
             case .attentionSent: "bell.badge"
             case .attentionFailed: "bell.slash"
-            case .listenerError: "exclamationmark.triangle"
+            case .trackingLimitReached, .listenerError: "exclamationmark.triangle"
             }
         }
     }
@@ -66,16 +68,21 @@ final class MacAppStore {
     private let signalMailbox: LocalSignalMailbox
     private var listener: LocalSignalListener?
     private var signalConsumerTask: Task<Void, Never>?
+    private var attentionDeliveryTail: Task<Void, Never>?
+    private var pendingAttentionDeliveries = 0
 
     private(set) var status: RunStatus = .listening
     private(set) var authorization: LocalNotificationAuthorization = .notDetermined
     private(set) var lastElapsed: TimeInterval?
-    private(set) var hasUnreadAttention = false
+    private var unreadAttentionIDs: Set<UUID> = []
     private(set) var cloudDeliveryEnabled: Bool
     private(set) var cloudDeliveryStatus: CloudDeliveryStatus
     private(set) var notificationThreshold: NotificationThreshold
 
     private(set) var minimumDuration: TimeInterval
+
+    var hasUnreadAttention: Bool { !unreadAttentionIDs.isEmpty }
+    var unreadAttentionCount: Int { unreadAttentionIDs.count }
 
     init(
         notificationThreshold: NotificationThreshold? = nil,
@@ -129,7 +136,7 @@ final class MacAppStore {
                 guard let self else { return }
                 switch event {
                 case let .signal(received):
-                    self.receive(received.signal, at: received.receivedAt)
+                    self.receive(received.event, at: received.receivedAt)
                 case .overflow:
                     self.gate.reset()
                     self.lastElapsed = nil
@@ -138,10 +145,10 @@ final class MacAppStore {
             }
         }
         let newListener = LocalSignalListener(
-            onSignal: { signal in
+            onSignal: { event in
                 // Overflow is intentionally fail-quiet. The mailbox discards
                 // ambiguous queued state and asks the sole consumer to reset.
-                _ = mailbox.send(signal, receivedAt: Date())
+                _ = mailbox.send(event, receivedAt: Date())
             },
             onError: { [weak self] _ in
                 mailbox.finish()
@@ -153,40 +160,77 @@ final class MacAppStore {
         Task { await refreshAuthorization() }
     }
 
-    func receive(_ signal: LocalSignal, at date: Date) {
-        let decision = gate.receive(signal, at: date)
+    func receive(_ event: LocalLifecycleEvent, at date: Date) {
+        let decision = gate.receive(event, at: date)
         switch decision {
         case .started, .restartedFromLatestStart:
             status = .running
         case .ignoredMissingStart:
-            status = .listening
+            status = gate.isTracking ? .running : .listening
         case let .ignoredTooShort(elapsed):
             lastElapsed = elapsed
-            status = .ignoredShortRun
+            status = gate.isTracking ? .running : .ignoredShortRun
+        case .ignoredCapacity:
+            status = .trackingLimitReached
         case let .attention(elapsed):
             lastElapsed = elapsed
-            hasUnreadAttention = true
-            status = .sendingAttention
-            let event = AttentionEvent(occurredAt: date)
-            Task {
-                var sent = false
+            guard pendingAttentionDeliveries < Self.maximumPendingAttentionDeliveries,
+                  unreadAttentionIDs.count < Self.maximumUnreadAttentionCount else {
+                status = .trackingLimitReached
+                return
+            }
+            let attention = AttentionEvent(occurredAt: date)
+            unreadAttentionIDs.insert(attention.id)
+            enqueueAttention(
+                attention,
+                publishRemotely: cloudDeliveryEnabled
+            )
+            status = gate.isTracking ? .running : .sendingAttention
+        }
+    }
+
+    private func enqueueAttention(
+        _ event: AttentionEvent,
+        publishRemotely: Bool
+    ) {
+        pendingAttentionDeliveries += 1
+        let precedingDelivery = attentionDeliveryTail
+        attentionDeliveryTail = Task { @MainActor [weak self] in
+            await precedingDelivery?.value
+            guard let self else { return }
+
+            var sent = false
+            do {
+                try await self.notifications.deliver(event)
+                sent = true
+            } catch {
+                // Remote delivery can still succeed when Mac notifications
+                // are unavailable, so resolve the final status after both paths.
+            }
+            if publishRemotely {
                 do {
-                    try await notifications.deliver(event)
+                    try await self.publisher.publish(event)
+                    self.cloudDeliveryStatus = .delivered
                     sent = true
                 } catch {
-                    // Remote delivery can still succeed when Mac notifications
-                    // are unavailable, so resolve the final status after both paths.
+                    self.cloudDeliveryStatus = .failed
                 }
-                if cloudDeliveryEnabled {
-                    do {
-                        try await publisher.publish(event)
-                        cloudDeliveryStatus = .delivered
-                        sent = true
-                    } catch {
-                        cloudDeliveryStatus = .failed
-                    }
-                }
-                status = sent ? .attentionSent : .attentionFailed
+            }
+
+            self.pendingAttentionDeliveries -= 1
+            if self.pendingAttentionDeliveries == 0 {
+                self.attentionDeliveryTail = nil
+            }
+            guard self.status != .listenerError,
+                  self.status != .trackingLimitReached else {
+                return
+            }
+            if self.gate.isTracking {
+                self.status = .running
+            } else if self.pendingAttentionDeliveries > 0 {
+                self.status = .sendingAttention
+            } else {
+                self.status = sent ? .attentionSent : .attentionFailed
             }
         }
     }
@@ -201,7 +245,12 @@ final class MacAppStore {
     }
 
     func acknowledgeAttention() {
-        hasUnreadAttention = false
+        unreadAttentionIDs.removeAll(keepingCapacity: true)
+    }
+
+    func acknowledgeAttention(notificationIdentifier: String) {
+        guard let identifier = UUID(uuidString: notificationIdentifier) else { return }
+        unreadAttentionIDs.remove(identifier)
     }
 
     func setNotificationThreshold(_ threshold: NotificationThreshold) {
@@ -224,6 +273,8 @@ final class MacAppStore {
         cloudDeliveryStatus = cloudDeliveryAvailable ? .disabled : .unavailable
     }
 
+    private static let maximumPendingAttentionDeliveries = 64
+    private static let maximumUnreadAttentionCount = 256
     private static let cloudApprovalDefaultsKey = "PiPingCloudDeliveryApprovedV1"
     private static let notificationThresholdDefaultsKey = "PiPingNotificationThresholdSecondsV1"
 }

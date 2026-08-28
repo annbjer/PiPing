@@ -123,9 +123,10 @@ choices:
 - **After 15 seconds**
 - **After 30 seconds** (default)
 
-The preference changes only the native Mac lifecycle gate. It does not expand
-the two-token Pi protocol or add prompt, response, project, or session data to
-notifications.
+The preference changes only the native Mac lifecycle gate. It does not add
+prompt, response, project, terminal, or Pi session data to notifications. The
+local protocol adds only an extension-generated ephemeral UUID to its fixed
+signal so overlapping Pi processes can be timed independently.
 
 ## Pi hook installation
 
@@ -145,8 +146,10 @@ pi list
 ```
 
 This adds the PiPing package to Pi's user settings, making it global to newly
-started Pi sessions without replacing other extensions. In an existing Pi
-session, use `/reload` after installation. To limit the package to the current
+started Pi sessions without replacing other extensions. Each loaded instance
+has an independent random correlation UUID, so concurrently running Pi
+processes do not overwrite each other's timers. In an existing Pi session, use
+`/reload` after installation. To limit the package to the current
 trusted project instead, use `pi install -l .`; project-local and global package
 scope follow Pi's normal precedence rules.
 

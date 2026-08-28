@@ -18,6 +18,17 @@ enum LocalNotificationDeliveryError: Error {
 }
 
 final class SystemLocalNotificationService: LocalNotificationDelivering, @unchecked Sendable {
+    static let attentionCategoryIdentifier = "PiPingAttention"
+
+    static var attentionCategory: UNNotificationCategory {
+        UNNotificationCategory(
+            identifier: attentionCategoryIdentifier,
+            actions: [],
+            intentIdentifiers: [],
+            options: [.customDismissAction]
+        )
+    }
+
     private let center: UNUserNotificationCenter
 
     init(center: UNUserNotificationCenter = .current()) {
@@ -50,6 +61,7 @@ final class SystemLocalNotificationService: LocalNotificationDelivering, @unchec
         content.title = event.title
         content.body = event.body
         content.sound = .default
+        content.categoryIdentifier = Self.attentionCategoryIdentifier
         let request = UNNotificationRequest(
             identifier: event.id.uuidString,
             content: content,

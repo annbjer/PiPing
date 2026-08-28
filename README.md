@@ -10,13 +10,15 @@ The notification is always:
 - **Pi has fully settled and is ready for you.**
 - normal system notification sound
 
-PiPing never derives a payload from task content. The local protocol carries
-only `start` or `settled`; CloudKit stores only one timestamp field and uses the
-fixed notification copy. macOS assigns each local notification a random request
-identifier that is unrelated to any Pi session and is never sent to CloudKit.
-PiPing never reads or serializes prompts, model output, code, logs, file
-contents, paths, project names, session identifiers, terminal data, or approval
-details.
+PiPing never derives a payload from task content. The local protocol carries a
+fixed `start` or `settled` signal plus a random, ephemeral UUID generated for
+each active lifecycle cycle so overlapping runs remain independent. That
+UUID is not Pi's session identifier, stays in Mac memory only, and is never sent
+to CloudKit. CloudKit stores only one timestamp field and uses the fixed
+notification copy. macOS assigns each local notification a separate random
+request identifier that is also never sent to CloudKit. PiPing never reads or
+serializes prompts, model output, code, logs, file contents, paths, project
+names, Pi session identifiers, terminal data, or approval details.
 
 ## Current development status
 
@@ -26,7 +28,8 @@ details.
 - Private CloudKit adapter with an explicit container, one bounded rolling
   record, and a fixed visual subscription.
 - Native macOS UserNotifications adapter with standard sound.
-- Protected same-user local FIFO and fixed `start` / `settled` protocol.
+- Protected same-user local FIFO with fixed signals, bounded streaming decode,
+  and independent in-memory tracking for overlapping Pi sessions.
 - Minimal dependency-free Pi TypeScript integration edge.
 - Public-safe tracked configuration with CloudKit disabled by default and an
   ignored private-local override path.

@@ -20,9 +20,12 @@ enum PiPingSignalCommand {
     }
 
     private static func run(arguments: [String]) throws {
-        guard arguments.count == 2, let signal = LocalSignal(rawValue: arguments[1]) else {
+        guard arguments.count == 3,
+              let signal = LocalSignal(rawValue: arguments[1]),
+              let sessionToken = LocalSessionToken(wireValue: arguments[2]) else {
             throw SignalClientError.invalidArguments
         }
+        let event = LocalLifecycleEvent(signal: signal, sessionToken: sessionToken)
 
         let endpoint: LocalIPCDescriptorSet
         do {
@@ -31,7 +34,7 @@ enum PiPingSignalCommand {
             throw SignalClientError.companionUnavailable
         }
 
-        let payload = Array(signal.wireValue.utf8)
+        let payload = Array(event.wireValue.utf8)
         let written = payload.withUnsafeBytes { bytes in
             write(endpoint.fifoDescriptor, bytes.baseAddress, bytes.count)
         }

@@ -1,11 +1,11 @@
 import Foundation
 
 public struct ReceivedLocalSignal: Equatable, Sendable {
-    public let signal: LocalSignal
+    public let event: LocalLifecycleEvent
     public let receivedAt: Date
 
-    public init(signal: LocalSignal, receivedAt: Date) {
-        self.signal = signal
+    public init(event: LocalLifecycleEvent, receivedAt: Date) {
+        self.event = event
         self.receivedAt = receivedAt
     }
 }
@@ -41,11 +41,11 @@ public final class LocalSignalMailbox: @unchecked Sendable {
 
     @discardableResult
     public func send(
-        _ signal: LocalSignal,
+        _ lifecycleEvent: LocalLifecycleEvent,
         receivedAt: Date = Date()
     ) -> LocalSignalMailboxSendResult {
         let event = LocalSignalMailboxEvent.signal(
-            ReceivedLocalSignal(signal: signal, receivedAt: receivedAt)
+            ReceivedLocalSignal(event: lifecycleEvent, receivedAt: receivedAt)
         )
         var waitingConsumer: CheckedContinuation<LocalSignalMailboxEvent?, Never>?
         let result: LocalSignalMailboxSendResult

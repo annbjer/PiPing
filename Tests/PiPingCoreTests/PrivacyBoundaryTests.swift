@@ -16,14 +16,21 @@ struct PrivacyBoundaryTests {
         #expect(event.body.count < 80)
     }
 
-    @Test("wire protocol accepts only the two fixed signals")
+    @Test("wire protocol accepts only fixed signals plus an opaque UUID")
     func signalAllowlist() {
-        #expect(LocalSignal(wireValue: "start\n") == .start)
-        #expect(LocalSignal(wireValue: "settled\n") == .settled)
-        #expect(LocalSignal(wireValue: "proceed\n") == nil)
-        #expect(LocalSignal(wireValue: "synthetic prompt") == nil)
-        #expect(LocalSignal(wireValue: " start\n") == nil)
-        #expect(LocalSignal(wireValue: "start\nignored") == nil)
+        let token = LocalSessionToken(
+            uuid: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+        )
+        let start = LocalLifecycleEvent(signal: .start, sessionToken: token)
+        let settled = LocalLifecycleEvent(signal: .settled, sessionToken: token)
+
+        #expect(LocalLifecycleEvent(wireValue: start.wireValue) == start)
+        #expect(LocalLifecycleEvent(wireValue: settled.wireValue) == settled)
+        #expect(LocalLifecycleEvent(wireValue: "start\n") == nil)
+        #expect(LocalLifecycleEvent(wireValue: "proceed \(token.wireValue)\n") == nil)
+        #expect(LocalLifecycleEvent(wireValue: "start synthetic-prompt\n") == nil)
+        #expect(LocalLifecycleEvent(wireValue: " start \(token.wireValue)\n") == nil)
+        #expect(LocalLifecycleEvent(wireValue: start.wireValue + settled.wireValue) == nil)
     }
 
     @Test("remote delivery defaults off and accepts only explicit true values")

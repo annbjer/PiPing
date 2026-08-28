@@ -5,7 +5,7 @@ import PiPingCore
 final class LocalSignalListener: @unchecked Sendable {
     private let fifoURL: URL
     private let queue = DispatchQueue(label: "org.example.PiPing.local-signal")
-    private let onSignal: @Sendable (LocalSignal) -> Void
+    private let onSignal: @Sendable (LocalLifecycleEvent) -> Void
     private let onError: @Sendable (String) -> Void
     private let startLock = NSLock()
     private var started = false
@@ -13,7 +13,7 @@ final class LocalSignalListener: @unchecked Sendable {
 
     init(
         fifoURL: URL = RuntimePath.currentFIFO,
-        onSignal: @escaping @Sendable (LocalSignal) -> Void,
+        onSignal: @escaping @Sendable (LocalLifecycleEvent) -> Void,
         onError: @escaping @Sendable (String) -> Void
     ) {
         self.fifoURL = fifoURL
@@ -38,8 +38,9 @@ final class LocalSignalListener: @unchecked Sendable {
     }
 
     private func readLoop(endpoint: LocalIPCDescriptorSet) {
+        var decoder = LocalSignalStreamDecoder()
         while true {
-            var buffer = [UInt8](repeating: 0, count: 64)
+            var buffer = [UInt8](repeating: 0, count: 4_096)
             let count = buffer.withUnsafeMutableBytes { bytes in
                 read(endpoint.fifoDescriptor, bytes.baseAddress, bytes.count)
             }
@@ -49,11 +50,8 @@ final class LocalSignalListener: @unchecked Sendable {
                 onError("Local signal listener stopped.")
                 return
             }
-            let payload = String(decoding: buffer.prefix(Int(count)), as: UTF8.self)
-            for line in payload.split(separator: "\n", omittingEmptySubsequences: true) {
-                if let signal = LocalSignal(wireValue: String(line)) {
-                    onSignal(signal)
-                }
+            for event in decoder.append(buffer.prefix(Int(count))) {
+                onSignal(event)
             }
         }
     }
