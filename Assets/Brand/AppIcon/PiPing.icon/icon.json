@@ -81,7 +81,19 @@
           "hidden" : false,
           "image-name" : "4_Logo_Fill.svg",
           "name" : "3_Logo_Fill",
-          "opacity" : 0.4
+          "opacity-specializations" : [
+            {
+              "value" : 0.85
+            },
+            {
+              "appearance" : "dark",
+              "value" : 0.4
+            },
+            {
+              "appearance" : "tinted",
+              "value" : 0.4
+            }
+          ]
         }
       ],
       "shadow" : {
