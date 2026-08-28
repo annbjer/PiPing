@@ -77,6 +77,15 @@ if [[ "$app_authority" != "Apple Development:"* || "$helper_authority" != "Apple
   echo "Signed local app and helper must use Apple Development certificates." >&2
   exit 1
 fi
+apple_development_requirement="anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.2] exists and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = \"$expected_team\""
+if ! codesign --verify --strict -R="$apple_development_requirement" "$APP"; then
+  echo "Signed local app does not satisfy the Apple Development requirement." >&2
+  exit 1
+fi
+if ! codesign --verify --strict -R="$apple_development_requirement" "$HELPER"; then
+  echo "Signed local helper does not satisfy the Apple Development requirement." >&2
+  exit 1
+fi
 app_signature_details="$(codesign -dv --verbose=4 "$APP" 2>&1)"
 helper_signature_details="$(codesign -dv --verbose=4 "$HELPER" 2>&1)"
 if [[ "$app_signature_details" != *"(runtime)"* ]]; then
@@ -94,36 +103,68 @@ ENTITLEMENTS="$TEMP_ROOT/entitlements.plist"
 PROFILE_PLIST="$TEMP_ROOT/profile.plist"
 codesign -d --entitlements - --xml "$APP" >"$ENTITLEMENTS" 2>/dev/null
 security cms -D -i "$PROFILE" >"$PROFILE_PLIST"
+codesign -d --extract-certificates="$TEMP_ROOT/app-certificate" "$APP" 2>/dev/null
+codesign -d --extract-certificates="$TEMP_ROOT/helper-certificate" "$HELPER" 2>/dev/null
 plutil -lint "$ENTITLEMENTS" "$PROFILE_PLIST" >/dev/null
+if [[ ! -f "$TEMP_ROOT/app-certificate0" || ! -f "$TEMP_ROOT/helper-certificate0" ]]; then
+  echo "Could not extract the signed app and helper leaf certificates." >&2
+  exit 1
+fi
 
-python3 - "$ENTITLEMENTS" "$PROFILE_PLIST" "$expected_team" "$expected_bundle" "$expected_container" <<'PY'
+python3 - \
+  "$ENTITLEMENTS" \
+  "$PROFILE_PLIST" \
+  "$TEMP_ROOT/app-certificate0" \
+  "$TEMP_ROOT/helper-certificate0" \
+  "$expected_team" \
+  "$expected_bundle" \
+  "$expected_container" <<'PY'
 import datetime
 import plistlib
 import sys
 
-entitlements_path, profile_path, team, bundle, container = sys.argv[1:]
+(
+    entitlements_path,
+    profile_path,
+    app_certificate_path,
+    helper_certificate_path,
+    team,
+    bundle,
+    container,
+) = sys.argv[1:]
 with open(entitlements_path, "rb") as handle:
     entitlements = plistlib.load(handle)
 with open(profile_path, "rb") as handle:
     profile = plistlib.load(handle)
+with open(app_certificate_path, "rb") as handle:
+    app_certificate = handle.read()
+with open(helper_certificate_path, "rb") as handle:
+    helper_certificate = handle.read()
 
 expected_application_identifier = f"{team}.{bundle}"
 if entitlements.get("com.apple.developer.icloud-container-identifiers") != [container]:
     raise SystemExit("Signed local app has unexpected iCloud container entitlements.")
 if entitlements.get("com.apple.developer.icloud-services") != ["CloudKit"]:
     raise SystemExit("Signed local app has unexpected iCloud service entitlements.")
-if entitlements.get("com.apple.developer.team-identifier", team) != team:
-    raise SystemExit("Signed local app has an unexpected entitlement team.")
-if entitlements.get("com.apple.application-identifier", expected_application_identifier) != expected_application_identifier:
-    raise SystemExit("Signed local app has an unexpected application identifier entitlement.")
+if entitlements.get("com.apple.developer.team-identifier") != team:
+    raise SystemExit("Signed local app is missing the exact entitlement team.")
+if entitlements.get("com.apple.application-identifier") != expected_application_identifier:
+    raise SystemExit("Signed local app is missing the exact application identifier entitlement.")
 
-if team not in profile.get("TeamIdentifier", []):
+if profile.get("TeamIdentifier") != [team]:
     raise SystemExit("Provisioning profile has an unexpected team.")
+if profile.get("ApplicationIdentifierPrefix") != [team]:
+    raise SystemExit("Provisioning profile has an unexpected application prefix.")
 profile_entitlements = profile.get("Entitlements", {})
 if profile_entitlements.get("com.apple.application-identifier") != expected_application_identifier:
     raise SystemExit("Provisioning profile has an unexpected application identifier.")
 if profile_entitlements.get("com.apple.developer.icloud-container-identifiers") != [container]:
     raise SystemExit("Provisioning profile has an unexpected iCloud container.")
+developer_certificates = profile.get("DeveloperCertificates", [])
+if app_certificate != helper_certificate:
+    raise SystemExit("Signed local app and helper use different leaf certificates.")
+if app_certificate not in developer_certificates or helper_certificate not in developer_certificates:
+    raise SystemExit("Signed local app/helper certificate is not authorized by the profile.")
 expiration = profile.get("ExpirationDate")
 now = datetime.datetime.now(datetime.timezone.utc)
 if expiration is None:

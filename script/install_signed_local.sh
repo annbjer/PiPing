@@ -67,7 +67,7 @@ fi
 
 rm -rf "$PENDING_APP" "$PREVIOUS_APP"
 ditto "$SOURCE_APP" "$PENDING_APP"
-codesign --verify --deep --strict --verbose=2 "$PENDING_APP"
+"$ROOT_DIR/script/validate_signed_local_app.sh" "$PENDING_APP"
 
 backup=""
 if [[ -d "$CANONICAL_APP" ]]; then
@@ -90,13 +90,13 @@ if [[ -d "$CANONICAL_APP" ]]; then
 fi
 mv "$PENDING_APP" "$CANONICAL_APP"
 candidate_installed=true
-codesign --verify --deep --strict --verbose=2 "$CANONICAL_APP"
+"$ROOT_DIR/script/validate_signed_local_app.sh" "$CANONICAL_APP"
 
 "$LSREGISTER" -u "$PREVIOUS_APP" 2>/dev/null || true
 "$LSREGISTER" -f "$CANONICAL_APP"
 open "$CANONICAL_APP"
 sleep 4
-"$ROOT_DIR/script/check_installation.sh"
+env -u PIPING_CANONICAL_APP "$ROOT_DIR/script/check_installation.sh"
 candidate_installed=false
 restore_needed=false
 rm -rf "$PREVIOUS_APP"

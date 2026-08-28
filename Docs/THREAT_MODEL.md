@@ -46,10 +46,10 @@ The primary security objectives are:
 
 | Component or resource | Current role | Current exposure |
 | --- | --- | --- |
-| Pi TypeScript hook | Maps two documented lifecycle events to fixed helper arguments | Local Pi process only; no event fields read (`Integration/Pi/piping.ts:59-71`) |
+| Pi TypeScript hook | Maps two documented lifecycle events to fixed helper arguments | Local Pi process only; no event fields read (`Integration/Pi/piping.ts:95-107`) |
 | Native `PiPingSignal` helper | Validates one argument and writes one fixed signal | Bundled only in the canonical installed Mac app; no network (`Sources/PiPingSignal/main.swift:22-39`) |
 | `$HOME/.piping/events.fifo` | Local one-way IPC | `0600` FIFO inside a validated `0700` directory (`Sources/PiPingCore/LocalIPC.swift:30-160`) |
-| Lifecycle gate | Suppresses duplicate, missing, and short runs | In-memory macOS process state only (`Sources/PiPingCore/LifecycleGate.swift:42-60`) |
+| Lifecycle gate | Replaces stale starts and suppresses missing or short runs | In-memory macOS process state only (`Sources/PiPingCore/LifecycleGate.swift:42-65`) |
 | macOS UserNotifications | Presents fixed copy with normal system sound | Permission checked; local notification only (`Sources/PiPingMac/Services/SystemLocalNotificationService.swift:37-52`) |
 | Private CloudKit database | Mac-to-iPhone attention transport | Publishing requires valid private-local configuration and explicit user enablement (`Sources/PiPingMac/Stores/MacAppStore.swift:77-105`, `180-190`) |
 | CloudKit query subscription | Fixed iPhone notification | User-initiated setup; record creation and update, fixed copy/sound, no desired fields (`Sources/PiPingCloudKit/CloudKitSchema.swift:18-30`) |
@@ -60,7 +60,7 @@ The primary security objectives are:
 
 1. **Pi runtime to extension hook.** Prompt and message objects are untrusted and
    may contain secrets. The handlers ignore event fields and pass only literal
-   strings (`Integration/Pi/piping.ts:59-71`). Tests inject synthetic private
+   strings (`Integration/Pi/piping.ts:95-107`). Tests inject synthetic private
    fields and verify only two signals escape (`Tests/PiHookTests/piping.test.mjs:26-40`).
 2. **Hook to native helper.** The hook uses `execFile` with the fixed canonical
    path `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`, a single typed
