@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Local Pi integration edge for the native PiPing apps",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "keywords": [
     "pi-package"
   ],

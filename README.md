@@ -88,8 +88,15 @@ See [setup](Docs/SETUP.md), [architecture](Docs/ARCHITECTURE.md),
 
 ## License and publication
 
-No open-source license has been selected yet, so this checkout is not ready for
-publication. Creating a GitHub remote or publishing requires separate approval,
-a fresh Daybreak deep security scan against the exact release candidate,
-selection of an OSI-approved license, and the release-surface audit in
-[Docs/RELEASE_AUDIT.md](Docs/RELEASE_AUDIT.md).
+PiPing source and assets are available under the [MIT License](LICENSE).
+Contributions are welcome under the guidance in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Version `0.1.0` is planned as a source-only release. The locally installed Apple
+Development-signed app and generated `dist/` output are not public release
+artifacts. A future downloadable Mac binary requires Developer ID Application
+signing, notarization, and a separate exact-artifact audit.
+
+Creating a GitHub remote or publishing still requires explicit approval, a fresh
+Daybreak security review against the exact release candidate, and completion of
+[Docs/RELEASE_AUDIT.md](Docs/RELEASE_AUDIT.md). See the complete
+[release process](Docs/RELEASING.md).

@@ -121,5 +121,6 @@ exist at these canonical paths:
 
 The extension deliberately fails quiet if that helper is unavailable. It never
 falls back to a repository, DerivedData, `dist`, or backup executable. The
-package remains `private` and unlicensed until the public-release gates are
-complete.
+package remains marked `private` to prevent accidental npm publication. The
+repository is MIT-licensed and the planned `0.1.0` release is distributed from
+GitHub as source rather than through npm.
