@@ -49,23 +49,42 @@ struct RemoteNotificationRegistrationWaiterTests {
         #expect(error == .timedOut)
     }
 
-    @Test("ignores a late callback and permits a clean retry")
-    func lateCallbackAndRetry() async throws {
+    @Test("a timed-out attempt requires a fresh process before retry")
+    func lateCallbackRequiresRestart() async {
         let waiter = RemoteNotificationRegistrationWaiter()
 
-        let error = await registrationError {
+        let timeoutError = await registrationError {
             try await waiter.wait(timeout: .milliseconds(20)) {}
         }
-        #expect(error == .timedOut)
+        #expect(timeoutError == .timedOut)
 
         waiter.didRegister()
+        let retryError = await registrationError {
+            try await waiter.wait(timeout: .seconds(1)) {
+                waiter.didRegister()
+            }
+        }
+        #expect(retryError == .restartRequired)
+    }
+
+    @Test("a failed callback permits a clean retry")
+    func failedCallbackAndRetry() async throws {
+        let waiter = RemoteNotificationRegistrationWaiter()
+
+        let failure = await registrationError {
+            try await waiter.wait(timeout: .seconds(1)) {
+                waiter.didFail()
+            }
+        }
+        #expect(failure == .registrationFailed)
+
         try await waiter.wait(timeout: .seconds(1)) {
             waiter.didRegister()
         }
     }
 
-    @Test("cancellation releases the pending registration")
-    func cancellation() async throws {
+    @Test("cancellation releases the wait and requires a fresh process")
+    func cancellation() async {
         let waiter = RemoteNotificationRegistrationWaiter()
         var started = false
         let task = Task { @MainActor in
@@ -84,9 +103,12 @@ struct RemoteNotificationRegistrationWaiterTests {
         }
         #expect(error == .cancelled)
 
-        try await waiter.wait(timeout: .seconds(1)) {
-            waiter.didRegister()
+        let retryError = await registrationError {
+            try await waiter.wait(timeout: .seconds(1)) {
+                waiter.didRegister()
+            }
         }
+        #expect(retryError == .restartRequired)
     }
 
     private func registrationError(

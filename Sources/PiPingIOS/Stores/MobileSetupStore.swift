@@ -15,6 +15,7 @@ final class MobileSetupStore {
         case ready
         case notificationsDenied
         case iCloudUnavailable
+        case registrationRestartRequired
         case failed
 
         var label: String {
@@ -24,6 +25,7 @@ final class MobileSetupStore {
             case .ready: "Ready"
             case .notificationsDenied: "Notifications are off"
             case .iCloudUnavailable: "iCloud is unavailable"
+            case .registrationRestartRequired: "Restart PiPing to retry"
             case .failed: "Setup needs attention"
             }
         }
@@ -84,7 +86,7 @@ final class MobileSetupStore {
             try await registrar.register()
             status = .ready
         } catch {
-            status = .failed
+            setFailureStatus(for: error)
         }
     }
 
@@ -116,6 +118,19 @@ final class MobileSetupStore {
             ).installIfNeeded()
             status = .ready
         } catch {
+            setFailureStatus(for: error)
+        }
+    }
+
+    private func setFailureStatus(for error: any Error) {
+        guard let registrationError = error as? RemoteNotificationRegistrationError else {
+            status = .failed
+            return
+        }
+        switch registrationError {
+        case .timedOut, .cancelled, .restartRequired:
+            status = .registrationRestartRequired
+        case .registrationFailed, .alreadyInProgress:
             status = .failed
         }
     }

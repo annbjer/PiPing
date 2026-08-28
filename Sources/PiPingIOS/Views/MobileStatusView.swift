@@ -28,6 +28,9 @@ struct MobileStatusView: View {
                 if store.status == .ready {
                     Label("Notifications configured", systemImage: "checkmark.circle.fill")
                         .foregroundStyle(.green)
+                } else if store.status == .registrationRestartRequired {
+                    Label("Close and reopen PiPing before retrying", systemImage: "arrow.clockwise")
+                        .foregroundStyle(.orange)
                 } else {
                     Button(
                         store.status == .configuring

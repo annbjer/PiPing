@@ -5,6 +5,7 @@ public enum RemoteNotificationRegistrationError: Error, Equatable, Sendable {
     case timedOut
     case alreadyInProgress
     case cancelled
+    case restartRequired
 }
 
 /// Converts the one-shot APNs delegate callback into a bounded async operation.
@@ -18,6 +19,7 @@ public final class RemoteNotificationRegistrationWaiter {
     }
 
     private var pending: PendingRegistration?
+    private var requiresProcessRestart = false
 
     public init() {}
 
@@ -27,6 +29,9 @@ public final class RemoteNotificationRegistrationWaiter {
     ) async throws {
         guard pending == nil else {
             throw RemoteNotificationRegistrationError.alreadyInProgress
+        }
+        guard !requiresProcessRestart else {
+            throw RemoteNotificationRegistrationError.restartRequired
         }
 
         let id = UUID()
@@ -78,6 +83,12 @@ public final class RemoteNotificationRegistrationWaiter {
 
     private func finish(id: UUID, result: Result<Void, any Error>) {
         guard let registration = pending, registration.id == id else { return }
+        if case let .failure(error as RemoteNotificationRegistrationError) = result,
+           error == .timedOut || error == .cancelled {
+            // APNs callbacks carry no attempt identifier. Refuse another attempt
+            // in this process so a late callback cannot complete a newer wait.
+            requiresProcessRestart = true
+        }
         pending = nil
         registration.timeoutTask?.cancel()
         registration.continuation.resume(with: result)

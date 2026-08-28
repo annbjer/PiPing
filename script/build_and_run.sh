@@ -2,6 +2,15 @@
 set -euo pipefail
 
 MODE="${1:-run}"
+case "$MODE" in
+  run|--build-only|build-only|--debug|debug|--logs|logs|--telemetry|telemetry|--verify|verify)
+    ;;
+  *)
+    echo "usage: $0 [run|--build-only|--debug|--logs|--telemetry|--verify]" >&2
+    exit 2
+    ;;
+esac
+
 APP_NAME="PiPing"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DERIVED_DATA="$ROOT_DIR/.build/DerivedData-run"
@@ -13,6 +22,27 @@ PUBLIC_BUNDLE_IDENTIFIER="org.example.PiPing.macOS"
 STABLE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 OFFICIAL_ICON_SOURCE="$ROOT_DIR/Assets/Brand/AppIcon/PiPing.icon"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+STAGE_ROOT=""
+STAGED_APP=""
+DIST_ARCHIVE_TEMP=""
+PREVIOUS_ARCHIVE_TEMP=""
+OWNS_DIST_APP=false
+
+cleanup() {
+  "$LSREGISTER" -u "$BUILT_APP" 2>/dev/null || true
+  rm -rf "$BUILT_APP"
+  if [[ -n "$STAGED_APP" ]]; then
+    "$LSREGISTER" -u "$STAGED_APP" 2>/dev/null || true
+  fi
+  if [[ "$OWNS_DIST_APP" == true && ( "$MODE" == "--build-only" || "$MODE" == "build-only" ) ]]; then
+    "$LSREGISTER" -u "$DIST_APP" 2>/dev/null || true
+    rm -rf "$DIST_APP"
+  fi
+  [[ -z "$DIST_ARCHIVE_TEMP" ]] || rm -f "$DIST_ARCHIVE_TEMP"
+  [[ -z "$PREVIOUS_ARCHIVE_TEMP" ]] || rm -f "$PREVIOUS_ARCHIVE_TEMP"
+  [[ -z "$STAGE_ROOT" ]] || rm -rf "$STAGE_ROOT"
+}
+trap cleanup EXIT
 
 if [[ ! -x "$STABLE_DEVELOPER_DIR/usr/bin/xcodebuild" ]]; then
   echo "Stable Xcode is required at $STABLE_DEVELOPER_DIR" >&2
@@ -61,11 +91,15 @@ chmod +x "$STAGED_APP/Contents/Helpers/PiPingSignal"
 
 if [[ -e "$DIST_APP" ]]; then
   PREVIOUS_ZIP="$ROOT_DIR/.build/PiPing-unsigned-previous-$(date +%Y%m%dT%H%M%S).app.zip"
-  ditto -c -k --sequesterRsrc --keepParent "$DIST_APP" "$PREVIOUS_ZIP"
-  unzip -tq "$PREVIOUS_ZIP"
+  PREVIOUS_ARCHIVE_TEMP="${PREVIOUS_ZIP}.tmp"
+  ditto -c -k --sequesterRsrc --keepParent "$DIST_APP" "$PREVIOUS_ARCHIVE_TEMP"
+  unzip -tq "$PREVIOUS_ARCHIVE_TEMP"
+  mv "$PREVIOUS_ARCHIVE_TEMP" "$PREVIOUS_ZIP"
+  PREVIOUS_ARCHIVE_TEMP=""
   rm -rf "$DIST_APP"
 fi
 mv "$STAGED_APP" "$DIST_APP"
+OWNS_DIST_APP=true
 
 # Xcode's build action may register an unsigned product even when it is never
 # launched. Keep development products out of the production LaunchServices set;
@@ -92,11 +126,14 @@ case "$MODE" in
     open_app
     ;;
   --build-only|build-only)
-    rm -f "$DIST_ZIP"
-    ditto -c -k --sequesterRsrc --keepParent "$DIST_APP" "$DIST_ZIP"
-    unzip -tq "$DIST_ZIP"
+    DIST_ARCHIVE_TEMP="$DIST_DIR/.PiPing.app.$$.zip"
+    ditto -c -k --sequesterRsrc --keepParent "$DIST_APP" "$DIST_ARCHIVE_TEMP"
+    unzip -tq "$DIST_ARCHIVE_TEMP"
+    mv -f "$DIST_ARCHIVE_TEMP" "$DIST_ZIP"
+    DIST_ARCHIVE_TEMP=""
     "$LSREGISTER" -u "$DIST_APP" 2>/dev/null || true
     rm -rf "$DIST_APP"
+    OWNS_DIST_APP=false
     echo "Built $DIST_ZIP"
     ;;
   --debug|debug)
@@ -118,9 +155,5 @@ case "$MODE" in
     open_app
     sleep 1
     pgrep -x "$APP_NAME" >/dev/null
-    ;;
-  *)
-    echo "usage: $0 [run|--build-only|--debug|--logs|--telemetry|--verify]" >&2
-    exit 2
     ;;
 esac

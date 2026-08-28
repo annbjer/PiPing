@@ -15,8 +15,12 @@ flowchart LR
 
 The Pi hook reads no lifecycle event fields. `before_agent_start` opens the
 duration window and `agent_settled` closes it only after Pi has no automatic
-retry, compaction retry, or queued continuation left. Duplicate starts do not
-reset the timer. Runs under 30 seconds are ignored.
+retry, compaction retry, or queued continuation left. Because the content-free
+protocol has no session identifier, a newer `start` replaces any stale or
+overlapping start and the next `settled` is measured from that latest time. This
+fails quiet rather than turning an abandoned timer into a misleading alert.
+Overlapping Pi runs therefore do not each receive an independent notification.
+Runs under 30 seconds are ignored.
 
 ## Components
 

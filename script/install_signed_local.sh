@@ -52,7 +52,7 @@ if [[ ! -d "$SOURCE_APP" || ! -x "$HELPER" ]]; then
   echo "Archive does not contain the expected PiPing app and helper." >&2
   exit 1
 fi
-codesign --verify --deep --strict --verbose=2 "$SOURCE_APP"
+"$ROOT_DIR/script/validate_signed_local_app.sh" "$SOURCE_APP"
 
 bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$SOURCE_APP/Contents/Info.plist")"
 display_name="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$SOURCE_APP/Contents/Info.plist" 2>/dev/null || true)"

@@ -64,9 +64,10 @@ The primary security objectives are:
    fields and verify only two signals escape (`Tests/PiHookTests/piping.test.mjs:26-40`).
 2. **Hook to native helper.** The hook uses `execFile` with the fixed canonical
    path `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`, a single typed
-   argument, no shell, and a one-second timeout
-   (`Integration/Pi/piping.ts:20-54`). Failure is reported generically without
-   blocking Pi, and there is no fallback to a development or backup executable.
+   argument, no shell, a one-second child timeout, and an independent 1.25-second
+   Promise deadline (`Integration/Pi/piping.ts:40-88`). Failure is reported
+   generically without blocking Pi, and there is no fallback to a development
+   or backup executable.
 3. **Helper to macOS companion.** Both sides validate FIFO type, owner, and
    permissions, reject extended ACLs, and open relative to a validated directory
    descriptor with `O_NOFOLLOW`; the reader accepts at most 64 bytes per read
@@ -121,8 +122,8 @@ vulnerabilities.
 | ID | Story | Impact | Existing mitigation | Residual risk / later check |
 | --- | --- | --- | --- | --- |
 | TM-01 | Pi task text tries to become a notification body or command. | Privacy leak or control confusion | Hook ignores event fields; content is fixed in Swift; schema has one timestamp field. | A malicious source change could widen the boundary. Keep tests and review mandatory. |
-| TM-02 | Another local user pre-creates a file or symlink at the IPC path. | Signal interception, spoofing, or unsafe file access | Runtime directory is forced to `0700`; both ends use `lstat`, require same-owner FIFO with no group/other bits, and use `O_NOFOLLOW`. | Reassess sandbox/container paths before distribution. |
-| TM-03 | A same-user process writes repeated valid signals. | Nuisance notification spam or misleading attention state | Exact two-token allowlist, 30-second gate, duplicate-start suppression, no actions or authority. | Same-user spoofing remains possible by design. Add rate limiting only if real testing shows a noise problem. |
+| TM-02 | Another local user pre-creates a file or symlink at the IPC path. | Signal interception, spoofing, or unsafe file access | Runtime directory is forced to `0700`; both ends open with `O_NOFOLLOW` and validate the pinned descriptors with `fstat`, requiring same-owner FIFO objects with no group/other bits or extended ACL. | Reassess sandbox/container paths before distribution. |
+| TM-03 | A same-user process writes repeated valid signals. | Nuisance notification spam or misleading attention state | Exact two-token allowlist, 30-second gate, latest-start replacement, no actions or authority. Stale and overlapping starts fail quiet rather than accumulating duration. | Same-user spoofing and missed per-session alerts during overlapping runs remain possible by design. Add identifiers only behind a separately reviewed privacy boundary. |
 | TM-04 | Oversized or malformed local input targets the parser. | Crash, truncation, or bypass | Reader bounds each read to 64 bytes; decoder accepts only exact `start`/`settled` forms (`Sources/PiPingCore/LifecycleGate.swift:3-18`). | Same-user writers can cause denial of service; fuzz the decoder/listener before device testing. |
 | TM-05 | CloudKit is configured with the wrong database, fields, or subscription payload. | Cross-user exposure or content leakage | Adapter hard-codes the private database; the record has one fixed name and only `occurredAt`; the subscription requests no record keys (`Tests/PiPingCloudKitTests/CloudKitSchemaTests.swift:9-36`). | Signed Mac and iOS entitlements and the end-to-end private delivery path were inspected and verified. Re-inspect exact release artifacts after material changes. |
 | TM-06 | A notification reveals sensitive content on a locked screen or through Siri/AirPods. | Shoulder-surfing or audible disclosure | Copy is generic and contains no node, project, session, prompt, output, or file data. | Users still control notification previews and Announce settings; setup docs must preserve that choice. |

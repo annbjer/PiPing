@@ -56,6 +56,10 @@ sequence:
 4. confirm APNs registration within a 15-second bound; and
 5. install the fixed private-database subscription if needed.
 
+Because Apple's APNs callback does not identify individual attempts, a timed-out
+or cancelled registration requires closing and reopening the iPhone app before
+retrying. This prevents a late callback from completing the wrong attempt.
+
 The verified private development setup has a signed Mac app and signed iPhone
 app. A real Pi completion produced the Mac notification, the CloudKit-backed
 iPhone notification, and normal Apple Watch mirroring. Notification routing,
@@ -89,8 +93,11 @@ explicit guarded command:
 ./script/install_signed_local.sh --install
 ```
 
-The installer rejects the public-safe development artifact, verifies the signed
-app and helper, creates and tests a compressed rollback, replaces only
+The installer rejects public-safe, ad-hoc, foreign-team, wrong-identity,
+mismatched-helper, and altered-CloudKit artifacts before copying or launching
+anything. It binds the app, helper, hardened runtime, entitlements, and unexpired
+provisioning profile to the exact ignored local team, bundle, and container
+configuration; creates and tests a compressed rollback; replaces only
 `/Applications/PiPing.app`, launches it, and runs the canonical installation
 check. If post-install validation fails, it restores the previous canonical app.
 After a successful first install, grant notification permission and optionally

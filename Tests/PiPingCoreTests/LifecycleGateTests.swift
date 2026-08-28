@@ -42,17 +42,21 @@ struct LifecycleGateTests {
         #expect(gate.receive(.settled, at: start) == .ignoredMissingStart)
     }
 
-    @Test("does not reset the timer for a duplicate start")
-    func duplicateStart() {
+    @Test("a newer start replaces stale or overlapping state")
+    func latestStartWins() {
         var gate = LifecycleGate()
         #expect(gate.receive(.start, at: start) == .started)
         #expect(
             gate.receive(.start, at: start.addingTimeInterval(20))
-                == .ignoredDuplicateStart
+                == .restartedFromLatestStart
         )
         #expect(
             gate.receive(.settled, at: start.addingTimeInterval(31))
-                == .attention(elapsed: 31)
+                == .ignoredTooShort(elapsed: 11)
+        )
+        #expect(
+            gate.receive(.settled, at: start.addingTimeInterval(60))
+                == .ignoredMissingStart
         )
     }
 

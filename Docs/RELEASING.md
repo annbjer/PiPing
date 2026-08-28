@@ -33,7 +33,9 @@ the form `vMAJOR.MINOR.PATCH`.
    files available.
 5. Complete `Docs/RELEASE_AUDIT.md` against tracked files, reachable history,
    the source archive, and every generated release file.
-6. Confirm the intended Git author identity and inspect the exact public branch.
+6. Confirm the intended Git author and committer identities, remove local
+   agent/checkpoint refs that are not release history, and inspect the exact
+   public branch and ref list.
 7. Run a fresh read-only GPT 5.6 Daybreak Blue security/privacy review against
    the exact candidate commit. Resolve every release-blocking finding and repeat
    affected checks.

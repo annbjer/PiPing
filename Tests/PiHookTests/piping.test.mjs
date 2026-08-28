@@ -75,3 +75,51 @@ test("uses the installed helper and reports launch failures without throwing", a
       + "PiPing notifications are unavailable for this Pi session.",
   ]);
 });
+
+test("independently resolves when the helper completion never arrives", async () => {
+  const failures = [];
+  let helperCompletion;
+  let deadline;
+  let cancelled = 0;
+  const runner = makeNativeHelperRunner(
+    (_file, _args, _options, completion) => {
+      helperCompletion = completion;
+    },
+    (message) => failures.push(message),
+    (completion, milliseconds) => {
+      assert.equal(milliseconds, 1_250);
+      deadline = completion;
+      return () => { cancelled += 1; };
+    },
+  );
+
+  const run = runner("start");
+  deadline();
+  await run;
+  helperCompletion(null);
+
+  assert.equal(cancelled, 1);
+  assert.deepEqual(failures, [
+    "[PiPing] Could not deliver the start lifecycle signal "
+      + "through the installed helper (timeout). "
+      + "PiPing notifications are unavailable for this Pi session.",
+  ]);
+});
+
+test("converts a synchronous executor failure into non-throwing reporting", async () => {
+  const failures = [];
+  const runner = makeNativeHelperRunner(
+    () => {
+      throw Object.assign(new Error("synthetic failure"), { code: "EACCES" });
+    },
+    (message) => failures.push(message),
+  );
+
+  await runner("settled");
+
+  assert.deepEqual(failures, [
+    "[PiPing] Could not deliver the settled lifecycle signal "
+      + "through the installed helper (EACCES). "
+      + "PiPing notifications are unavailable for this Pi session.",
+  ]);
+});

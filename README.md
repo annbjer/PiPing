@@ -10,10 +10,13 @@ The notification is always:
 - **Pi has fully settled and is ready for you.**
 - normal system notification sound
 
-PiPing's application-defined lifecycle payload contains only a timestamp and
-the fixed notification copy. It never reads or serializes prompts, model output,
-code, logs, file contents, paths, project names, session identifiers, terminal
-data, or approval details.
+PiPing never derives a payload from task content. The local protocol carries
+only `start` or `settled`; CloudKit stores only one timestamp field and uses the
+fixed notification copy. macOS assigns each local notification a random request
+identifier that is unrelated to any Pi session and is never sent to CloudKit.
+PiPing never reads or serializes prompts, model output, code, logs, file
+contents, paths, project names, session identifiers, terminal data, or approval
+details.
 
 ## Current development status
 

@@ -4,11 +4,19 @@
 DerivedData/
 dist/
 
+# Never publish generated Apple bundles or test results, regardless of location.
+*.app/
+*.ipa
+*.xcarchive/
+*.dSYM/
+*.xcresult/
+
 # Xcode user and signing state
 *.xcuserstate
 *.xcuserdata/
 *.mobileprovision
 *.provisionprofile
+*.entitlements.plist
 *.p8
 *.p12
 *.cer
@@ -23,4 +31,5 @@ Local.xcconfig
 !.env.example
 .pi/
 .piping/
+.codex/
 *.log

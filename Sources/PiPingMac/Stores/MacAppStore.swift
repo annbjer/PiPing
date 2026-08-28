@@ -156,10 +156,8 @@ final class MacAppStore {
     func receive(_ signal: LocalSignal, at date: Date) {
         let decision = gate.receive(signal, at: date)
         switch decision {
-        case .started:
+        case .started, .restartedFromLatestStart:
             status = .running
-        case .ignoredDuplicateStart:
-            break
         case .ignoredMissingStart:
             status = .listening
         case let .ignoredTooShort(elapsed):

@@ -20,7 +20,7 @@ public enum LocalSignal: String, CaseIterable, Sendable {
 
 public enum GateDecision: Equatable, Sendable {
     case started
-    case ignoredDuplicateStart
+    case restartedFromLatestStart
     case ignoredMissingStart
     case ignoredTooShort(elapsed: TimeInterval)
     case attention(elapsed: TimeInterval)
@@ -51,9 +51,9 @@ public struct LifecycleGate: Sendable {
     public mutating func receive(_ signal: LocalSignal, at now: Date) -> GateDecision {
         switch signal {
         case .start:
-            guard startedAt == nil else { return .ignoredDuplicateStart }
+            let replacedExistingStart = startedAt != nil
             startedAt = now
-            return .started
+            return replacedExistingStart ? .restartedFromLatestStart : .started
         case .settled:
             guard let start = startedAt else { return .ignoredMissingStart }
             startedAt = nil

@@ -8,6 +8,7 @@ BUILT_APP="$DERIVED_DATA/Build/Products/Release/PiPing.app"
 SWIFT_SCRATCH="$ROOT_DIR/.build/swiftpm-signed-local"
 OUTPUT_DIR="$ROOT_DIR/dist/private"
 OUTPUT_ZIP="$OUTPUT_DIR/PiPing.app.zip"
+OUTPUT_TEMP="$OUTPUT_DIR/.PiPing.app.$$.zip"
 BUILD_LOG="$ROOT_DIR/.build/signed-local-xcodebuild.log"
 STABLE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -22,6 +23,7 @@ cleanup() {
   if [[ -n "$STAGE_ROOT" ]]; then
     rm -rf "$STAGE_ROOT"
   fi
+  rm -f "$OUTPUT_TEMP"
   rm -rf "$DERIVED_DATA"
 }
 
@@ -58,7 +60,7 @@ required_setting PIPING_CLOUDKIT_CONTAINER_IDENTIFIER
 trap cleanup EXIT
 export DEVELOPER_DIR="$STABLE_DEVELOPER_DIR"
 mkdir -p "$ROOT_DIR/.build" "$OUTPUT_DIR"
-rm -f "$OUTPUT_ZIP"
+rm -f "$OUTPUT_TEMP"
 rm -rf "$DERIVED_DATA"
 
 if ! xcodebuild \
@@ -121,11 +123,11 @@ codesign \
   --entitlements "$entitlements" \
   --sign "$identity" \
   "$STAGED_APP"
-codesign --verify --deep --strict --verbose=2 "$STAGED_APP"
+"$ROOT_DIR/script/validate_signed_local_app.sh" "$STAGED_APP"
 
-rm -f "$OUTPUT_ZIP"
-ditto -c -k --sequesterRsrc --keepParent "$STAGED_APP" "$OUTPUT_ZIP"
-unzip -tq "$OUTPUT_ZIP"
+ditto -c -k --sequesterRsrc --keepParent "$STAGED_APP" "$OUTPUT_TEMP"
+unzip -tq "$OUTPUT_TEMP"
+mv -f "$OUTPUT_TEMP" "$OUTPUT_ZIP"
 
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$STAGED_APP/Contents/Info.plist")"
 build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$STAGED_APP/Contents/Info.plist")"

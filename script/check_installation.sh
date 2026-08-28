@@ -27,18 +27,7 @@ if [[ ! -x "$CANONICAL_EXECUTABLE" || ! -x "$CANONICAL_HELPER" ]]; then
   exit 1
 fi
 
-codesign --verify --deep --strict --verbose=2 "$CANONICAL_APP" >/dev/null
-
-team_identifier() {
-  codesign -dv --verbose=4 "$1" 2>&1 \
-    | awk -F= '/^TeamIdentifier=/ && !found {print $2; found=1}'
-}
-APP_TEAM_IDENTIFIER="$(team_identifier "$CANONICAL_APP")"
-HELPER_TEAM_IDENTIFIER="$(team_identifier "$CANONICAL_HELPER")"
-if [[ -z "$APP_TEAM_IDENTIFIER" || "$APP_TEAM_IDENTIFIER" != "$HELPER_TEAM_IDENTIFIER" ]]; then
-  echo "Canonical app and helper do not share one Apple development team" >&2
-  exit 1
-fi
+"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/validate_signed_local_app.sh" "$CANONICAL_APP"
 
 PIDS="$(pgrep -x PiPing || true)"
 PID_COUNT="$(printf '%s\n' "$PIDS" | awk 'NF { count += 1 } END { print count + 0 }')"

@@ -4,6 +4,10 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 export type PiPingSignal = "start" | "settled";
 export type SignalRunner = (signal: PiPingSignal) => Promise<void>;
 export type FailureReporter = (message: string) => void;
+export type DeadlineScheduler = (
+  completion: () => void,
+  timeoutMilliseconds: number,
+) => () => void;
 
 interface HelperExecutionError extends Error {
   code?: string | number | null;
@@ -28,29 +32,61 @@ const reportToPiTerminal: FailureReporter = (message) => {
   console.error(message);
 };
 
+const scheduleDeadline: DeadlineScheduler = (completion, timeoutMilliseconds) => {
+  const timer = setTimeout(completion, timeoutMilliseconds);
+  return () => clearTimeout(timer);
+};
+
+const helperExecutionTimeoutMilliseconds = 1_000;
+const runnerDeadlineMilliseconds = 1_250;
+
 export function makeNativeHelperRunner(
   execute: HelperExecutor = executeHelper,
   reportFailure: FailureReporter = reportToPiTerminal,
+  schedule: DeadlineScheduler = scheduleDeadline,
 ): SignalRunner {
   return async (signal) => new Promise<void>((resolvePromise) => {
-    execute(
-      canonicalHelperPath,
-      [signal],
-      { timeout: 1_000, windowsHide: true },
-      (error) => {
-        if (error) {
-          const reason = error.killed
-            ? "timeout"
-            : String(error.code ?? "unknown error");
-          reportFailure(
-            `[PiPing] Could not deliver the ${signal} lifecycle signal `
-              + `through the installed helper (${reason}). `
-              + "PiPing notifications are unavailable for this Pi session.",
-          );
-        }
-        resolvePromise();
-      },
+    let finished = false;
+    let cancelDeadline = () => {};
+    const finish = (reason?: string) => {
+      if (finished) return;
+      finished = true;
+      cancelDeadline();
+      if (reason) {
+        reportFailure(
+          `[PiPing] Could not deliver the ${signal} lifecycle signal `
+            + `through the installed helper (${reason}). `
+            + "PiPing notifications are unavailable for this Pi session.",
+        );
+      }
+      resolvePromise();
+    };
+    cancelDeadline = schedule(
+      () => finish("timeout"),
+      runnerDeadlineMilliseconds,
     );
+    if (finished) {
+      cancelDeadline();
+      return;
+    }
+
+    try {
+      execute(
+        canonicalHelperPath,
+        [signal],
+        { timeout: helperExecutionTimeoutMilliseconds, windowsHide: true },
+        (error) => {
+          if (!error) {
+            finish();
+            return;
+          }
+          finish(error.killed ? "timeout" : String(error.code ?? "unknown error"));
+        },
+      );
+    } catch (error) {
+      const executionError = error as HelperExecutionError;
+      finish(String(executionError.code ?? "unknown error"));
+    }
   });
 }
 
