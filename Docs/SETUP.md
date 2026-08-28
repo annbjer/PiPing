@@ -62,6 +62,40 @@ iPhone notification, and normal Apple Watch mirroring. Notification routing,
 previews, sounds, and optional Siri Announce Notifications remain controlled by
 Apple system settings.
 
+## Signed local Mac build and installation
+
+Version `0.1.0` distributes source only. Each developer creates their own
+ignored `Config/Local.xcconfig`, signing identity, bundle identifiers, and
+CloudKit container. Never reuse or publish another developer's values.
+
+After replacing every placeholder in the ignored local configuration, increment
+`CURRENT_PROJECT_VERSION` for a new installable build and run:
+
+```bash
+./script/build_signed_local.sh
+```
+
+This performs a Release build with automatic Apple Development signing, embeds
+and signs `PiPingSignal`, verifies the complete bundle, writes the ignored
+local-only archive `dist/private/PiPing.app.zip`, and removes the extracted
+signed build product. The archive may contain account-specific entitlements and
+must never be attached to the source release.
+
+Preflight the archive, then install or replace the canonical app only with the
+explicit guarded command:
+
+```bash
+./script/install_signed_local.sh --check
+./script/install_signed_local.sh --install
+```
+
+The installer rejects the public-safe development artifact, verifies the signed
+app and helper, creates and tests a compressed rollback, replaces only
+`/Applications/PiPing.app`, launches it, and runs the canonical installation
+check. If post-install validation fails, it restores the previous canonical app.
+After a successful first install, grant notification permission and optionally
+enable PiPing under **System Settings > General > Login Items > Open at Login**.
+
 ### macOS icon appearance
 
 macOS controls app-icon appearance separately from window appearance. If the

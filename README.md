@@ -59,7 +59,19 @@ To build and stage the unsigned macOS app without launching it:
 
 The unsigned public-safe Mac artifact is staged as the verified archive
 `dist/unsigned/PiPing.app.zip` and is labeled **PiPing Development**. Build-only
-verification does not retain a discoverable application bundle.
+verification does not retain a discoverable application bundle. This is a
+compile-verification artifact, not an official binary release.
+
+Developers with approved ignored Apple signing and CloudKit configuration can
+build and install their own local-only signed app with:
+
+```bash
+./script/build_signed_local.sh
+./script/install_signed_local.sh --install
+```
+
+The generated signed archive can contain account-specific entitlements and must
+never be published. See [setup](Docs/SETUP.md) for the complete safeguards.
 
 The Pi integration deliberately invokes only the installed helper at
 `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`. It never follows a

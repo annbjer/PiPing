@@ -6,6 +6,7 @@ CANONICAL_EXECUTABLE="$CANONICAL_APP/Contents/MacOS/PiPing"
 CANONICAL_HELPER="$CANONICAL_APP/Contents/Helpers/PiPingSignal"
 PLIST="$CANONICAL_APP/Contents/Info.plist"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+PUBLIC_BUNDLE_IDENTIFIER="org.example.PiPing.macOS"
 
 if [[ ! -d "$CANONICAL_APP" || ! -f "$PLIST" ]]; then
   echo "Missing canonical PiPing installation: $CANONICAL_APP" >&2
@@ -15,13 +16,29 @@ fi
 BUNDLE_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST")"
 MARKETING_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$PLIST")"
 BUILD_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$PLIST")"
+DISPLAY_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$PLIST" 2>/dev/null || true)"
 
+if [[ "$BUNDLE_IDENTIFIER" == "$PUBLIC_BUNDLE_IDENTIFIER" || "$DISPLAY_NAME" == "PiPing Development" ]]; then
+  echo "Public-safe development output cannot be the canonical installation" >&2
+  exit 1
+fi
 if [[ ! -x "$CANONICAL_EXECUTABLE" || ! -x "$CANONICAL_HELPER" ]]; then
   echo "Canonical executable or helper is missing" >&2
   exit 1
 fi
 
 codesign --verify --deep --strict --verbose=2 "$CANONICAL_APP" >/dev/null
+
+team_identifier() {
+  codesign -dv --verbose=4 "$1" 2>&1 \
+    | awk -F= '/^TeamIdentifier=/ && !found {print $2; found=1}'
+}
+APP_TEAM_IDENTIFIER="$(team_identifier "$CANONICAL_APP")"
+HELPER_TEAM_IDENTIFIER="$(team_identifier "$CANONICAL_HELPER")"
+if [[ -z "$APP_TEAM_IDENTIFIER" || "$APP_TEAM_IDENTIFIER" != "$HELPER_TEAM_IDENTIFIER" ]]; then
+  echo "Canonical app and helper do not share one Apple development team" >&2
+  exit 1
+fi
 
 PIDS="$(pgrep -x PiPing || true)"
 PID_COUNT="$(printf '%s\n' "$PIDS" | awk 'NF { count += 1 } END { print count + 0 }')"
@@ -82,5 +99,5 @@ if stale_native:
 PY
 
 echo "  $MARKETING_VERSION ($BUILD_VERSION), $BUNDLE_IDENTIFIER"
-echo "  one signed app, one process, one LaunchServices path"
+echo "  one signed app/helper team, one process, one LaunchServices path"
 echo "  helper: $CANONICAL_HELPER"
