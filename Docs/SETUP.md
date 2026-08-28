@@ -24,11 +24,11 @@ The script uses repository-relative paths, stable Xcode 26, ignored build
 directories, synthetic tests, and unsigned outputs. It does not launch either
 app, request permission, contact CloudKit, or send a notification.
 
-The repository verifier compiles the iOS sources against the installed SDK and
-does not require a running Simulator. Simulator validation additionally
-requires the matching Xcode platform runtime. The iOS 26.5 runtime used for the
-current development verification is installed separately and is not managed by
-repository scripts.
+The repository verifier performs unsigned public-safe macOS and iOS Release
+builds and separately cross-compiles the iOS Swift package branch against the
+installed Simulator SDK. It does not require a running Simulator. Interactive
+Simulator validation additionally requires the matching Xcode platform runtime;
+runtimes are installed separately and are not managed by repository scripts.
 
 ## Public-safe and private-local configuration
 

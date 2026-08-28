@@ -50,9 +50,9 @@ Stable Xcode 26 is selected per command without changing the machine-wide
 ./script/verify.sh
 ```
 
-This builds ignored, public-safe unsigned artifacts. It does not overwrite or
-launch the ignored signed private build, contact CloudKit, or send a
-notification.
+This runs tests and builds ignored, public-safe unsigned macOS and iOS Release
+artifacts. It does not overwrite or launch the ignored signed private build,
+contact CloudKit, or send a notification.
 
 To build and stage the unsigned macOS app without launching it:
 

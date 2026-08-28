@@ -31,9 +31,9 @@ Run from the repository root:
 ./script/verify.sh
 ```
 
-This executes Swift tests, Pi hook tests, an unsigned public-safe macOS build,
-and an iOS simulator cross-build. It must not launch an app, contact CloudKit,
-or send a notification.
+This executes Swift tests, Pi hook tests, unsigned public-safe macOS and iOS
+Release builds, and an iOS simulator cross-build. It must not launch an app,
+contact CloudKit, or send a notification.
 
 ## Change rules
 

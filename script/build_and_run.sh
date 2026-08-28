@@ -14,7 +14,14 @@ esac
 APP_NAME="PiPing"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DERIVED_DATA="$ROOT_DIR/.build/DerivedData-run"
-BUILT_APP="$DERIVED_DATA/Build/Products/Debug/PiPing.app"
+if [[ "$MODE" == "--build-only" || "$MODE" == "build-only" ]]; then
+  XCODE_CONFIGURATION="Release"
+  SWIFT_CONFIGURATION="release"
+else
+  XCODE_CONFIGURATION="Debug"
+  SWIFT_CONFIGURATION="debug"
+fi
+BUILT_APP="$DERIVED_DATA/Build/Products/$XCODE_CONFIGURATION/PiPing.app"
 DIST_DIR="$ROOT_DIR/dist/unsigned"
 DIST_APP="$DIST_DIR/PiPing.app"
 DIST_ZIP="$DIST_DIR/PiPing.app.zip"
@@ -65,12 +72,13 @@ fi
 swift build \
   --package-path "$ROOT_DIR" \
   --scratch-path "$ROOT_DIR/.build/swiftpm" \
+  --configuration "$SWIFT_CONFIGURATION" \
   --product PiPingSignal
 
 xcodebuild \
   -project "$ROOT_DIR/PiPing.xcodeproj" \
   -scheme PiPing-macOS \
-  -configuration Debug \
+  -configuration "$XCODE_CONFIGURATION" \
   -destination "generic/platform=macOS" \
   -derivedDataPath "$DERIVED_DATA" \
   PRODUCT_BUNDLE_IDENTIFIER="$PUBLIC_BUNDLE_IDENTIFIER" \
@@ -80,7 +88,11 @@ xcodebuild \
   CODE_SIGNING_REQUIRED=NO \
   build
 
-SIGNAL_BINARY="$(swift build --package-path "$ROOT_DIR" --scratch-path "$ROOT_DIR/.build/swiftpm" --show-bin-path)/PiPingSignal"
+SIGNAL_BINARY="$(swift build \
+  --package-path "$ROOT_DIR" \
+  --scratch-path "$ROOT_DIR/.build/swiftpm" \
+  --configuration "$SWIFT_CONFIGURATION" \
+  --show-bin-path)/PiPingSignal"
 mkdir -p "$DIST_DIR"
 STAGE_ROOT="$(mktemp -d "$ROOT_DIR/.build/unsigned-stage.XXXXXX")"
 STAGED_APP="$STAGE_ROOT/PiPing.app"
