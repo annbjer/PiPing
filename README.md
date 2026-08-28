@@ -57,8 +57,23 @@ To build and stage the unsigned macOS app without launching it:
 ./script/build_and_run.sh --build-only
 ```
 
-The unsigned public-safe Mac artifact is staged at
-`dist/unsigned/PiPing.app`.
+The unsigned public-safe Mac artifact is staged as the verified archive
+`dist/unsigned/PiPing.app.zip` and is labeled **PiPing Development**. Build-only
+verification does not retain a discoverable application bundle.
+
+The Pi integration deliberately invokes only the installed helper at
+`/Applications/PiPing.app/Contents/Helpers/PiPingSignal`. It never follows a
+DerivedData, repository, or backup build path. Notification authorization,
+LaunchServices metadata, and icon caches are keyed to the private macOS bundle
+identifier supplied by ignored `Config/Local.xcconfig`; changing that identifier
+creates a new macOS notification identity.
+
+A read-only canonical-install check is available after installing the signed
+private build:
+
+```bash
+./script/check_installation.sh
+```
 
 To inspect the local toolchain, public defaults, private-override presence,
 prospective signing/configuration surface, and working tree without changing

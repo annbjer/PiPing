@@ -38,3 +38,11 @@ else
 fi
 echo "Working tree:"
 git -C "$ROOT_DIR" status --short
+
+CANONICAL_APP="/Applications/PiPing.app"
+if [[ -d "$CANONICAL_APP" ]]; then
+  echo "Canonical installation:"
+  "$ROOT_DIR/script/check_installation.sh"
+else
+  echo "Canonical installation: absent"
+fi

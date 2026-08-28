@@ -1,27 +1,60 @@
 import { execFile } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 export type PiPingSignal = "start" | "settled";
 export type SignalRunner = (signal: PiPingSignal) => Promise<void>;
+export type FailureReporter = (message: string) => void;
 
-const integrationDirectory = dirname(fileURLToPath(import.meta.url));
-const helperPath = resolve(
-  integrationDirectory,
-  "../../dist/PiPing.app/Contents/Helpers/PiPingSignal",
-);
+interface HelperExecutionError extends Error {
+  code?: string | number | null;
+  killed?: boolean;
+}
 
-export const runNativeHelper: SignalRunner = async (signal) => {
-  await new Promise<void>((resolvePromise) => {
-    execFile(
-      helperPath,
+export type HelperExecutor = (
+  file: string,
+  args: string[],
+  options: { timeout: number; windowsHide: boolean },
+  completion: (error: HelperExecutionError | null) => void,
+) => void;
+
+export const canonicalHelperPath =
+  "/Applications/PiPing.app/Contents/Helpers/PiPingSignal";
+
+const executeHelper: HelperExecutor = (file, args, options, completion) => {
+  execFile(file, args, options, (error) => completion(error));
+};
+
+const reportToPiTerminal: FailureReporter = (message) => {
+  console.error(message);
+};
+
+export function makeNativeHelperRunner(
+  execute: HelperExecutor = executeHelper,
+  reportFailure: FailureReporter = reportToPiTerminal,
+): SignalRunner {
+  return async (signal) => new Promise<void>((resolvePromise) => {
+    execute(
+      canonicalHelperPath,
       [signal],
       { timeout: 1_000, windowsHide: true },
-      () => resolvePromise(),
+      (error) => {
+        if (error) {
+          const reason = error.killed
+            ? "timeout"
+            : String(error.code ?? "unknown error");
+          reportFailure(
+            `[PiPing] Could not deliver the ${signal} lifecycle signal `
+              + `through the installed helper (${reason}). `
+              + "PiPing notifications are unavailable for this Pi session.",
+          );
+        }
+        resolvePromise();
+      },
     );
   });
-};
+}
+
+export const runNativeHelper: SignalRunner = makeNativeHelperRunner();
 
 export function registerPiPing(
   pi: Pick<ExtensionAPI, "on">,

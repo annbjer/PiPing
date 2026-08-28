@@ -8,9 +8,11 @@ DERIVED_DATA="$ROOT_DIR/.build/DerivedData-run"
 BUILT_APP="$DERIVED_DATA/Build/Products/Debug/PiPing.app"
 DIST_DIR="$ROOT_DIR/dist/unsigned"
 DIST_APP="$DIST_DIR/PiPing.app"
+DIST_ZIP="$DIST_DIR/PiPing.app.zip"
 PUBLIC_BUNDLE_IDENTIFIER="org.example.PiPing.macOS"
 STABLE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 OFFICIAL_ICON_SOURCE="$ROOT_DIR/Assets/Brand/AppIcon/PiPing.icon"
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
 if [[ ! -x "$STABLE_DEVELOPER_DIR/usr/bin/xcodebuild" ]]; then
   echo "Stable Xcode is required at $STABLE_DEVELOPER_DIR" >&2
@@ -42,6 +44,7 @@ xcodebuild \
   -destination "generic/platform=macOS" \
   -derivedDataPath "$DERIVED_DATA" \
   PRODUCT_BUNDLE_IDENTIFIER="$PUBLIC_BUNDLE_IDENTIFIER" \
+  INFOPLIST_KEY_CFBundleDisplayName="PiPing Development" \
   PIPING_CLOUDKIT_ACTIVATION=NO \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
@@ -57,10 +60,18 @@ cp "$SIGNAL_BINARY" "$STAGED_APP/Contents/Helpers/PiPingSignal"
 chmod +x "$STAGED_APP/Contents/Helpers/PiPingSignal"
 
 if [[ -e "$DIST_APP" ]]; then
-  PREVIOUS_APP="$ROOT_DIR/.build/PiPing-unsigned-previous-$(date +%Y%m%dT%H%M%S).app"
-  mv "$DIST_APP" "$PREVIOUS_APP"
+  PREVIOUS_ZIP="$ROOT_DIR/.build/PiPing-unsigned-previous-$(date +%Y%m%dT%H%M%S).app.zip"
+  ditto -c -k --sequesterRsrc --keepParent "$DIST_APP" "$PREVIOUS_ZIP"
+  unzip -tq "$PREVIOUS_ZIP"
+  rm -rf "$DIST_APP"
 fi
 mv "$STAGED_APP" "$DIST_APP"
+
+# Xcode's build action may register an unsigned product even when it is never
+# launched. Keep development products out of the production LaunchServices set;
+# `open` will register the staged development app only for an explicit run.
+"$LSREGISTER" -u "$BUILT_APP" 2>/dev/null || true
+"$LSREGISTER" -u "$DIST_APP" 2>/dev/null || true
 
 open_app() {
   /usr/bin/open -n "$DIST_APP"
@@ -81,7 +92,12 @@ case "$MODE" in
     open_app
     ;;
   --build-only|build-only)
-    echo "Built $DIST_APP"
+    rm -f "$DIST_ZIP"
+    ditto -c -k --sequesterRsrc --keepParent "$DIST_APP" "$DIST_ZIP"
+    unzip -tq "$DIST_ZIP"
+    "$LSREGISTER" -u "$DIST_APP" 2>/dev/null || true
+    rm -rf "$DIST_APP"
+    echo "Built $DIST_ZIP"
     ;;
   --debug|debug)
     stop_existing_app
