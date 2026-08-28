@@ -5,6 +5,10 @@ versioning and source-release tags in the form `vMAJOR.MINOR.PATCH`.
 
 ## Unreleased
 
+## [0.1.0] - 2026-08-28
+
+First public source-only release.
+
 ### Added
 
 - Native macOS and iOS notification companions for Pi lifecycle completion.
@@ -21,5 +25,3 @@ versioning and source-release tags in the form `vMAJOR.MINOR.PATCH`.
   configuration and user enablement.
 - APNs registration is bounded and cancellation-safe.
 - Local IPC validates ownership, type, permissions, ACLs, and symlink safety.
-
-No public version has been released yet.
