@@ -53,7 +53,7 @@ sequence:
 1. confirm that the explicitly configured private container is usable;
 2. confirm that the iCloud account is available;
 3. request alert and sound permission;
-4. confirm APNs registration; and
+4. confirm APNs registration within a 15-second bound; and
 5. install the fixed private-database subscription if needed.
 
 The verified private development setup has a signed Mac app and signed iPhone
@@ -103,14 +103,23 @@ pi install .
 pi list
 ```
 
-This adds the PiPing package to Pi's user settings. It does not replace other
-extensions, and it applies only to newly started Pi sessions. Remove the entry
-reversibly from the repository root with:
+This adds the PiPing package to Pi's user settings, making it global to newly
+started Pi sessions without replacing other extensions. In an existing Pi
+session, use `/reload` after installation. To limit the package to the current
+trusted project instead, use `pi install -l .`; project-local and global package
+scope follow Pi's normal precedence rules.
 
-```bash
-pi remove .
-```
+Remove the matching entry reversibly from the repository root with `pi remove .`
+for user scope or `pi remove -l .` for project scope.
 
-The bundled native helper must already exist at the repository-relative path
-expected by the hook. The package remains `private` and unlicensed to prevent
-accidental publication.
+Installing the Pi package installs only the TypeScript lifecycle edge; it does
+not install the native Mac application. The app and bundled helper must already
+exist at these canonical paths:
+
+- `/Applications/PiPing.app`
+- `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`
+
+The extension deliberately fails quiet if that helper is unavailable. It never
+falls back to a repository, DerivedData, `dist`, or backup executable. The
+package remains `private` and unlicensed until the public-release gates are
+complete.

@@ -1,34 +1,27 @@
 #if os(iOS)
+import PiPingCore
 import SwiftUI
 import UIKit
 import UserNotifications
-
-enum RemoteNotificationRegistrationError: Error {
-    case registrationFailed
-}
 
 @MainActor
 final class RemoteNotificationRegistrar {
     static let shared = RemoteNotificationRegistrar()
 
-    private var continuation: CheckedContinuation<Void, any Error>?
+    private let waiter = RemoteNotificationRegistrationWaiter()
 
     func register() async throws {
-        guard continuation == nil else { return }
-        try await withCheckedThrowingContinuation { continuation in
-            self.continuation = continuation
+        try await waiter.wait {
             UIApplication.shared.registerForRemoteNotifications()
         }
     }
 
     func didRegister() {
-        continuation?.resume()
-        continuation = nil
+        waiter.didRegister()
     }
 
     func didFail() {
-        continuation?.resume(throwing: RemoteNotificationRegistrationError.registrationFailed)
-        continuation = nil
+        waiter.didFail()
     }
 }
 

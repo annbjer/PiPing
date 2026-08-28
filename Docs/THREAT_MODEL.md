@@ -14,7 +14,7 @@ Phase 1 accepts only the lifecycle facts `start` and `settled`, applies a
 30-second minimum, and emits fixed notification copy. It intentionally has no
 reply or control channel. The fixed copy and event data are defined in
 `Sources/PiPingCore/AttentionContent.swift:3-19`; the threshold and state
-transitions are in `Sources/PiPingCore/LifecycleGate.swift:29-60`.
+transitions are in `Sources/PiPingCore/LifecycleGate.swift:29-65`.
 
 The primary security objectives are:
 
@@ -46,8 +46,8 @@ The primary security objectives are:
 
 | Component or resource | Current role | Current exposure |
 | --- | --- | --- |
-| Pi TypeScript hook | Maps two documented lifecycle events to fixed helper arguments | Local Pi process only; no event fields read (`Integration/Pi/piping.ts:26-38`) |
-| Native `PiPingSignal` helper | Validates one argument and writes one fixed signal | Repository-staged helper; no network (`Sources/PiPingSignal/main.swift:22-39`) |
+| Pi TypeScript hook | Maps two documented lifecycle events to fixed helper arguments | Local Pi process only; no event fields read (`Integration/Pi/piping.ts:59-71`) |
+| Native `PiPingSignal` helper | Validates one argument and writes one fixed signal | Bundled only in the canonical installed Mac app; no network (`Sources/PiPingSignal/main.swift:22-39`) |
 | `$HOME/.piping/events.fifo` | Local one-way IPC | `0600` FIFO inside a validated `0700` directory (`Sources/PiPingCore/LocalIPC.swift:30-160`) |
 | Lifecycle gate | Suppresses duplicate, missing, and short runs | In-memory macOS process state only (`Sources/PiPingCore/LifecycleGate.swift:42-60`) |
 | macOS UserNotifications | Presents fixed copy with normal system sound | Permission checked; local notification only (`Sources/PiPingMac/Services/SystemLocalNotificationService.swift:37-52`) |
@@ -60,11 +60,13 @@ The primary security objectives are:
 
 1. **Pi runtime to extension hook.** Prompt and message objects are untrusted and
    may contain secrets. The handlers ignore event fields and pass only literal
-   strings (`Integration/Pi/piping.ts:30-37`). Tests inject synthetic private
+   strings (`Integration/Pi/piping.ts:59-71`). Tests inject synthetic private
    fields and verify only two signals escape (`Tests/PiHookTests/piping.test.mjs:26-40`).
-2. **Hook to native helper.** The hook uses `execFile` with a repository-relative
-   fixed executable path, a single typed argument, no shell, and a one-second
-   timeout (`Integration/Pi/piping.ts:9-23`). Failure is deliberately quiet.
+2. **Hook to native helper.** The hook uses `execFile` with the fixed canonical
+   path `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`, a single typed
+   argument, no shell, and a one-second timeout
+   (`Integration/Pi/piping.ts:20-54`). Failure is reported generically without
+   blocking Pi, and there is no fallback to a development or backup executable.
 3. **Helper to macOS companion.** Both sides validate FIFO type, owner, and
    permissions, reject extended ACLs, and open relative to a validated directory
    descriptor with `O_NOFOLLOW`; the reader accepts at most 64 bytes per read

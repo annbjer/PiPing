@@ -5,7 +5,7 @@ struct PrivacyView: View {
     var body: some View {
         List {
             Section("Sent through iCloud") {
-                Label("A random event identifier", systemImage: "number")
+                Label("One fixed rolling record", systemImage: "arrow.trianglehead.2.clockwise.rotate.90")
                 Label("A timestamp", systemImage: "clock")
             }
             Section("Never sent") {
