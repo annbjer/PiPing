@@ -1,8 +1,10 @@
 # PiPing
 
-PiPing is a native Apple notification companion for Pi. Phase 1 is deliberately
-small: when Pi 0.84.3 has fully settled after a long-running task, PiPing can
-show a generic notification on the Mac, an iPhone, and its paired Apple Watch.
+PiPing is an unofficial, community-built native Apple notification companion
+for Pi. It is not endorsed by Pi's maintainers and is not safety-critical.
+Phase 1 is deliberately small: when a tested Pi version has fully settled after
+a long-running task, PiPing can show a generic notification on
+the Mac, an iPhone, and its paired Apple Watch.
 
 The notification is always:
 
@@ -41,8 +43,9 @@ names, Pi session identifiers, terminal data, or approval details.
 The signed Mac app runs as one listener window and reports remote delivery as
 sent only after CloudKit accepts the rolling-record write. The private
 development machine loads the Pi extension through Pi's user-package mechanism,
-so each newly started ordinary `pi` session is observed automatically. No remote
-repository or publication has been performed.
+so each newly started ordinary `pi` session is observed automatically. The
+GitHub repository remains private; no tag, release, public visibility, or Pi
+gallery listing has been published.
 
 ## Local verification
 
@@ -68,8 +71,25 @@ The unsigned public-safe Mac artifact is staged as the verified archive
 verification does not retain a discoverable application bundle. This is a
 compile-verification artifact, not an official binary release.
 
+For Mac-only local notifications, developers can build and ad-hoc sign the
+public-safe app without an Apple account or signing identity:
+
+```bash
+./script/build_source_local.sh
+./script/install_source_local.sh --check
+./script/install_source_local.sh --install
+pi install .
+```
+
+This path requires full stable Xcode and takes minutes rather than seconds. It
+installs only the public development identity, keeps CloudKit disabled, and
+refuses to replace a private or future
+official build. Generated archives remain local-only and are not release
+artifacts. See [agent-assisted installation](Docs/AGENT_INSTALL.md) for the
+approval boundaries and [setup](Docs/SETUP.md) for manual uninstall.
+
 Developers with approved ignored Apple signing and CloudKit configuration can
-build and install their own local-only signed app with:
+instead build and install their own local-only signed app with:
 
 ```bash
 ./script/build_signed_local.sh
@@ -101,8 +121,20 @@ anything or printing private values:
 ./script/status.sh
 ```
 
-See [setup](Docs/SETUP.md), [architecture](Docs/ARCHITECTURE.md),
-[privacy](Docs/PRIVACY.md), and the [security policy](SECURITY.md).
+### Tested Pi compatibility
+
+| Pi version | Package load | Ordinary >30s turn | Notes |
+| --- | --- | --- | --- |
+| 0.84.3 | Passed | Passed | Original lifecycle acceptance baseline |
+| 0.84.4 | Passed | Passed | Clean-lab acceptance baseline |
+
+The native app and helper do not depend on Pi internals, but the TypeScript edge
+depends on `before_agent_start`, `agent_settled`, and `context.isIdle()`.
+Versions not listed above are not yet claimed compatible.
+
+See [setup](Docs/SETUP.md), [agent-assisted installation](Docs/AGENT_INSTALL.md),
+[architecture](Docs/ARCHITECTURE.md), [privacy](Docs/PRIVACY.md), and the
+[security policy](SECURITY.md).
 
 ## License and publication
 
@@ -114,7 +146,8 @@ Development-signed app and generated `dist/` output are not public release
 artifacts. A future downloadable Mac binary requires Developer ID Application
 signing, notarization, and a separate exact-artifact audit.
 
-Creating a GitHub remote or publishing still requires explicit approval, a fresh
-Daybreak security review against the exact release candidate, and completion of
-[Docs/RELEASE_AUDIT.md](Docs/RELEASE_AUDIT.md). See the complete
-[release process](Docs/RELEASING.md).
+The repository is currently private. Any candidate push, public visibility,
+tag, release asset, gallery listing, or publication still requires its own
+explicit approval, a fresh Daybreak security review against the exact candidate,
+and completion of [Docs/RELEASE_AUDIT.md](Docs/RELEASE_AUDIT.md). See the
+complete [release process](Docs/RELEASING.md).

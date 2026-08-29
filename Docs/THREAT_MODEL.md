@@ -57,7 +57,7 @@ The primary security objectives are:
 | Private CloudKit database | Mac-to-iPhone attention transport | Publishing requires valid private-local configuration and explicit user enablement (`Sources/PiPingMac/Stores/MacAppStore.swift:77-105`, `180-190`) |
 | CloudKit query subscription | Fixed iPhone notification | User-initiated setup; record creation and update, fixed copy/sound, no desired fields (`Sources/PiPingCloudKit/CloudKitSchema.swift:18-30`) |
 | Apple Watch | Normal iPhone notification mirroring | No watchOS target, payload, action, or direct transport |
-| `.build/` and `dist/` | Local signed or unsigned outputs | Ignored; not release source (`.gitignore:1-5`) |
+| `.build/` and `dist/` | Local signed, unsigned, ad-hoc, and compressed rollback outputs | Ignored and bounded where retained; never release source (`.gitignore:1-5`) |
 
 ### Trust boundaries
 
@@ -95,7 +95,17 @@ The primary security objectives are:
    (`Sources/PiPingCloudKit/CloudKitSchema.swift:18-30`). Apple controls delivery,
    lock-screen presentation, Siri Announce Notifications, and Watch mirroring.
    PiPing makes no background-latency or routing guarantee.
-7. **Checkout to public release.** Signing material, user Xcode state, local
+7. **Trusted source to source-local installation.** The Mac-only builder forces
+   the public bundle/container placeholders and disabled CloudKit activation,
+   then applies only ad-hoc hardened-runtime signatures. The guarded installer
+   rejects paths outside the app, symbolic links, wrong identity/configuration,
+   provisioning profiles, entitlements, non-ad-hoc signatures, foreign
+   canonical apps, and duplicate LaunchServices paths. Ad-hoc signing provides
+   local integrity, not publisher authenticity: the user or agent must establish
+   trust through a pinned commit or verified source checksum before building.
+   Install and uninstall require separate explicit flags, use no `sudo`, and
+   retain at most three validated compressed recovery archives.
+8. **Checkout to public release.** Signing material, user Xcode state, local
    configuration, runtime files, environment files, logs, and build products are
    ignored (`.gitignore:7-26`). Ignoring is not proof of absence; the required
    history and exact archive audit is specified in
@@ -138,6 +148,8 @@ vulnerabilities.
 | TM-08 | Future yes/no/stop work reuses the notification pipeline as a hidden return channel. | Unauthorized remote action or command confusion | Phase 2 gate is false; the sole category is actionless and reports only local click/dismiss acknowledgement; no command action, deep link, App Intent, or watch target exists. | Treat Phase 2 as a separate protocol, threat model, authorization design, and approval gate. |
 | TM-09 | CloudKit, notifications, the app, or the FIFO is unavailable. | Missed attention alert | Failures are generic and content-free; the transport has no control authority. | Delivery is best effort. Do not use PiPing for safety-critical completion guarantees. |
 | TM-10 | Dashboard, presence, Tailscale, Pi session identity, terminal, project, or file features creep into Phase 1. | Broader metadata and network attack surface | The only correlation value is a locally generated random UUID with no Pi-derived metadata; current architecture has no model for those features. | Keep richer identity or navigation features in a separately approved backlog with a new privacy and connectivity review. |
+| TM-11 | A tampered or untrusted ad-hoc archive is installed as PiPing. | Same-user code execution under a familiar name | Build only trusted pinned/checksummed source; archive path and symlink guards; exact public identity/configuration; no profile or entitlements; ad-hoc hardened-runtime validation; foreign canonical apps are never replaced. | Ad-hoc signatures do not authenticate a publisher. A convenient downloadable binary remains blocked on Developer ID signing, notarization, stapling, and binary audit. |
+| TM-12 | Install or uninstall removes a private/official app, another package, or unrelated runtime data. | Data loss or broken trusted installation | Exact development identity/signature validation, canonical path only, explicit modes, same-source Pi package resolution, strict runtime owner/mode/content checks, bounded compressed recovery, and Apple database exclusion. | Abrupt termination can still require the documented guarded recovery command; complete final interruption-safety review before publication. |
 
 ### Defense-in-depth verification for device testing and release
 

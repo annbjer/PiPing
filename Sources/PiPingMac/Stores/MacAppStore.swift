@@ -52,7 +52,7 @@ final class MacAppStore {
         var label: String {
             switch self {
             case .disabled: "Setup required"
-            case .unavailable: "Local configuration required"
+            case .unavailable: "Unavailable in this build"
             case .ready: "Ready"
             case .delivered: "Published"
             case .failed: "Delivery needs attention"
@@ -121,7 +121,7 @@ final class MacAppStore {
         self.cloudDeliveryEnabled = cloudDeliveryEnabled
         if cloudDeliveryEnabled {
             cloudDeliveryStatus = .ready
-        } else if cloudActivationEnabled && !cloudDeliveryAvailable {
+        } else if !cloudActivationEnabled || !cloudDeliveryAvailable {
             cloudDeliveryStatus = .unavailable
         } else {
             cloudDeliveryStatus = .disabled
@@ -204,6 +204,10 @@ final class MacAppStore {
                 try await self.notifications.deliver(event)
                 sent = true
             } catch {
+                // An undelivered request has no native click or dismiss callback.
+                // Keep only IDs that the user can acknowledge from Notification
+                // Center; menu acknowledgement still covers pending deliveries.
+                self.unreadAttentionIDs.remove(event.id)
                 // Remote delivery can still succeed when Mac notifications
                 // are unavailable, so resolve the final status after both paths.
             }

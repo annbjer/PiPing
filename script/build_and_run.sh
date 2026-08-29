@@ -56,6 +56,7 @@ if [[ ! -x "$STABLE_DEVELOPER_DIR/usr/bin/xcodebuild" ]]; then
   exit 1
 fi
 export DEVELOPER_DIR="$STABLE_DEVELOPER_DIR"
+unset XCODE_XCCONFIG_FILE
 
 if [[ ! -d "$OFFICIAL_ICON_SOURCE" ]]; then
   echo "Official app icon is missing: $OFFICIAL_ICON_SOURCE" >&2
@@ -83,7 +84,11 @@ xcodebuild \
   -derivedDataPath "$DERIVED_DATA" \
   PRODUCT_BUNDLE_IDENTIFIER="$PUBLIC_BUNDLE_IDENTIFIER" \
   INFOPLIST_KEY_CFBundleDisplayName="PiPing Development" \
+  PIPING_CLOUDKIT_CONTAINER_IDENTIFIER="iCloud.org.example.PiPing" \
   PIPING_CLOUDKIT_ACTIVATION=NO \
+  DEVELOPMENT_TEAM= \
+  CODE_SIGN_ENTITLEMENTS= \
+  PROVISIONING_PROFILE_SPECIFIER= \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   build

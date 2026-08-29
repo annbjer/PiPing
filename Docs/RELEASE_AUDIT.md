@@ -35,5 +35,11 @@ scan the extracted bytes—not merely the working tree.
 If a credential ever entered history, rotate it first and then clean or restart
 history. Deleting the current file or adding it to `.gitignore` is insufficient.
 
+Treat `dist/source-local/`, source-install rollback archives, and uninstall
+recovery archives as generated local artifacts; validate them for local testing
+but never include them in a source-only release attachment allowlist.
+
 Publication additionally requires a clean Daybreak scan, an approved
-open-source license, and explicit approval to create the remote and push.
+open-source license, exercised private vulnerability reporting, and explicit
+approval for public visibility, candidate push, tag, release assets, and gallery
+listing as separate gates.

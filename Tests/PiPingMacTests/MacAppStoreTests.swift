@@ -107,6 +107,88 @@ struct MacAppStoreTests {
     }
 
     @MainActor
+    @Test("refreshes the system authorization state after launch")
+    func authorizationRefresh() async {
+        let defaultsName = "PiPingMacTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        let store = MacAppStore(
+            publisher: DisabledAttentionPublisher(),
+            notifications: RecordingNotifications(),
+            defaults: defaults
+        )
+
+        #expect(store.authorization == .notDetermined)
+        await store.refreshAuthorization()
+        #expect(store.authorization == .authorized)
+    }
+
+    @MainActor
+    @Test("a CloudKit-disabled build reports mobile delivery unavailable")
+    func cloudDisabledStatus() {
+        let defaultsName = "PiPingMacTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        let store = MacAppStore(
+            publisher: DisabledAttentionPublisher(),
+            notifications: RecordingNotifications(),
+            cloudActivationEnabled: false,
+            cloudContainerIdentifier: nil,
+            defaults: defaults
+        )
+
+        #expect(store.cloudDeliveryStatus == .unavailable)
+        #expect(store.cloudDeliveryStatus.label == "Unavailable in this build")
+    }
+
+    @MainActor
+    @Test("a configured CloudKit build still requires explicit approval")
+    func cloudCapableStatus() {
+        let defaultsName = "PiPingMacTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        let store = MacAppStore(
+            publisher: DisabledAttentionPublisher(),
+            notifications: RecordingNotifications(),
+            cloudActivationEnabled: true,
+            cloudContainerIdentifier: "iCloud.org.example.PiPing.tests",
+            defaults: defaults
+        )
+
+        #expect(store.cloudDeliveryStatus == .disabled)
+        #expect(store.cloudDeliveryStatus.label == "Setup required")
+    }
+
+    @MainActor
+    @Test("failed local delivery does not leave an unacknowledgeable unread ID")
+    func failedDeliveryClearsUnreadID() async throws {
+        let defaultsName = "PiPingMacTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        let store = MacAppStore(
+            notificationThreshold: .everyCompletion,
+            publisher: DisabledAttentionPublisher(),
+            notifications: FailingNotifications(),
+            defaults: defaults
+        )
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let token = LocalSessionToken(
+            uuid: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+        )
+
+        store.receive(event(.start, token), at: now)
+        store.receive(event(.settled, token), at: now)
+        #expect(store.hasUnreadAttention)
+        for _ in 0..<100 {
+            if store.status == .attentionFailed { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(store.status == .attentionFailed)
+        #expect(!store.hasUnreadAttention)
+        #expect(store.unreadAttentionCount == 0)
+    }
+
+    @MainActor
     @Test("unread capacity rejects a new delivery without evicting visible IDs")
     func unreadCapacity() async throws {
         let defaultsName = "PiPingMacTests-\(UUID().uuidString)"
@@ -215,6 +297,15 @@ private actor RecordingNotifications: LocalNotificationDelivering {
 
     func deliver(_ event: AttentionEvent) async throws {
         events.append(event)
+    }
+}
+
+private actor FailingNotifications: LocalNotificationDelivering {
+    func authorization() async -> LocalNotificationAuthorization { .authorized }
+    func requestAuthorization() async throws -> Bool { true }
+
+    func deliver(_ event: AttentionEvent) async throws {
+        throw LocalNotificationDeliveryError.notAuthorized
     }
 }
 

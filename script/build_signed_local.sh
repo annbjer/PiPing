@@ -59,12 +59,14 @@ required_setting PIPING_CLOUDKIT_CONTAINER_IDENTIFIER
 
 trap cleanup EXIT
 export DEVELOPER_DIR="$STABLE_DEVELOPER_DIR"
+unset XCODE_XCCONFIG_FILE
 mkdir -p "$ROOT_DIR/.build" "$OUTPUT_DIR"
 rm -f "$OUTPUT_TEMP"
 rm -rf "$DERIVED_DATA"
 
 if ! xcodebuild \
   -project "$ROOT_DIR/PiPing.xcodeproj" \
+  -xcconfig "$LOCAL_CONFIG" \
   -scheme PiPing-macOS \
   -configuration Release \
   -destination "generic/platform=macOS" \
@@ -126,7 +128,7 @@ codesign \
 "$ROOT_DIR/script/validate_signed_local_app.sh" "$STAGED_APP"
 
 ditto -c -k --sequesterRsrc --keepParent "$STAGED_APP" "$OUTPUT_TEMP"
-unzip -tq "$OUTPUT_TEMP"
+"$ROOT_DIR/script/validate_signed_local_archive.sh" "$OUTPUT_TEMP" >/dev/null
 mv -f "$OUTPUT_TEMP" "$OUTPUT_ZIP"
 
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$STAGED_APP/Contents/Info.plist")"

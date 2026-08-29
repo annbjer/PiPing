@@ -6,8 +6,10 @@ The first public release is source-only. Do not attach, upload, or otherwise
 distribute a PiPing application bundle, IPA, provisioning profile, development
 archive, or locally generated `dist/` artifact.
 
-The currently installed private development app is not a release artifact. A
-future downloadable Mac binary requires a separately approved public bundle
+The currently installed private development app and generated source-local
+ad-hoc app are not release artifacts. `dist/source-local/` exists only for a
+source builder's guarded local installation and must not be uploaded. A future
+downloadable Mac binary requires a separately approved public bundle
 identity, Developer ID Application signing, hardened runtime, notarization,
 stapling, final entitlement inspection, and an exact binary-archive audit.
 
@@ -26,8 +28,8 @@ the form `vMAJOR.MINOR.PATCH`.
 
 1. Start from a clean working tree and record the exact commit.
 2. Reconcile `README.md`, `CHANGELOG.md`, `SECURITY.md`, `CONTRIBUTING.md`,
-   setup, architecture, privacy, threat-model, and release-readiness
-   documentation with the code.
+   setup, agent-installation, architecture, privacy, threat-model, and
+   release-readiness documentation with the code.
 3. Run `./script/verify.sh` locally.
 4. Build and test from an exact `git archive` extraction with no ignored local
    files available.
@@ -42,8 +44,9 @@ the form `vMAJOR.MINOR.PATCH`.
 8. Complete the recorded real-device Mac/iPhone/Watch regression checks.
 9. Enable GitHub private vulnerability reporting and verify the process linked
    from `SECURITY.md` before making the repository public.
-10. Obtain explicit owner approval before creating a remote, pushing, tagging,
-    or publishing a GitHub release.
+10. Obtain separate explicit owner approval before pushing the candidate,
+    changing repository visibility, tagging, uploading release assets,
+    publishing a GitHub release, or listing the package.
 
 ## Canonical source archive
 

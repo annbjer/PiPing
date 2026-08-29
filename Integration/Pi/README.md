@@ -1,8 +1,9 @@
 # Pi integration edge
 
-`piping.ts` is the only non-Swift product boundary. Pi 0.84.3 loads it in its
-existing extension runtime so PiPing can observe the documented
-`before_agent_start` and `agent_settled` events.
+`piping.ts` is the only non-Swift product boundary. Pi 0.84.3 and 0.84.4 have
+passed package-load and ordinary-turn acceptance with the documented
+`before_agent_start` and `agent_settled` events. Other versions are not claimed
+compatible until these hooks and `context.isIdle()` are retested.
 
 The hook:
 
@@ -20,5 +21,7 @@ The opaque UUID is not Pi's session ID. It is not persisted by the extension,
 included in notification copy, or sent to CloudKit.
 
 For an isolated trial, load the extension explicitly for one Pi run. For normal
-use, install the repository through Pi's user-package mechanism. Both procedures
-and the reversible uninstall command are documented in `Docs/SETUP.md`.
+use, install the repository through Pi's user-package mechanism. The Pi peer is
+optional metadata, not an installed dependency, so PiPing does not materialize
+a second Pi runtime. Both procedures and the reversible uninstall command are
+documented in `Docs/SETUP.md`.

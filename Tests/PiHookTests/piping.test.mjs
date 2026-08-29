@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   canonicalHelperPath,
@@ -20,6 +21,24 @@ function fakePi() {
     },
   };
 }
+
+test("package keeps the Pi peer optional and has no lifecycle scripts", async () => {
+  const manifest = JSON.parse(
+    await readFile(new URL("../../package.json", import.meta.url), "utf8"),
+  );
+  assert.equal(
+    manifest.peerDependencies["@earendil-works/pi-coding-agent"],
+    "*",
+  );
+  assert.equal(
+    manifest.peerDependenciesMeta["@earendil-works/pi-coding-agent"].optional,
+    true,
+  );
+  assert.equal(manifest.dependencies, undefined);
+  for (const name of ["preinstall", "install", "postinstall"]) {
+    assert.equal(manifest.scripts[name], undefined);
+  }
+});
 
 test("registers only the two lifecycle handlers", () => {
   const pi = fakePi();

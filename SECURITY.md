@@ -13,13 +13,18 @@
   insecure permissions, and symlinks.
 - CloudKit and notification setup occurs only after an explicit user action.
 - No secrets or personal identifiers belong in the repository or Git history.
+- Source-local installation requires trusted pinned/checksummed source, explicit
+  approval, exact public-development validation, no `sudo`, and bounded
+  compressed recovery; ad-hoc signing is not publisher authentication.
+- Install/uninstall must refuse private, foreign, and future official apps and
+  must never edit Apple's private notification databases.
 
 ## Security gates
 
 Before the first real-device test, run a repository-wide Daybreak deep security
 scan. Unresolved high-confidence findings block device testing. Before any
-remote or publication, also complete `Docs/RELEASE_AUDIT.md` against the exact
-revision and archive payload.
+candidate push, public visibility, tag, release, or publication, also complete
+`Docs/RELEASE_AUDIT.md` against the exact revision and archive payload.
 
 ## Reporting a vulnerability
 

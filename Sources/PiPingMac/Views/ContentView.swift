@@ -68,7 +68,10 @@ struct ContentView: View {
         }
         .padding(24)
         .frame(minWidth: 500, minHeight: 390)
-        .task { store.startListening() }
+        .task {
+            store.startListening()
+            await store.refreshAuthorization()
+        }
     }
 
     private var permissionLabel: String {

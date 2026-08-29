@@ -16,6 +16,11 @@
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    }
+  },
   "scripts": {
     "test": "node --experimental-strip-types --test Tests/PiHookTests/*.test.mjs"
   }

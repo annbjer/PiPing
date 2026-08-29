@@ -1,5 +1,6 @@
-// Public-safe defaults. Local.xcconfig is intentionally ignored and may
-// override these values after the Apple account gate is approved.
+// Public-safe defaults. Ignored private configuration is loaded only by the
+// dedicated signed-local build command; ordinary/source-local builds never
+// read Local.xcconfig.
 
 PIPING_DEVELOPMENT_TEAM =
 PIPING_MACOS_BUNDLE_IDENTIFIER = org.example.PiPing.macOS
@@ -10,6 +11,4 @@ PIPING_CLOUDKIT_ACTIVATION = NO
 // Standard Apple bundle versioning. Increment CURRENT_PROJECT_VERSION for
 // every installable build so system services can invalidate cached metadata.
 MARKETING_VERSION = 0.1.0
-CURRENT_PROJECT_VERSION = 12
-
-#include? "Local.xcconfig"
+CURRENT_PROJECT_VERSION = 13

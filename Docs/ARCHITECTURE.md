@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-    Pi[Pi 0.84.3] -->|before_agent_start / agent_settled only| Hook[Minimal Pi hook]
+    Pi[Pi 0.84.3 / 0.84.4 tested] -->|before_agent_start / agent_settled only| Hook[Minimal Pi hook]
     Hook -->|fixed signal plus ephemeral UUID| Helper[Native PiPingSignal]
     Helper -->|0600 FIFO in 0700 directory| Mac[macOS companion]
     Mac -->|fixed title and body| Local[macOS UserNotifications]
@@ -39,9 +39,15 @@ unread-ID set at 256. Runs under the selected threshold are ignored.
 | Pi hook | Translate two documented Pi lifecycle events and the current cycle's random UUID to native helper calls | None |
 
 The tracked public build defaults CloudKit activation to `false` and rejects
-placeholder container identifiers. An ignored private-local build override may
-enable CloudKit without changing source. The Mac still requires a separate,
-persisted user enable action. Phase 2 controls remain hard-coded to `false`.
+placeholder container identifiers. The source-local builder forces those public
+values even when an ignored private override exists, then applies ad-hoc
+hardened-runtime signatures with no profile or entitlements. Separate guarded
+validation/install/uninstall scripts refuse foreign canonical apps, preserve
+bounded compressed recovery, and never enable CloudKit or mutate Apple-managed
+notification databases. An ignored private-local build override may enable
+CloudKit only through the separate Apple Development-signed path. The Mac still
+requires a persisted user enable action. Phase 2 controls remain hard-coded to
+`false`.
 
 ## Apple delivery behavior
 
