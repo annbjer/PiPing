@@ -35,17 +35,34 @@ config_value() {
 expected_team="$(config_value PIPING_DEVELOPMENT_TEAM)"
 expected_bundle="$(config_value PIPING_MACOS_BUNDLE_IDENTIFIER)"
 expected_container="$(config_value PIPING_CLOUDKIT_CONTAINER_IDENTIFIER)"
+expected_activation="$(config_value PIPING_CLOUDKIT_ACTIVATION)"
 for value in "$expected_team" "$expected_bundle" "$expected_container"; do
   if [[ -z "$value" || "$value" == *PLACEHOLDER* || "$value" == org.example.* ]]; then
     echo "Ignored local signing configuration is incomplete." >&2
     exit 1
   fi
 done
+if [[ "$expected_activation" != "YES" ]]; then
+  echo "Ignored local signing configuration must explicitly enable CloudKit." >&2
+  exit 1
+fi
 
 HELPER="$APP/Contents/Helpers/PiPingSignal"
 PROFILE="$APP/Contents/embedded.provisionprofile"
 if [[ ! -x "$HELPER" || ! -f "$PROFILE" ]]; then
   echo "Signed local app is missing its helper or provisioning profile." >&2
+  exit 1
+fi
+bundle_identifier="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")"
+cloud_activation="$(/usr/libexec/PlistBuddy -c 'Print :PiPingCloudKitActivationEnabled' "$APP/Contents/Info.plist")"
+cloud_container="$(/usr/libexec/PlistBuddy -c 'Print :PiPingCloudKitContainerIdentifier' "$APP/Contents/Info.plist")"
+if [[ "$bundle_identifier" != "$expected_bundle" ]]; then
+  echo "Signed local app does not use the approved bundle identity." >&2
+  exit 1
+fi
+if [[ "$cloud_activation" != "$expected_activation" \
+   || "$cloud_container" != "$expected_container" ]]; then
+  echo "Signed local app does not use the exact approved CloudKit metadata." >&2
   exit 1
 fi
 
@@ -63,10 +80,9 @@ helper_team="$(signature_field "$HELPER" TeamIdentifier)"
 app_identifier="$(signature_field "$APP" Identifier)"
 app_authority="$(signature_field "$APP" Authority)"
 helper_authority="$(signature_field "$HELPER" Authority)"
-bundle_identifier="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")"
 
-if [[ "$bundle_identifier" != "$expected_bundle" || "$app_identifier" != "$expected_bundle" ]]; then
-  echo "Signed local app does not use the approved bundle identity." >&2
+if [[ "$app_identifier" != "$expected_bundle" ]]; then
+  echo "Signed local app signature does not use the approved bundle identity." >&2
   exit 1
 fi
 if [[ "$app_team" != "$expected_team" || "$helper_team" != "$expected_team" ]]; then

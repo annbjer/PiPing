@@ -56,6 +56,18 @@ required_setting() {
 required_setting PIPING_DEVELOPMENT_TEAM
 required_setting PIPING_MACOS_BUNDLE_IDENTIFIER
 required_setting PIPING_CLOUDKIT_CONTAINER_IDENTIFIER
+cloud_activation="$(awk -F= '
+  $1 ~ "^[[:space:]]*PIPING_CLOUDKIT_ACTIVATION[[:space:]]*$" {
+    sub(/^[^=]*=[[:space:]]*/, "")
+    sub(/[[:space:]]*$/, "")
+    print
+    exit
+  }
+' "$LOCAL_CONFIG")"
+if [[ "$cloud_activation" != "YES" ]]; then
+  echo "Config/Local.xcconfig must explicitly enable CloudKit for the signed-local build." >&2
+  exit 1
+fi
 
 trap cleanup EXIT
 export DEVELOPER_DIR="$STABLE_DEVELOPER_DIR"
@@ -72,6 +84,7 @@ if ! xcodebuild \
   -destination "generic/platform=macOS" \
   -derivedDataPath "$DERIVED_DATA" \
   -allowProvisioningUpdates \
+  PIPING_CLOUDKIT_ACTIVATION=YES \
   build >"$BUILD_LOG" 2>&1; then
   echo "Signed Xcode build failed. Review the ignored local build log." >&2
   exit 1
