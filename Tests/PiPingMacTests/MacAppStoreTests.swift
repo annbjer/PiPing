@@ -107,6 +107,28 @@ struct MacAppStoreTests {
     }
 
     @MainActor
+    @Test("starts FIFO listening from app launch without requiring a window")
+    func launchStartsListener() {
+        let defaultsName = "PiPingMacTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        let store = MacAppStore(
+            publisher: DisabledAttentionPublisher(),
+            notifications: RecordingNotifications(),
+            defaults: defaults
+        )
+        var startCount = 0
+        let appDelegate = AppDelegate(
+            store: store,
+            listenerStarter: { startCount += 1 }
+        )
+
+        appDelegate.startListenerForApplicationLaunch()
+
+        #expect(startCount == 1)
+    }
+
+    @MainActor
     @Test("refreshes the system authorization state after launch")
     func authorizationRefresh() async {
         let defaultsName = "PiPingMacTests-\(UUID().uuidString)"

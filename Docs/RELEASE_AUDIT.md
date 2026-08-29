@@ -1,7 +1,9 @@
 # Pre-publication release-surface audit
 
-Creating a remote or publishing is prohibited until this checklist is complete
-for the exact candidate revision.
+A candidate push, visibility change, tag, release-asset upload, GitHub release,
+public announcement/publication, or gallery listing is prohibited until this
+checklist is complete for the exact candidate revision and the owner separately
+approves that specific action.
 
 ## Required surfaces
 
@@ -40,6 +42,9 @@ recovery archives as generated local artifacts; validate them for local testing
 but never include them in a source-only release attachment allowlist.
 
 Publication additionally requires a clean Daybreak scan, an approved
-open-source license, exercised private vulnerability reporting, and explicit
-approval for public visibility, candidate push, tag, release assets, and gallery
-listing as separate gates.
+open-source license, and independent explicit approval for candidate push,
+public visibility, tag, release assets, GitHub release, public announcement or
+publication, and gallery listing as separate gates. Because GitHub
+private vulnerability reporting becomes available only after public visibility,
+enable and exercise it immediately after the separately approved visibility
+change and before any tag, release, public announcement, or gallery listing.

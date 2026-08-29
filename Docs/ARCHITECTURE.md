@@ -38,6 +38,11 @@ unread-ID set at 256. Runs under the selected threshold are ignored.
 | `PiPingIOS` | Check iCloud, request notifications, confirm APNs, and install the subscription | User-initiated setup only |
 | Pi hook | Translate two documented Pi lifecycle events and the current cycle's random UUID to native helper calls | None |
 
+The macOS app delegate owns one long-lived `MacAppStore` and starts its FIFO
+listener from `applicationDidFinishLaunching`. Listener availability therefore
+does not depend on a SwiftUI window task and is established for Login Item
+launches before the canonical helper is used.
+
 The tracked public build defaults CloudKit activation to `false` and rejects
 placeholder container identifiers. The source-local builder forces those public
 values even when an ignored private override exists, then applies ad-hoc

@@ -38,6 +38,20 @@ Icon Composer source, and automatic Light/Dark selection were preserved.
   System Settings rows can outlive an uninstalled development identity but do
   not represent running apps.
 
+## macOS 26 appearance preference
+
+macOS 26 separates window appearance from **Icon & widget style**. A correct
+Icon Composer app can therefore show Dark windows while Dock and notification
+icons remain in their Light rendition. Before treating that result as an asset
+or identity-cache regression, open **System Settings > Appearance**, select
+**Dark** under **Icon & widget style**, and choose **Auto** rather than
+**Always**. Select the main **Appearance > Auto** option too when automatic
+whole-interface switching is desired.
+
+PiPing must preserve this as a user-controlled accessibility and personalization
+preference. It must not automate System Settings, use Accessibility control, or
+replace native icon selection with runtime artwork overrides.
+
 ## Validation
 
 The accepted build must pass all of the following:

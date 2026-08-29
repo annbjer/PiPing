@@ -40,8 +40,10 @@ names, Pi session identifiers, terminal data, or approval details.
   the Mac and iPhone, with normal system mirroring to the paired Apple Watch.
 - The iOS 26.5 Simulator runtime is installed for local simulator validation.
 
-The signed Mac app runs as one listener window and reports remote delivery as
-sent only after CloudKit accepts the rolling-record write. The private
+The signed Mac app runs as one companion process. Its FIFO listener starts from
+the application lifecycle, including Login Item launches that do not present the
+main window. It reports remote delivery as sent only after CloudKit accepts the
+rolling-record write. The private
 development machine loads the Pi extension through Pi's user-package mechanism,
 so each newly started ordinary `pi` session is observed automatically. The
 GitHub repository remains private; no tag, release, public visibility, or Pi
@@ -85,8 +87,14 @@ This path requires full stable Xcode and takes minutes rather than seconds. It
 installs only the public development identity, keeps CloudKit disabled, and
 refuses to replace a private or future
 official build. Generated archives remain local-only and are not release
-artifacts. See [agent-assisted installation](Docs/AGENT_INSTALL.md) for the
-approval boundaries and [setup](Docs/SETUP.md) for manual uninstall.
+artifacts. On macOS 26, window appearance and app-icon appearance are separate
+user settings: choosing Dark windows alone may leave Dock and notification icons
+in their Light rendition. For automatic icon switching, open **System Settings
+> Appearance**, choose **Dark** under **Icon & widget style**, and select
+**Auto** rather than **Always**. PiPing does not change this accessibility and
+personalization preference. See [agent-assisted installation](Docs/AGENT_INSTALL.md)
+for the approval boundaries and [setup](Docs/SETUP.md) for complete appearance
+and manual-uninstall guidance.
 
 Developers with approved ignored Apple signing and CloudKit configuration can
 instead build and install their own local-only signed app with:
@@ -146,8 +154,9 @@ Development-signed app and generated `dist/` output are not public release
 artifacts. A future downloadable Mac binary requires Developer ID Application
 signing, notarization, and a separate exact-artifact audit.
 
-The repository is currently private. Any candidate push, public visibility,
-tag, release asset, gallery listing, or publication still requires its own
-explicit approval, a fresh Daybreak security review against the exact candidate,
-and completion of [Docs/RELEASE_AUDIT.md](Docs/RELEASE_AUDIT.md). See the
-complete [release process](Docs/RELEASING.md).
+The repository is currently private. Candidate push, public visibility, tag,
+release-asset upload, GitHub release, public announcement/publication, and
+gallery listing each require their own explicit approval. They also require the
+applicable exact-candidate Daybreak review and completion of
+[Docs/RELEASE_AUDIT.md](Docs/RELEASE_AUDIT.md). Approval for one action never
+authorizes another. See the complete [release process](Docs/RELEASING.md).

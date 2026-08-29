@@ -28,10 +28,12 @@ candidate push, public visibility, tag, release, or publication, also complete
 
 ## Reporting a vulnerability
 
-Use **Report a vulnerability** on the repository's GitHub **Security** tab. This
-opens a private vulnerability report visible only to the reporter and repository
-maintainers. Do not disclose a suspected vulnerability in a public issue,
-discussion, pull request, or social post before it has been assessed.
+After separately approved public visibility and enablement, use **Report a
+vulnerability** on the repository's GitHub **Security** tab. This opens a private
+vulnerability report visible only to the reporter and repository maintainers.
+Publication remains paused until that channel is enabled and exercised. Do not
+disclose a suspected vulnerability in a public issue, discussion, pull request,
+or social post before it has been assessed.
 
 Include the affected revision, platform version, reproduction steps, expected
 and observed behavior, and an impact assessment. Use synthetic data only. Never
@@ -39,6 +41,10 @@ include real credentials, prompts, model output, source from unrelated projects,
 personal paths, signing identifiers, CloudKit identifiers, provisioning data,
 or device identifiers.
 
-GitHub private vulnerability reporting must be enabled and exercised before the
-repository is made public. If **Report a vulnerability** is unavailable, wait
-for a private reporting channel rather than opening a public report.
+GitHub private vulnerability reporting is available only after the repository
+is public. Immediately after a separately approved visibility change, enable
+and exercise **Report a vulnerability** before any tag, release, public
+announcement, gallery listing, or other publication step. Until that gate is
+complete, do not invite reports or open a public issue, discussion, or pull
+request for a suspected vulnerability. If **Report a vulnerability** remains
+unavailable, pause publication until a private reporting channel is verified.

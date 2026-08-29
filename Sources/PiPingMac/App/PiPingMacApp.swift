@@ -6,13 +6,18 @@ import UserNotifications
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     let store: MacAppStore
+    private let listenerStarter: @MainActor () -> Void
 
     override convenience init() {
         self.init(store: MacAppStore())
     }
 
-    init(store: MacAppStore) {
+    init(
+        store: MacAppStore,
+        listenerStarter: (@MainActor () -> Void)? = nil
+    ) {
         self.store = store
+        self.listenerStarter = listenerStarter ?? { store.startListening() }
         super.init()
     }
 
@@ -22,8 +27,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             SystemLocalNotificationService.attentionCategory
         ])
         notificationCenter.delegate = self
+        startListenerForApplicationLaunch()
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func startListenerForApplicationLaunch() {
+        listenerStarter()
     }
 
     nonisolated func userNotificationCenter(

@@ -38,6 +38,10 @@ test("package keeps the Pi peer optional and has no lifecycle scripts", async ()
   for (const name of ["preinstall", "install", "postinstall"]) {
     assert.equal(manifest.scripts[name], undefined);
   }
+  assert.equal(
+    await readFile(new URL("../../.npmrc", import.meta.url), "utf8"),
+    "package-lock=false\n",
+  );
 });
 
 test("registers only the two lifecycle handlers", () => {

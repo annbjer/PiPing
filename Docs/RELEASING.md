@@ -26,47 +26,73 @@ the form `vMAJOR.MINOR.PATCH`.
 
 ## Required release sequence
 
-1. Start from a clean working tree and record the exact commit.
+1. Complete the required Mac, iPhone/Watch, clean-VM, and pinned Pi-package
+   acceptance against the current private checkpoint.
 2. Reconcile `README.md`, `CHANGELOG.md`, `SECURITY.md`, `CONTRIBUTING.md`,
    setup, agent-installation, architecture, privacy, threat-model, and
-   release-readiness documentation with the code.
-3. Run `./script/verify.sh` locally.
-4. Build and test from an exact `git archive` extraction with no ignored local
-   files available.
+   release-readiness documentation with that evidence.
+3. Commit only the reconciled candidate files, require a clean working tree,
+   and record the exact commit and tree.
+4. Run `./script/verify.sh`, then build and test from an exact `git archive`
+   extraction with no ignored local files available. Install or update the clean
+   VM only from the resulting exact archive-derived local app and repeat its
+   required postchecks.
 5. Complete `Docs/RELEASE_AUDIT.md` against tracked files, reachable history,
    the source archive, and every generated release file.
 6. Confirm the intended Git author and committer identities, remove local
    agent/checkpoint refs that are not release history, and inspect the exact
-   public branch and ref list.
+   private branch and ref list.
 7. Run a fresh read-only GPT 5.6 Daybreak Blue security/privacy review against
-   the exact candidate commit. Resolve every release-blocking finding and repeat
-   affected checks.
-8. Complete the recorded real-device Mac/iPhone/Watch regression checks.
-9. Enable GitHub private vulnerability reporting and verify the process linked
-   from `SECURITY.md` before making the repository public.
-10. Obtain separate explicit owner approval before pushing the candidate,
-    changing repository visibility, tagging, uploading release assets,
-    publishing a GitHub release, or listing the package.
+   the exact candidate commit and archive. Resolve every finding at every
+   severity and repeat affected checks.
+8. Obtain separate explicit approval to push only that exact candidate to the
+   private remote, then require hosted CI to pass for the same commit. Any fix
+   restarts the reconciliation, commit, archive, audit, review, and CI cycle.
+9. Obtain separate explicit owner approval before changing repository
+   visibility. Immediately after the approved public visibility change, enable
+   and exercise GitHub private vulnerability reporting as described in
+   `SECURITY.md`; do not tag, announce, release, or list the package first.
+10. Obtain an independent explicit owner approval for each tag,
+    release-asset upload, GitHub release, public announcement/publication, and
+    package-gallery listing. Approval for one action never authorizes another.
 
 ## Canonical source archive
 
-After the approved commit is tagged, create the release archive from Git rather
-than the working tree:
+Before requesting tag approval, create and audit the release archive from the
+exact candidate commit rather than the working tree:
 
 ```bash
 version=0.1.0
+candidate_commit="$(git rev-parse HEAD)"
 git archive \
   --format=tar.gz \
   --prefix="PiPing-${version}/" \
   --output="PiPing-${version}-source.tar.gz" \
-  "v${version}"
+  "$candidate_commit"
 shasum -a 256 "PiPing-${version}-source.tar.gz" \
   > "PiPing-${version}-source.tar.gz.sha256"
 ```
 
 Extract that archive into a temporary directory, rerun the supported verifier,
-and scan the extracted bytes. Publish the source archive, checksum, release
-notes, and no application binary for version 0.1.0.
+and scan the extracted bytes before any tag exists. After a separately approved
+annotated tag is created, verify that it peels to the audited commit and that a
+fresh archive resolved through the tag is byte-identical:
+
+```bash
+tag_commit="$(git rev-parse "v${version}^{}")"
+test "$tag_commit" = "$candidate_commit"
+git archive \
+  --format=tar.gz \
+  --prefix="PiPing-${version}/" \
+  --output="PiPing-${version}-source.from-tag.tar.gz" \
+  "$tag_commit"
+cmp "PiPing-${version}-source.tar.gz" \
+  "PiPing-${version}-source.from-tag.tar.gz"
+rm "PiPing-${version}-source.from-tag.tar.gz"
+```
+
+Publish the audited source archive, checksum, release notes, and no application
+binary for version 0.1.0.
 
 ## Publication safety
 

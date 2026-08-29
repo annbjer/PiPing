@@ -28,11 +28,14 @@ It has not been tagged or published.
 
 ### Changed
 
+- Start FIFO listening from the macOS application lifecycle so Login Item
+  launches work without presenting the main window.
 - Refresh macOS notification authorization at startup.
 - Report mobile delivery unavailable in CloudKit-disabled builds.
 - Remove unread IDs when local notification delivery fails before presentation.
 - Mark the Pi peer dependency optional so package installation does not
-  materialize a second Pi runtime.
+  materialize a second Pi runtime, and prevent Pi-managed Git clones from
+  generating an untracked package lock.
 
 ### Security
 
@@ -41,6 +44,8 @@ It has not been tagged or published.
 - Ordinary and source-local builds never read ignored private configuration.
 - APNs registration is bounded and cancellation-safe.
 - Local IPC validates ownership, type, permissions, ACLs, and symlink safety.
-- Source-local installation validates archive paths, identity, signatures,
-  hardened runtime, profiles, entitlements, canonical paths, and bounded
-  compressed recovery without using `sudo`.
+- Guarded local installation validates archive paths, identity, signatures,
+  hardened runtime, canonical paths, and bounded compressed recovery without
+  using `sudo`; source-local apps must have no entitlements, while signed-local
+  apps must match the exact approved profile, entitlements, team, container,
+  activation metadata, certificate, and helper configuration.

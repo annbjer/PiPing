@@ -191,12 +191,18 @@ enable PiPing under **System Settings > General > Login Items > Open at Login**.
 
 ### macOS icon appearance
 
-macOS controls app-icon appearance separately from window appearance. If the
-PiPing Dock or notification icon remains light while windows have switched to
-Dark Mode, open **System Settings > Appearance**, set **Icon & widget style** to
-**Dark**, and choose **Auto** for that style. This allows the system to select
-PiPing's light or dark icon alongside the current appearance. The similarly
-named automatic folder-color option affects Finder folders only.
+macOS controls app-icon appearance separately from window appearance. Choosing
+Dark windows alone does not require icons to use their Dark rendition. If the
+PiPing Dock or notification icon remains light, open **System Settings >
+Appearance**, set **Icon & widget style** to **Dark**, and choose **Auto** rather
+than **Always** for that style. Choose **Auto** in the main **Appearance** row as
+well if you want macOS to change the complete interface automatically. The
+similarly named automatic folder-color option affects Finder folders only.
+
+This distinction can matter for accessibility and for anyone who relies on
+consistent visual cues. PiPing includes native Light and Dark icon renditions
+but intentionally does not inspect or change the user's Appearance, icon,
+widget, Liquid Glass, tint, or folder-color preferences.
 
 ## Notification threshold
 
@@ -234,7 +240,9 @@ pi list
 This adds the PiPing package to Pi's user settings, making it global to newly
 started Pi sessions without replacing other extensions. The Pi peer dependency
 is metadata-only and optional, so package installation does not materialize a
-second Pi runtime or its transitive dependencies. Each loaded instance
+second Pi runtime or its transitive dependencies. The package-local npm policy
+also prevents Pi-managed Git clones from generating an untracked
+`package-lock.json`. Each loaded instance
 has an independent random correlation UUID, so concurrently running Pi
 processes do not overwrite each other's timers. In an existing Pi session, use
 `/reload` after installation. To limit the package to the current

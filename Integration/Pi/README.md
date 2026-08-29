@@ -23,5 +23,7 @@ included in notification copy, or sent to CloudKit.
 For an isolated trial, load the extension explicitly for one Pi run. For normal
 use, install the repository through Pi's user-package mechanism. The Pi peer is
 optional metadata, not an installed dependency, so PiPing does not materialize
-a second Pi runtime. Both procedures and the reversible uninstall command are
+a second Pi runtime. The package-local npm policy also prevents Pi-managed Git
+clones from generating an untracked `package-lock.json`. Both procedures and
+the reversible uninstall command are
 documented in `Docs/SETUP.md`.
