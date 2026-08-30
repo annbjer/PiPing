@@ -139,7 +139,9 @@ the separately approved `--install`; do not keep extracted backup apps.
 
 Before postchecks commit an update, normal errors and HUP, INT, or TERM signals
 restore the atomically quarantined prior app. Restoration intent and prior-app
-identity are pinned before the atomic move. During uninstall, the final pinned
+identity are pinned before quarantine; candidate-removal intent is established
+before promotion; and the two installer rollback flags commit in one shell
+state transition after postchecks. During uninstall, the final pinned
 identity check and uninstall commit occur before preferences or the quarantined
 app are deleted, so rollback never restores an app after deleting its settings.
 After commit, cleanup is best effort. A power loss, SIGKILL, or

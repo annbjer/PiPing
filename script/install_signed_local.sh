@@ -230,8 +230,11 @@ if [[ -e "$CANONICAL_APP" || -L "$CANONICAL_APP" ]]; then
   echo "An unexpected object appeared at the canonical application path." >&2
   exit 1
 fi
-mv "$CANDIDATE_APP" "$CANONICAL_APP"
+# Establish candidate-removal intent before promotion. A normal termination
+# signal on either side of mv can therefore remove the pinned candidate before
+# restoring any quarantined prior app.
 candidate_installed=true
+mv "$CANDIDATE_APP" "$CANONICAL_APP"
 if [[ "$(path_identity "$CANONICAL_APP")" != "$candidate_identity" ]]; then
   echo "The signed candidate did not retain its pinned canonical identity." >&2
   exit 1
@@ -249,8 +252,7 @@ if [[ "$restore_needed" == true ]] \
   echo "Previous signed app identity changed before transaction completion." >&2
   exit 1
 fi
-candidate_installed=false
-restore_needed=false
+candidate_installed=false restore_needed=false
 if [[ -d "$PREVIOUS_APP" ]]; then rm -rf "$PREVIOUS_APP"; fi
 
 if [[ -n "$backup" ]]; then echo "Compressed rollback: $backup"; fi

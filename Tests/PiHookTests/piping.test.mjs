@@ -61,7 +61,7 @@ test("package keeps the Pi peer optional and has no lifecycle scripts", async ()
   );
 });
 
-test("installers establish rollback before atomically moving the prior app", async () => {
+test("installers order quarantine, promotion, and commit state safely", async () => {
   for (const [label, relativePath] of [
     ["source installer", "../../script/install_source_local.sh"],
     ["signed installer", "../../script/install_signed_local.sh"],
@@ -78,6 +78,11 @@ test("installers establish rollback before atomically moving the prior app", asy
         "restore_needed=true",
         'mv "$CANONICAL_APP" "$PREVIOUS_APP"',
         'if [[ "$(path_identity "$PREVIOUS_APP")" != "$previous_identity" ]]',
+        "candidate_installed=true",
+        'mv "$CANDIDATE_APP" "$CANONICAL_APP"',
+        'if [[ "$(path_identity "$CANONICAL_APP")" != "$candidate_identity" ]]; then',
+        "candidate_installed=false restore_needed=false",
+        'if [[ -d "$PREVIOUS_APP" ]]; then rm -rf "$PREVIOUS_APP"; fi',
       ],
       label,
     );

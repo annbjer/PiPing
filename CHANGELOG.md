@@ -45,7 +45,8 @@ It has not been tagged or published.
 - APNs registration is bounded and cancellation-safe.
 - Local IPC validates ownership, type, permissions, ACLs, and symlink safety.
 - Guarded install/uninstall transactions pin prior identity and establish
-  rollback or commit state before atomic moves and preference deletion; normal
+  rollback, candidate-promotion, or commit state before atomic moves and
+  preference deletion; normal
   HUP, INT, and TERM signals route through cleanup, with regression and clean-VM
   interruption coverage.
 - Guarded local installation validates archive paths, identity, signatures,
