@@ -137,10 +137,13 @@ For an update rollback, select the corresponding archive under
 `.build/source-install-backups/`. Inspect the timestamp and run `--check` before
 the separately approved `--install`; do not keep extracted backup apps.
 
-Before postchecks commit an update, normal errors and interrupt signals restore
-the atomically quarantined prior app. After commit, the validated candidate
-remains canonical while old-payload cleanup is best effort. A power loss or
-`SIGKILL` can leave a hidden
+Before postchecks commit an update, normal errors and HUP, INT, or TERM signals
+restore the atomically quarantined prior app. Restoration intent and prior-app
+identity are pinned before the atomic move. During uninstall, the final pinned
+identity check and uninstall commit occur before preferences or the quarantined
+app are deleted, so rollback never restores an app after deleting its settings.
+After commit, cleanup is best effort. A power loss, SIGKILL, or
+equivalent uncatchable interruption can leave a hidden
 `/Applications/.PiPing-source-transaction.*`, `.PiPing-source-uninstall.*`, or
 `.PiPing-signed-transaction.*` directory. Subsequent guarded commands refuse to
 continue. Do not delete or launch anything inside it: validate the moved

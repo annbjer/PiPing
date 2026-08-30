@@ -44,6 +44,10 @@ It has not been tagged or published.
 - Ordinary and source-local builds never read ignored private configuration.
 - APNs registration is bounded and cancellation-safe.
 - Local IPC validates ownership, type, permissions, ACLs, and symlink safety.
+- Guarded install/uninstall transactions pin prior identity and establish
+  rollback or commit state before atomic moves and preference deletion; normal
+  HUP, INT, and TERM signals route through cleanup, with regression and clean-VM
+  interruption coverage.
 - Guarded local installation validates archive paths, identity, signatures,
   hardened runtime, canonical paths, and bounded compressed recovery without
   using `sudo`; source-local apps must have no entitlements, while signed-local

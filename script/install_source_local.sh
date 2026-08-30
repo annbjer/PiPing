@@ -69,7 +69,12 @@ stop_canonical_process() {
   fi
 }
 
+handle_signal() {
+  exit "$1"
+}
+
 cleanup() {
+  trap '' HUP INT TERM
   local current_identity preserve_transaction=false
   "$LSREGISTER" -u "$STAGE_ROOT/PiPing.app" 2>/dev/null || true
   "$LSREGISTER" -u "$STAGE_ROOT/Backup/PiPing.app" 2>/dev/null || true
@@ -117,6 +122,9 @@ cleanup() {
   rm -rf "$STAGE_ROOT"
 }
 trap cleanup EXIT
+trap 'handle_signal 129' HUP
+trap 'handle_signal 130' INT
+trap 'handle_signal 143' TERM
 
 source_archive_bytes="$(stat -f %z "$ARCHIVE")"
 if [[ "$source_archive_bytes" -gt "$MAX_ARCHIVE_BYTES" ]]; then
@@ -176,10 +184,18 @@ if [[ -z "$candidate_identity" ]]; then
 fi
 
 if [[ -d "$CANONICAL_APP" ]]; then
-  mv "$CANONICAL_APP" "$PREVIOUS_APP"
-  restore_needed=true
-  previous_identity="$(path_identity "$PREVIOUS_APP")"
+  previous_identity="$(path_identity "$CANONICAL_APP")"
   if [[ -z "$previous_identity" ]] \
+    || ! "$ROOT_DIR/script/validate_source_local_app.sh" "$CANONICAL_APP" >/dev/null 2>&1; then
+    echo "The previous app changed before atomic quarantine." >&2
+    exit 1
+  fi
+  # Establish restoration intent before the atomic move. A normal termination
+  # signal on either side of mv therefore leaves either the canonical app in
+  # place or a pinned Previous.payload that cleanup can validate and restore.
+  restore_needed=true
+  mv "$CANONICAL_APP" "$PREVIOUS_APP"
+  if [[ "$(path_identity "$PREVIOUS_APP")" != "$previous_identity" ]] \
     || ! "$ROOT_DIR/script/validate_source_local_app.sh" "$PREVIOUS_APP" >/dev/null 2>&1; then
     echo "The atomically quarantined previous app failed validation." >&2
     exit 1

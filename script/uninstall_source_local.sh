@@ -184,7 +184,12 @@ completed=false
 backup=""
 backup_temp=""
 
+handle_signal() {
+  exit "$1"
+}
+
 cleanup() {
+  trap '' HUP INT TERM
   local preserve_transaction=false restored_package_state=""
   [[ -z "$backup_temp" ]] || rm -f "$backup_temp"
   "$LSREGISTER" -u "$QUARANTINED_APP" 2>/dev/null || true
@@ -225,10 +230,18 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+trap 'handle_signal 129' HUP
+trap 'handle_signal 130' INT
+trap 'handle_signal 143' TERM
 
-mv "$CANONICAL_APP" "$QUARANTINED_APP"
-quarantined_identity="$(path_identity "$QUARANTINED_APP")"
+quarantined_identity="$(path_identity "$CANONICAL_APP")"
 if [[ -z "$quarantined_identity" ]] \
+  || ! "$ROOT_DIR/script/validate_source_local_app.sh" "$CANONICAL_APP" >/dev/null 2>&1; then
+  echo "The canonical app changed before atomic quarantine." >&2
+  exit 1
+fi
+mv "$CANONICAL_APP" "$QUARANTINED_APP"
+if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]] \
   || ! "$ROOT_DIR/script/validate_source_local_app.sh" "$QUARANTINED_APP" >/dev/null 2>&1; then
   echo "The atomically quarantined app failed validation." >&2
   exit 1
@@ -305,15 +318,16 @@ if [[ "$package_removed" == true && "$(local_package_present)" != false ]]; then
   exit 1
 fi
 
-defaults delete "$PUBLIC_BUNDLE_IDENTIFIER" >/dev/null 2>&1 || true
 if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then
-  echo "Quarantined app identity changed before final deletion." >&2
+  echo "Quarantined app identity changed before uninstall commit." >&2
   exit 1
 fi
-# All absence checks and recovery-archive validation have committed the
-# uninstall. Mark it complete before deleting the quarantined payload so an
-# interruption cannot restore a partially deleted bundle.
+# All absence checks, recovery-archive validation, and the final pinned-identity
+# check have committed the uninstall. Mark it complete before deleting either
+# preferences or the quarantined payload so a later interruption never restores
+# an app after its preferences have been removed.
 completed=true
+defaults delete "$PUBLIC_BUNDLE_IDENTIFIER" >/dev/null 2>&1 || true
 rm -rf "$QUARANTINED_APP"
 
 echo "Removed the source-local PiPing app and safe app-owned local state."

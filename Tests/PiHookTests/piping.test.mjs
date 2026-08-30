@@ -10,6 +10,23 @@ import {
 const firstToken = "00000000-0000-0000-0000-000000000001";
 const secondToken = "00000000-0000-0000-0000-000000000002";
 
+function assertTextOrder(text, markers, label) {
+  let cursor = 0;
+  for (const marker of markers) {
+    const index = text.indexOf(marker, cursor);
+    assert.notEqual(index, -1, `${label}: missing ${marker}`);
+    cursor = index + marker.length;
+  }
+}
+
+function assertNormalSignalRouting(script, label) {
+  assert.match(script, /cleanup\(\) \{\n  trap '' HUP INT TERM/);
+  assert.match(script, /trap 'handle_signal 129' HUP/);
+  assert.match(script, /trap 'handle_signal 130' INT/);
+  assert.match(script, /trap 'handle_signal 143' TERM/);
+  assert.match(script, /handle_signal\(\) \{\n  exit "\$1"\n\}/, label);
+}
+
 function fakePi() {
   const handlers = new Map();
   return {
@@ -41,6 +58,63 @@ test("package keeps the Pi peer optional and has no lifecycle scripts", async ()
   assert.equal(
     await readFile(new URL("../../.npmrc", import.meta.url), "utf8"),
     "package-lock=false\n",
+  );
+});
+
+test("installers establish rollback before atomically moving the prior app", async () => {
+  for (const [label, relativePath] of [
+    ["source installer", "../../script/install_source_local.sh"],
+    ["signed installer", "../../script/install_signed_local.sh"],
+  ]) {
+    const script = await readFile(new URL(relativePath, import.meta.url), "utf8");
+    assertNormalSignalRouting(script, label);
+    const transaction = script.slice(
+      script.indexOf('if [[ -d "$CANONICAL_APP" ]]; then'),
+    );
+    assertTextOrder(
+      transaction,
+      [
+        'previous_identity="$(path_identity "$CANONICAL_APP")"',
+        "restore_needed=true",
+        'mv "$CANONICAL_APP" "$PREVIOUS_APP"',
+        'if [[ "$(path_identity "$PREVIOUS_APP")" != "$previous_identity" ]]',
+      ],
+      label,
+    );
+  }
+});
+
+test("uninstaller commits before deleting preferences or the prior app", async () => {
+  const script = await readFile(
+    new URL("../../script/uninstall_source_local.sh", import.meta.url),
+    "utf8",
+  );
+  assertNormalSignalRouting(script, "source uninstaller");
+  const quarantine = script.slice(
+    script.indexOf('quarantined_identity="$(path_identity "$CANONICAL_APP")"'),
+  );
+  assertTextOrder(
+    quarantine,
+    [
+      'quarantined_identity="$(path_identity "$CANONICAL_APP")"',
+      'mv "$CANONICAL_APP" "$QUARANTINED_APP"',
+      'if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]',
+    ],
+    "source uninstaller quarantine",
+  );
+  const finalIdentityCheck = quarantine.lastIndexOf(
+    'if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then',
+  );
+  assert.notEqual(finalIdentityCheck, -1);
+  assertTextOrder(
+    quarantine.slice(finalIdentityCheck),
+    [
+      'if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then',
+      "completed=true",
+      'defaults delete "$PUBLIC_BUNDLE_IDENTIFIER"',
+      'rm -rf "$QUARANTINED_APP"',
+    ],
+    "source uninstaller commit",
   );
 });
 

@@ -16,8 +16,10 @@
 - Source-local installation requires trusted pinned/checksummed source, explicit
   approval, exact public-development validation, no `sudo`, and bounded
   compressed recovery; ad-hoc signing is not publisher authentication.
-- Install/uninstall must refuse private, foreign, and future official apps and
-  must never edit Apple's private notification databases.
+- Install/uninstall must refuse private, foreign, and future official apps,
+  establish rollback/commit state before destructive boundaries, route normal
+  termination signals through cleanup, and never edit Apple's private
+  notification databases.
 
 ## Security gates
 
