@@ -20,9 +20,9 @@ not through a public issue.
 
 The full verifier currently requires:
 
-- macOS 26;
-- stable Xcode 26 at `/Applications/Xcode.app`;
-- Swift 6.2; and
+- macOS 26 or later;
+- the latest stable full Xcode 26 or later at `/Applications/Xcode.app`;
+- Swift tools 6.2 or later; and
 - Node.js with type stripping support for the Pi hook tests.
 
 Run from the repository root:

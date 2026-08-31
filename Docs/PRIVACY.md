@@ -8,8 +8,9 @@ The local lifecycle protocol contains exactly one of two fixed signals—`start`
 or `settled`—plus a random UUID generated independently for each active
 lifecycle cycle. The UUID exists only to correlate overlapping local signal
 pairs and is rotated after every settlement attempt. It is not read from Pi,
-contains no session or project data, stays in Mac
-memory only, and is never included in a notification or CloudKit record.
+contains no session or project data, is held only transiently in the local Pi
+extension/helper/FIFO path and Mac app memory, is never persisted, and is never
+included in a notification or CloudKit record.
 CloudKit overwrites one fixed rolling record whose only application-defined
 field is the `occurredAt` timestamp. Notification title and body are compile-time
 constants.

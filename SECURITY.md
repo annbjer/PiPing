@@ -1,6 +1,44 @@
 # Security policy
 
-## Phase 1 invariants
+PiPing is intentionally small and one-way. Its security model is based on fixed
+notification content, minimal local signals, private CloudKit storage when
+enabled, and guarded installation paths.
+
+## Reporting a vulnerability
+
+We welcome responsible security reports. When **Report a vulnerability** is
+available on this repository's **Security** tab, use it to open a private report
+visible only to you and the maintainers.
+
+If that button is not available, please do not post sensitive details in a public
+issue, discussion, pull request, or social post. Private vulnerability reporting
+must be enabled and verified before any public tag or release proceeds.
+
+A useful report includes:
+
+- the affected commit or version;
+- relevant macOS, iOS, Xcode, and Pi versions;
+- clear reproduction steps;
+- expected and observed behavior; and
+- the potential impact.
+
+Use synthetic data. Never include credentials, real prompts or model output,
+unrelated source code, personal paths, signing or CloudKit identifiers,
+provisioning data, or device identifiers. If those details seem necessary,
+describe the situation in prose instead of pasting the data.
+
+Security reports are taken seriously and will be reviewed as soon as reasonably
+possible. PiPing is maintained by one independent developer, so no fixed response
+time can be promised; investigation and fix timing will depend on severity and
+maintainer availability.
+
+## Supported versions
+
+PiPing is currently distributed as source. Security fixes land on `main` and in
+later source releases. Rebuild from a reviewed current revision rather than
+patching an installed app bundle in place.
+
+## Phase 1 security boundaries
 
 - PiPing is one-way and notification-only.
 - Only `start` and `settled` cross the Pi-to-native boundary.
@@ -13,40 +51,25 @@
   insecure permissions, and symlinks.
 - CloudKit and notification setup occurs only after an explicit user action.
 - No secrets or personal identifiers belong in the repository or Git history.
-- Source-local installation requires trusted pinned/checksummed source, explicit
-  approval, exact public-development validation, no `sudo`, and bounded
-  compressed recovery; ad-hoc signing is not publisher authentication.
-- Install/uninstall must refuse private, foreign, and future official apps,
-  establish rollback/commit state before destructive boundaries, route normal
-  termination signals through cleanup, and never edit Apple's private
+- Source-local installation requires trusted pinned or checksummed source,
+  explicit approval, exact public-development validation, no `sudo`, and bounded
+  compressed recovery. Ad-hoc signing is not publisher authentication.
+- Install and uninstall must refuse private, foreign, and future official apps;
+  establish rollback and commit state before destructive boundaries; route
+  normal termination signals through cleanup; and never edit Apple's private
   notification databases.
 
-## Security gates
+These boundaries are part of PiPing's design and acceptance criteria. They do not
+replace the warranty terms in the [MIT License](LICENSE).
 
-Before the first real-device test, run a repository-wide Daybreak deep security
-scan. Unresolved high-confidence findings block device testing. Before any
-candidate push, public visibility, tag, release, or publication, also complete
-`Docs/RELEASE_AUDIT.md` against the exact revision and archive payload.
+## Maintainer security gates
 
-## Reporting a vulnerability
+Changes that affect trust boundaries, local IPC, lifecycle data, CloudKit,
+notifications, installation, or signing receive repository-wide security review
+before real-device acceptance. Unresolved high-confidence findings block that
+acceptance.
 
-After separately approved public visibility and enablement, use **Report a
-vulnerability** on the repository's GitHub **Security** tab. This opens a private
-vulnerability report visible only to the reporter and repository maintainers.
-Publication remains paused until that channel is enabled and exercised. Do not
-disclose a suspected vulnerability in a public issue, discussion, pull request,
-or social post before it has been assessed.
-
-Include the affected revision, platform version, reproduction steps, expected
-and observed behavior, and an impact assessment. Use synthetic data only. Never
-include real credentials, prompts, model output, source from unrelated projects,
-personal paths, signing identifiers, CloudKit identifiers, provisioning data,
-or device identifiers.
-
-GitHub private vulnerability reporting is available only after the repository
-is public. Immediately after a separately approved visibility change, enable
-and exercise **Report a vulnerability** before any tag, release, public
-announcement, gallery listing, or other publication step. Until that gate is
-complete, do not invite reports or open a public issue, discussion, or pull
-request for a suspected vulnerability. If **Report a vulnerability** remains
-unavailable, pause publication until a private reporting channel is verified.
+Before any tag, release, or release-asset upload, maintainers also complete
+[the release audit](Docs/RELEASE_AUDIT.md) against the exact revision and archive
+payload. Approval for one publication action never authorizes another. See
+[Releasing](Docs/RELEASING.md) for the complete process.

@@ -4,8 +4,9 @@
 
 Requirements:
 
-- macOS 26
-- stable Xcode 26 at the standard application location
+- macOS 26 or later
+- the latest stable full Xcode 26 or later at `/Applications/Xcode.app`
+- Swift tools 6.2 or later, supplied by Xcode
 - Node provided by the existing Pi installation for hook tests
 
 Run:
@@ -20,8 +21,8 @@ Read-only status:
 ./script/status.sh
 ```
 
-The script uses repository-relative paths, stable Xcode 26, ignored build
-directories, synthetic tests, and unsigned outputs. It does not launch either
+The script uses repository-relative paths, the supported stable Xcode
+application, ignored build directories, synthetic tests, and unsigned outputs. It does not launch either
 app, request permission, contact CloudKit, or send a notification.
 
 The repository verifier performs unsigned public-safe macOS and iOS Release
@@ -264,8 +265,9 @@ exist at these canonical paths:
 - `/Applications/PiPing.app`
 - `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`
 
-The extension deliberately fails quiet if that helper is unavailable. It never
-falls back to a repository, DerivedData, `dist`, or backup executable. The
+If the canonical helper is unavailable, the extension reports a generic
+availability error in Pi without exposing task content. It never falls back to a
+repository, DerivedData, `dist`, or backup executable. The
 package remains marked `private` to prevent accidental npm publication. The
 repository is MIT-licensed and the planned `0.1.0` release is distributed from
 GitHub as source rather than through npm.

@@ -1,4 +1,8 @@
 .DS_Store
+
+# Local communication drafts and non-release exports
+/Assets/Communication/copy/
+/Assets/Communication/extras/
 .build/
 .swiftpm/
 DerivedData/
