@@ -5,8 +5,11 @@ versioning and source-release tags in the form `vMAJOR.MINOR.PATCH`.
 
 ## Unreleased
 
-The first planned public version is the source-only `0.1.0` developer preview.
-It has not been tagged or published.
+No unreleased changes.
+
+## 0.1.0 - 2026-08-31
+
+PiPing's first public version is a source-only developer preview.
 
 ### Added
 
