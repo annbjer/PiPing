@@ -16,9 +16,10 @@ tags in the form `vMAJOR.MINOR.PATCH`.
 - Give SettleBell independent app/helper paths, bundle identities, FIFO runtime,
   notification authorization, preferences, and unread/backlog state rather than
   silently copying PiPing state.
-- Add exact legacy source-local validation and separately confirmed PiPing
-  retirement with interruption rollback and at most three validated recovery
-  archives; signed/private PiPing retirement remains out of scope.
+- Add legacy source-local validation pinned to PiPing `0.1.0 (15)`, a separately
+  trusted archive/hash and exact installed-tree match, fresh interactive
+  notification attestation, interruption rollback, and at most three validated
+  recovery archives; signed/private PiPing retirement remains out of scope.
 
 ## 0.1.0 - 2026-08-31
 

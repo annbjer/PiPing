@@ -6,6 +6,9 @@
   <img alt="A hand touching grass beside the fixed notification that Pi has fully settled" src="Assets/Communication/piping-teaser-dark.webp" width="720">
 </picture>
 
+*Unchanged PiPing `v0.1.0` teaser artwork, retained as historical provenance;
+not relabeled as new SettleBell artwork.*
+
 Stop watching the terminal. When a long-running Pi task has fully settled, SettleBell
 sends a simple notification to your Mac, so you can go do something else while
 your agent works. With optional private Apple signing and CloudKit setup, the

@@ -143,18 +143,25 @@ For the exact old public-development source-local PiPing app, the read-only
 retirement preflight is:
 
 ```bash
-./script/retire_legacy_piping_source_local.sh --check
+./script/retire_legacy_piping_source_local.sh --check \
+  --legacy-archive /trusted/path/PiPing.app.zip \
+  --legacy-sha256 64_LOWERCASE_HEXADECIMAL_SHA256
 ```
 
-Only after the user separately confirms the notification and approves
-retirement may an agent run:
+The archive hash must come from a separately trusted installation record, not
+from the same untrusted download. Only after the user separately confirms the
+notification and approves retirement may an agent run:
 
 ```bash
-./script/retire_legacy_piping_source_local.sh \
-  --retire --confirmed-settlebell-notification
+./script/retire_legacy_piping_source_local.sh --retire \
+  --legacy-archive /trusted/path/PiPing.app.zip \
+  --legacy-sha256 64_LOWERCASE_HEXADECIMAL_SHA256
 ```
 
-The script rejects signed/private PiPing apps. If it rejects the legacy app,
+The user must then personally type the exact notification attestation on
+`/dev/tty`; the agent must not answer it. The script rejects signed/private
+PiPing apps and any installed tree that differs from the trusted archive. If it
+rejects the legacy app,
 stop and leave PiPing in place; do not weaken the validator or improvise manual
 removal. Pi package removal is also separate and must name only the exact saved
 legacy source. Never copy identity-keyed authorization, preferences, unread

@@ -107,10 +107,11 @@ The primary security objectives are:
    retain at most three validated compressed recovery archives.
 8. **PiPing to SettleBell migration.** The identities coexist while SettleBell
    is installed, receives fresh Apple-managed authorization, and passes a genuine
-   notification test. Only the exact legacy public-development PiPing app can be
-   retired by the source-local migration tool. Retirement pins rollback state
-   before quarantine, validates a bounded recovery archive, preserves legacy
-   preferences and Apple notification history, and never reads Pi package
+   notification test. Only PiPing `0.1.0 (15)` whose complete manifest matches a
+   separately trusted archive/hash can be retired by the source-local migration
+   tool. Retirement requires a fresh user-typed `/dev/tty` attestation, pins
+   rollback state before quarantine, validates a bounded recovery archive,
+   preserves legacy preferences and Apple notification history, and never reads Pi package
    settings or private configuration. Signed/private PiPing retirement remains a
    separate review boundary (`Docs/MIGRATING_FROM_PIPING.md`).
 9. **Checkout to public release.** Signing material, user Xcode state, local
@@ -158,7 +159,7 @@ vulnerabilities.
 | TM-10 | Dashboard, presence, Tailscale, Pi session identity, terminal, project, or file features creep into Phase 1. | Broader metadata and network attack surface | The only correlation value is a locally generated random UUID with no Pi-derived metadata; current architecture has no model for those features. | Keep richer identity or navigation features in a separately approved backlog with a new privacy and connectivity review. |
 | TM-11 | A tampered or untrusted ad-hoc archive is installed as SettleBell. | Same-user code execution under a familiar name | Build only trusted pinned/checksummed source; archive path and symlink guards; exact public identity/configuration; no profile or entitlements; ad-hoc hardened-runtime validation; foreign canonical apps are never replaced. | Ad-hoc signatures do not authenticate a publisher. A convenient downloadable binary remains blocked on Developer ID signing, notarization, stapling, and binary audit. |
 | TM-12 | Install or uninstall removes a private/official app, another package, or unrelated runtime data. | Data loss or broken trusted installation | Exact development identity/signature validation, canonical path only, explicit modes, same-source Pi package resolution, strict runtime owner/mode/content checks, bounded compressed recovery, Apple database exclusion, prior-identity pinning and rollback intent before quarantine, candidate-removal intent before promotion, one-step installer commit, signal-routed rollback, and uninstall commit before preference deletion. | Power loss or `SIGKILL` can leave detected transaction residue requiring the documented guarded recovery procedure. |
-| TM-13 | Rename migration overwrites PiPing, silently transfers identity-keyed consent/state, changes deployed CloudKit v1 identifiers, or strands rollback. | Lost service, duplicate delivery, unexpected authorization, or unrecoverable history | Side-by-side app/helper/runtime identities; fresh permissions; immutable PiPing `v0.1.0`; three explicitly preserved CloudKit compatibility identifiers; exact legacy source-local validator; explicit notification-confirmation flag; transaction rollback and at most three validated recovery archives. | Signed/private PiPing retirement and any CloudKit reset require separate procedures and review. Never weaken the source-local validator to cross that boundary. |
+| TM-13 | Rename migration overwrites PiPing, silently transfers identity-keyed consent/state, changes deployed CloudKit v1 identifiers, or strands rollback. | Lost service, duplicate delivery, unexpected authorization, or unrecoverable history | Side-by-side app/helper/runtime identities; fresh permissions; immutable PiPing `v0.1.0`; three explicitly preserved CloudKit compatibility identifiers; legacy version/build and trusted-archive manifest pin; user-typed notification attestation; transaction rollback and at most three validated recovery archives in hardened directories. | Signed/private PiPing retirement and any CloudKit reset require separate procedures and review. Never weaken the source-local validator to cross that boundary. |
 
 ### Defense-in-depth verification for device testing and release
 

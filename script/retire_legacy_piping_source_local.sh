@@ -2,8 +2,10 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$ROOT_DIR/script/guarded_backup_support.sh"
 MODE="${1:-}"
-CONFIRMATION="${2:-}"
+LEGACY_ARCHIVE=""
+LEGACY_ARCHIVE_SHA256=""
 LEGACY_APP="/Applications/PiPing.app"
 LEGACY_EXECUTABLE="$LEGACY_APP/Contents/MacOS/PiPing"
 LEGACY_BUNDLE_IDENTIFIER="org.example.PiPing.macOS"
@@ -14,20 +16,27 @@ SETTLEBELL_RUNTIME_DIR="$HOME/.settlebell"
 SETTLEBELL_FIFO="$SETTLEBELL_RUNTIME_DIR/events.fifo"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
-if [[ "$MODE" == "--check" ]]; then
-  if [[ $# -ne 1 ]]; then
-    echo "usage: $0 --check" >&2
-    exit 2
-  fi
-elif [[ "$MODE" == "--retire" ]]; then
-  if [[ $# -ne 2 || "$CONFIRMATION" != "--confirmed-settlebell-notification" ]]; then
-    echo "usage: $0 --retire --confirmed-settlebell-notification" >&2
-    exit 2
-  fi
-else
-  echo "usage: $0 [--check | --retire --confirmed-settlebell-notification]" >&2
+if [[ "$MODE" != "--check" && "$MODE" != "--retire" ]] \
+  || [[ $# -ne 5 || "${2:-}" != "--legacy-archive" || "${4:-}" != "--legacy-sha256" ]]; then
+  echo "usage: $0 [--check|--retire] --legacy-archive path/to/PiPing.app.zip --legacy-sha256 SHA256" >&2
   exit 2
 fi
+LEGACY_ARCHIVE="$3"
+LEGACY_ARCHIVE_SHA256="$5"
+if [[ ! "$LEGACY_ARCHIVE_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+  echo "The trusted legacy archive SHA-256 must be 64 lowercase hexadecimal characters." >&2
+  exit 2
+fi
+if [[ ! -f "$LEGACY_ARCHIVE" || -L "$LEGACY_ARCHIVE" ]]; then
+  echo "The trusted legacy PiPing archive is missing or is a symbolic link." >&2
+  exit 1
+fi
+actual_legacy_archive_sha256="$(shasum -a 256 "$LEGACY_ARCHIVE" | awk '{print $1}')"
+if [[ "$actual_legacy_archive_sha256" != "$LEGACY_ARCHIVE_SHA256" ]]; then
+  echo "The trusted legacy PiPing archive SHA-256 does not match." >&2
+  exit 1
+fi
+"$ROOT_DIR/script/validate_legacy_piping_source_local_archive.sh" "$LEGACY_ARCHIVE" >/dev/null
 
 if [[ ! -w /Applications ]]; then
   echo "/Applications is not writable by the current user; no changes were made." >&2
@@ -64,6 +73,17 @@ fi
 # validated, running source-local canonical app before legacy state is touched.
 "$ROOT_DIR/script/check_source_installation.sh" >/dev/null
 
+REFERENCE_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/settlebell-piping-reference.XXXXXX")"
+chmod 700 "$REFERENCE_STAGE"
+reference_cleanup() {
+  "$LSREGISTER" -u "$REFERENCE_STAGE/PiPing.app" 2>/dev/null || true
+  rm -rf "$REFERENCE_STAGE"
+}
+trap reference_cleanup EXIT
+ditto -x -k "$LEGACY_ARCHIVE" "$REFERENCE_STAGE"
+REFERENCE_APP="$REFERENCE_STAGE/PiPing.app"
+"$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$REFERENCE_APP" >/dev/null
+
 path_identity() {
   stat -f '%d:%i' "$1" 2>/dev/null || true
 }
@@ -95,6 +115,43 @@ if ! settlebell_runtime_is_ready; then
   exit 1
 fi
 "$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$LEGACY_APP"
+
+app_manifest() {
+  python3 - "$1" <<'PY'
+import hashlib
+import os
+import stat
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+for path in sorted([root, *root.rglob("*")], key=lambda item: str(item.relative_to(root))):
+    relative = "." if path == root else str(path.relative_to(root))
+    info = path.lstat()
+    mode = stat.S_IMODE(info.st_mode)
+    if stat.S_ISLNK(info.st_mode):
+        raise SystemExit("legacy app manifest refuses symbolic links")
+    if stat.S_ISREG(info.st_mode):
+        if info.st_nlink != 1:
+            raise SystemExit("legacy app manifest refuses hard-linked files")
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        print(f"f\t{mode:o}\t{info.st_size}\t{digest}\t{relative}")
+    elif stat.S_ISDIR(info.st_mode):
+        print(f"d\t{mode:o}\t0\t-\t{relative}")
+    else:
+        raise SystemExit(f"legacy app manifest refuses special object: {relative}")
+PY
+}
+installed_manifest="$(mktemp "${TMPDIR:-/tmp}/settlebell-piping-installed.XXXXXX")"
+reference_manifest="$(mktemp "${TMPDIR:-/tmp}/settlebell-piping-reference-manifest.XXXXXX")"
+app_manifest "$LEGACY_APP" >"$installed_manifest"
+app_manifest "$REFERENCE_APP" >"$reference_manifest"
+if ! cmp -s "$installed_manifest" "$reference_manifest"; then
+  rm -f "$installed_manifest" "$reference_manifest"
+  echo "Installed PiPing is not byte-for-byte and mode-for-mode identical to the trusted archive." >&2
+  exit 1
+fi
+rm -f "$installed_manifest" "$reference_manifest"
 
 legacy_runtime_is_removable() {
   if [[ ! -e "$LEGACY_RUNTIME_DIR" && ! -L "$LEGACY_RUNTIME_DIR" ]]; then return 0; fi
@@ -142,14 +199,21 @@ legacy_launchservices_paths() {
 
 LEGACY_PIDS="$(pgrep -x PiPing || true)"
 LEGACY_PID_COUNT="$(printf '%s\n' "$LEGACY_PIDS" | awk 'NF {count++} END {print count+0}')"
+LEGACY_PID_START=""
 if [[ "$LEGACY_PID_COUNT" -gt 1 ]]; then
   echo "Refusing retirement while multiple PiPing processes exist." >&2
   exit 1
 fi
-if [[ "$LEGACY_PID_COUNT" -eq 1 ]] \
-   && [[ "$(ps -p "$LEGACY_PIDS" -o command=)" != "$LEGACY_EXECUTABLE" ]]; then
-  echo "Refusing to stop a noncanonical PiPing process." >&2
-  exit 1
+if [[ "$LEGACY_PID_COUNT" -eq 1 ]]; then
+  if [[ "$(ps -p "$LEGACY_PIDS" -o command=)" != "$LEGACY_EXECUTABLE" ]]; then
+    echo "Refusing to stop a noncanonical PiPing process." >&2
+    exit 1
+  fi
+  LEGACY_PID_START="$(ps -p "$LEGACY_PIDS" -o lstart=)"
+  if [[ -z "$LEGACY_PID_START" ]]; then
+    echo "Could not pin the canonical PiPing process start identity." >&2
+    exit 1
+  fi
 fi
 
 legacy_runtime_removable=false
@@ -168,10 +232,31 @@ if [[ "$MODE" == "--check" ]]; then
   else
     echo "The legacy runtime contains unexpected state and would be preserved." >&2
   fi
+  echo "Trusted PiPing archive identity and exact installed-app manifest match."
   echo "Before retirement, deliver and acknowledge one genuine eligible SettleBell notification."
   echo "Remote PiPing packages, if any, require pi remove with their exact original source."
   exit 0
 fi
+
+if [[ ! -r /dev/tty || ! -w /dev/tty ]]; then
+  echo "Retirement requires a fresh interactive attestation on /dev/tty." >&2
+  exit 1
+fi
+printf '%s\n' \
+  'Type exactly: I observed and acknowledged a SettleBell notification' \
+  > /dev/tty
+IFS= read -r notification_attestation < /dev/tty
+if [[ "$notification_attestation" != "I observed and acknowledged a SettleBell notification" ]]; then
+  echo "Notification attestation did not match; PiPing remains untouched." >&2
+  exit 1
+fi
+
+BACKUP_DIR="$ROOT_DIR/.build/piping-retirement-backups"
+guarded_prepare_private_directory "$ROOT_DIR/.build"
+guarded_prepare_private_directory "$BACKUP_DIR"
+guarded_validate_existing_archives \
+  "$BACKUP_DIR" 'PiPing-retired-*.app.zip' \
+  "$ROOT_DIR/script/validate_legacy_piping_source_local_archive.sh"
 
 TRANSACTION_ROOT="$(mktemp -d /Applications/.SettleBell-piping-retirement.XXXXXX)"
 chmod 700 "$TRANSACTION_ROOT"
@@ -195,6 +280,8 @@ cleanup() {
   "$LSREGISTER" -u "$QUARANTINED_APP" 2>/dev/null || true
   "$LSREGISTER" -u "$BACKUP_STAGE/PiPing.app" 2>/dev/null || true
   rm -rf "$BACKUP_STAGE"
+  "$LSREGISTER" -u "$REFERENCE_APP" 2>/dev/null || true
+  rm -rf "$REFERENCE_STAGE"
 
   if [[ "$completed" == false && "$restore_needed" == true && -d "$QUARANTINED_APP" ]]; then
     if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then
@@ -243,7 +330,14 @@ if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]] \
 fi
 
 if [[ "$LEGACY_PID_COUNT" -eq 1 ]]; then
-  kill "$LEGACY_PIDS" 2>/dev/null || true
+  current_legacy_pids="$(pgrep -x PiPing || true)"
+  if [[ "$current_legacy_pids" != "$LEGACY_PIDS" \
+     || "$(ps -p "$LEGACY_PIDS" -o command= 2>/dev/null || true)" != "$LEGACY_EXECUTABLE" \
+     || "$(ps -p "$LEGACY_PIDS" -o lstart= 2>/dev/null || true)" != "$LEGACY_PID_START" ]]; then
+    echo "The pinned PiPing process changed before signalling; rolling back." >&2
+    exit 1
+  fi
+  kill "$LEGACY_PIDS"
   for _ in {1..20}; do
     sleep 0.25
     if ! pgrep -x PiPing >/dev/null 2>&1; then break; fi
@@ -256,8 +350,6 @@ fi
 "$LSREGISTER" -u "$LEGACY_APP" 2>/dev/null || true
 "$LSREGISTER" -u "$QUARANTINED_APP" 2>/dev/null || true
 
-BACKUP_DIR="$ROOT_DIR/.build/piping-retirement-backups"
-mkdir -p "$BACKUP_DIR"
 backup="$BACKUP_DIR/PiPing-retired-$(date +%Y%m%dT%H%M%S)-$$.app.zip"
 backup_temp="$BACKUP_DIR/.PiPing-retired-$$.tmp.zip"
 BACKUP_APP="$BACKUP_STAGE/PiPing.app"
@@ -269,12 +361,9 @@ ditto -c -k --keepParent "$BACKUP_APP" "$backup_temp"
 rm -rf "$BACKUP_STAGE"
 mv "$backup_temp" "$backup"
 backup_temp=""
-retained=1
-while IFS= read -r archived_app; do
-  [[ "$archived_app" != "$backup" ]] || continue
-  retained=$((retained + 1))
-  if [[ "$retained" -gt 3 ]]; then rm -f "$archived_app"; fi
-done < <(find "$BACKUP_DIR" -type f -name 'PiPing-retired-*.app.zip' -print | sort -r)
+guarded_prune_validated_archives \
+  "$BACKUP_DIR" 'PiPing-retired-*.app.zip' "$backup" \
+  "$ROOT_DIR/script/validate_legacy_piping_source_local_archive.sh"
 
 if [[ "$legacy_runtime_removable" == true ]]; then
   if ! legacy_runtime_is_removable; then

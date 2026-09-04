@@ -96,6 +96,28 @@ test("installers order quarantine, promotion, and commit state safely", async ()
   }
 });
 
+test("guarded lifecycle scripts validate private backup directories and archives", async () => {
+  for (const relativePath of [
+    "../../script/install_source_local.sh",
+    "../../script/install_signed_local.sh",
+    "../../script/uninstall_source_local.sh",
+    "../../script/retire_legacy_piping_source_local.sh",
+  ]) {
+    const script = await readFile(new URL(relativePath, import.meta.url), "utf8");
+    assert.match(script, /source "\$ROOT_DIR\/script\/guarded_backup_support\.sh"/);
+    assertTextOrder(
+      script,
+      [
+        'guarded_prepare_private_directory "$ROOT_DIR/.build"',
+        'guarded_prepare_private_directory "$BACKUP_DIR"',
+        "guarded_validate_existing_archives",
+        "guarded_prune_validated_archives",
+      ],
+      relativePath,
+    );
+  }
+});
+
 test("uninstaller commits before deleting preferences or the prior app", async () => {
   const script = await readFile(
     new URL("../../script/uninstall_source_local.sh", import.meta.url),
@@ -104,6 +126,17 @@ test("uninstaller commits before deleting preferences or the prior app", async (
   assertNormalSignalRouting(script, "source uninstaller");
   assert.match(script, /\.PiPing-source-transaction\.\*/);
   assert.match(script, /\.SettleBell-piping-retirement\.\*/);
+  const signal = script.slice(script.indexOf('current_pids="$(pgrep -x SettleBell'));
+  assertTextOrder(
+    signal,
+    [
+      'current_pids="$(pgrep -x SettleBell',
+      'ps -p "$PIDS" -o command=',
+      'ps -p "$PIDS" -o lstart=',
+      'kill "$PIDS"',
+    ],
+    "source uninstaller process pin",
+  );
   const quarantine = script.slice(
     script.indexOf('quarantined_identity="$(path_identity "$CANONICAL_APP")"'),
   );
@@ -138,10 +171,11 @@ test("legacy retirement requires validated SettleBell and commits safely", async
     "utf8",
   );
   assertNormalSignalRouting(script, "legacy source-local retirement");
-  assert.match(
-    script,
-    /--retire --confirmed-settlebell-notification/,
-  );
+  assert.match(script, /--legacy-archive/);
+  assert.match(script, /--legacy-sha256/);
+  assert.match(script, /read -r notification_attestation < \/dev\/tty/);
+  assert.match(script, /I observed and acknowledged a SettleBell notification/);
+  assert.doesNotMatch(script, /--confirmed-settlebell-notification/);
   assert.doesNotMatch(script, /defaults delete/);
   assert.doesNotMatch(script, /\.pi\/agent\/settings\.json/);
   assertTextOrder(
@@ -150,11 +184,25 @@ test("legacy retirement requires validated SettleBell and commits safely", async
       '"$ROOT_DIR/script/check_source_installation.sh" >/dev/null',
       "if ! settlebell_runtime_is_ready; then",
       '"$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$LEGACY_APP"',
+      'app_manifest "$LEGACY_APP"',
+      'app_manifest "$REFERENCE_APP"',
+      'if ! cmp -s "$installed_manifest" "$reference_manifest"; then',
       'quarantined_identity="$(path_identity "$LEGACY_APP")"',
       "restore_needed=true",
       'mv "$LEGACY_APP" "$QUARANTINED_APP"',
     ],
     "legacy retirement preflight and quarantine",
+  );
+  const signal = script.slice(script.indexOf('current_legacy_pids="$(pgrep -x PiPing'));
+  assertTextOrder(
+    signal,
+    [
+      'current_legacy_pids="$(pgrep -x PiPing',
+      'ps -p "$LEGACY_PIDS" -o command=',
+      'ps -p "$LEGACY_PIDS" -o lstart=',
+      'kill "$LEGACY_PIDS"',
+    ],
+    "legacy retirement process pin",
   );
   const finalIdentityCheck = script.lastIndexOf(
     'if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then',
@@ -170,6 +218,17 @@ test("legacy retirement requires validated SettleBell and commits safely", async
     ],
     "legacy retirement commit",
   );
+});
+
+test("legacy validator pins the v0.1.0 public build and rejects link/ACL expansion", async () => {
+  const validator = await readFile(
+    new URL("../../script/validate_legacy_piping_source_local_app.sh", import.meta.url),
+    "utf8",
+  );
+  assert.match(validator, /marketing_version.*!= "0\.1\.0"/s);
+  assert.match(validator, /build_version.*!= "15"/s);
+  assert.match(validator, /-type f -links \+1/);
+  assert.match(validator, /must not contain extended ACLs/);
 });
 
 test("registers only the two lifecycle handlers", () => {

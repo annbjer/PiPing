@@ -63,24 +63,37 @@ own explicit approval.
    Pi run. With the default setting, the run must last at least 30 seconds.
    Confirm that the SettleBell notification was presented and acknowledge it.
 
-4. Inspect the legacy retirement plan:
+4. Locate the trusted PiPing app archive that was installed, or a validated
+   recovery archive made from that installation, and establish its SHA-256 from
+   the separately trusted installation record. Do not calculate a hash from an
+   untrusted download and treat that as provenance. Inspect the retirement plan:
 
    ```bash
-   ./script/retire_legacy_piping_source_local.sh --check
+   legacy_archive=/trusted/path/PiPing.app.zip
+   legacy_sha256=64_LOWERCASE_HEXADECIMAL_SHA256
+   ./script/retire_legacy_piping_source_local.sh --check \
+     --legacy-archive "$legacy_archive" \
+     --legacy-sha256 "$legacy_sha256"
    ```
 
    The preflight requires one validated, running source-local SettleBell app and
-   the exact audited PiPing `v0.1.0` public-development app. It refuses signed,
-   foreign, modified, or future official PiPing apps.
+   protected FIFO, pins PiPing to version `0.1.0` build `15`, and requires the
+   installed app's complete path/type/mode/content manifest to match the trusted
+   archive. It refuses signed, foreign, modified, hard-linked, ACL-bearing, or
+   future PiPing apps.
 
 5. Only after the genuine notification check and separate retirement approval:
 
    ```bash
-   ./script/retire_legacy_piping_source_local.sh \
-     --retire --confirmed-settlebell-notification
+   ./script/retire_legacy_piping_source_local.sh --retire \
+     --legacy-archive "$legacy_archive" \
+     --legacy-sha256 "$legacy_sha256"
    ```
 
-   Retirement atomically quarantines and revalidates PiPing, creates a validated
+   The script then requires a fresh typed attestation on `/dev/tty`; a copied
+   command-line option cannot stand in for observing and acknowledging the
+   SettleBell notification. Retirement atomically quarantines and revalidates
+   PiPing, creates a validated
    compressed recovery archive, retains at most three such archives, unregisters
    only the legacy app, and removes the old runtime only if its owner, mode,
    type, ACL, and contents are exact. It leaves PiPing preferences and
@@ -117,6 +130,10 @@ archive only with the guarded installer from the trusted PiPing `v0.1.0` source.
 Run its `--check` mode before a separately approved install. Do not extract the
 archive into `/Applications` manually and do not keep a discoverable extracted
 backup app.
+
+Recovery directories under `.build` must be real, current-user-owned,
+ACL-free mode-`0700` directories. Existing matching recovery archives are
+validated before a destructive boundary and again before bounded pruning.
 
 A power loss or `SIGKILL` can leave a hidden transaction directory. Every
 PiPing/SettleBell guarded migration command detects known transaction residue

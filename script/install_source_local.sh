@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$ROOT_DIR/script/guarded_backup_support.sh"
 MODE="${1:-}"
 ARCHIVE="${2:-$ROOT_DIR/dist/source-local/SettleBell.app.zip}"
 CANONICAL_APP="/Applications/SettleBell.app"
@@ -179,6 +180,13 @@ if [[ "$MODE" == "--check" ]]; then
   exit 0
 fi
 
+BACKUP_DIR="$ROOT_DIR/.build/source-install-backups"
+guarded_prepare_private_directory "$ROOT_DIR/.build"
+guarded_prepare_private_directory "$BACKUP_DIR"
+guarded_validate_existing_archives \
+  "$BACKUP_DIR" 'SettleBell-before-*.app.zip' \
+  "$ROOT_DIR/script/validate_source_local_archive.sh"
+
 TRANSACTION_ROOT="$(mktemp -d /Applications/.SettleBell-source-transaction.XXXXXX)"
 chmod 700 "$TRANSACTION_ROOT"
 CANDIDATE_APP="$TRANSACTION_ROOT/Candidate.payload"
@@ -210,8 +218,6 @@ if [[ -d "$CANONICAL_APP" ]]; then
   fi
   stop_canonical_process
 
-  BACKUP_DIR="$ROOT_DIR/.build/source-install-backups"
-  mkdir -p "$BACKUP_DIR"
   backup="$BACKUP_DIR/SettleBell-before-$(date +%Y%m%dT%H%M%S)-$$.app.zip"
   backup_temp="$BACKUP_DIR/.SettleBell-before-$$.tmp.zip"
   BACKUP_APP="$STAGE_ROOT/Backup/SettleBell.app"
@@ -224,12 +230,9 @@ if [[ -d "$CANONICAL_APP" ]]; then
   rm -rf "$STAGE_ROOT/Backup"
   mv "$backup_temp" "$backup"
   backup_temp=""
-  retained=1
-  while IFS= read -r archived_app; do
-    [[ "$archived_app" != "$backup" ]] || continue
-    retained=$((retained + 1))
-    if [[ "$retained" -gt 3 ]]; then rm -f "$archived_app"; fi
-  done < <(find "$BACKUP_DIR" -type f -name 'SettleBell-before-*.app.zip' -print | sort -r)
+  guarded_prune_validated_archives \
+    "$BACKUP_DIR" 'SettleBell-before-*.app.zip' "$backup" \
+    "$ROOT_DIR/script/validate_source_local_archive.sh"
 elif [[ "$PID_COUNT" -eq 1 ]]; then
   echo "A canonical SettleBell process exists without a canonical app." >&2
   exit 1

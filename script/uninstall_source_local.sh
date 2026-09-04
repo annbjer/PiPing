@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$ROOT_DIR/script/guarded_backup_support.sh"
 MODE="${1:-}"
 CANONICAL_APP="/Applications/SettleBell.app"
 CANONICAL_EXECUTABLE="$CANONICAL_APP/Contents/MacOS/SettleBell"
@@ -144,14 +145,21 @@ launchservices_paths() {
 
 PIDS="$(pgrep -x SettleBell || true)"
 PID_COUNT="$(printf '%s\n' "$PIDS" | awk 'NF {count++} END {print count+0}')"
+PID_START=""
 if [[ "$PID_COUNT" -gt 1 ]]; then
   echo "Refusing to uninstall while multiple SettleBell processes exist." >&2
   exit 1
 fi
-if [[ "$PID_COUNT" -eq 1 ]] \
-   && [[ "$(ps -p "$PIDS" -o command=)" != "$CANONICAL_EXECUTABLE" ]]; then
-  echo "Refusing to stop a noncanonical SettleBell process." >&2
-  exit 1
+if [[ "$PID_COUNT" -eq 1 ]]; then
+  if [[ "$(ps -p "$PIDS" -o command=)" != "$CANONICAL_EXECUTABLE" ]]; then
+    echo "Refusing to stop a noncanonical SettleBell process." >&2
+    exit 1
+  fi
+  PID_START="$(ps -p "$PIDS" -o lstart=)"
+  if [[ -z "$PID_START" ]]; then
+    echo "Could not pin the canonical SettleBell process start identity." >&2
+    exit 1
+  fi
 fi
 if [[ -L "$RUNTIME_DIR" || -L "$FIFO" ]]; then
   echo "Refusing to uninstall while the SettleBell runtime contains a symbolic link." >&2
@@ -180,6 +188,13 @@ if [[ "$MODE" == "--check" ]]; then
   fi
   exit 0
 fi
+
+BACKUP_DIR="$ROOT_DIR/.build/source-uninstall-backups"
+guarded_prepare_private_directory "$ROOT_DIR/.build"
+guarded_prepare_private_directory "$BACKUP_DIR"
+guarded_validate_existing_archives \
+  "$BACKUP_DIR" 'SettleBell-removed-*.app.zip' \
+  "$ROOT_DIR/script/validate_source_local_archive.sh"
 
 TRANSACTION_ROOT="$(mktemp -d /Applications/.SettleBell-source-uninstall.XXXXXX)"
 chmod 700 "$TRANSACTION_ROOT"
@@ -256,7 +271,14 @@ if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]] \
 fi
 
 if [[ "$PID_COUNT" -eq 1 ]]; then
-  kill "$PIDS" 2>/dev/null || true
+  current_pids="$(pgrep -x SettleBell || true)"
+  if [[ "$current_pids" != "$PIDS" \
+     || "$(ps -p "$PIDS" -o command= 2>/dev/null || true)" != "$CANONICAL_EXECUTABLE" \
+     || "$(ps -p "$PIDS" -o lstart= 2>/dev/null || true)" != "$PID_START" ]]; then
+    echo "The pinned SettleBell process changed before signalling; rolling back." >&2
+    exit 1
+  fi
+  kill "$PIDS"
   for _ in {1..20}; do
     sleep 0.25
     if ! pgrep -x SettleBell >/dev/null 2>&1; then break; fi
@@ -269,8 +291,6 @@ fi
 "$LSREGISTER" -u "$CANONICAL_APP" 2>/dev/null || true
 "$LSREGISTER" -u "$QUARANTINED_APP" 2>/dev/null || true
 
-BACKUP_DIR="$ROOT_DIR/.build/source-uninstall-backups"
-mkdir -p "$BACKUP_DIR"
 backup="$BACKUP_DIR/SettleBell-removed-$(date +%Y%m%dT%H%M%S)-$$.app.zip"
 backup_temp="$BACKUP_DIR/.SettleBell-removed-$$.tmp.zip"
 BACKUP_APP="$BACKUP_STAGE/SettleBell.app"
@@ -282,12 +302,9 @@ ditto -c -k --keepParent "$BACKUP_APP" "$backup_temp"
 rm -rf "$BACKUP_STAGE"
 mv "$backup_temp" "$backup"
 backup_temp=""
-retained=1
-while IFS= read -r archived_app; do
-  [[ "$archived_app" != "$backup" ]] || continue
-  retained=$((retained + 1))
-  if [[ "$retained" -gt 3 ]]; then rm -f "$archived_app"; fi
-done < <(find "$BACKUP_DIR" -type f -name 'SettleBell-removed-*.app.zip' -print | sort -r)
+guarded_prune_validated_archives \
+  "$BACKUP_DIR" 'SettleBell-removed-*.app.zip' "$backup" \
+  "$ROOT_DIR/script/validate_source_local_archive.sh"
 
 if [[ "$local_package" == true ]]; then
   (cd "$ROOT_DIR" && PATH="$(dirname "$PI_COMMAND"):$PATH" "$PI_COMMAND" remove .)

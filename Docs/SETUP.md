@@ -142,7 +142,11 @@ Before postchecks commit an update, normal errors and HUP, INT, or TERM signals
 restore the atomically quarantined prior app. Restoration intent and prior-app
 identity are pinned before quarantine; candidate-removal intent is established
 before promotion; and the two installer rollback flags commit in one shell
-state transition after postchecks. During uninstall, the final pinned
+state transition after postchecks. Recovery roots are current-user-owned,
+ACL-free mode-`0700` real directories; existing matching archives are validated
+before destructive work and again before bounded pruning. A process captured by
+uninstall is matched by PID, canonical command path, and start identity again
+immediately before it is signalled. During uninstall, the final pinned
 identity check and uninstall commit occur before preferences or the quarantined
 app are deleted, so rollback never restores an app after deleting its settings.
 After commit, cleanup is best effort. A power loss, SIGKILL, or
