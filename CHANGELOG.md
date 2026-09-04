@@ -1,11 +1,24 @@
 # Changelog
 
-All notable changes to PiPing will be documented here. PiPing uses semantic
-versioning and source-release tags in the form `vMAJOR.MINOR.PATCH`.
+All notable changes to SettleBell will be documented here. SettleBell was
+originally released as PiPing and uses semantic versioning with source-release
+tags in the form `vMAJOR.MINOR.PATCH`.
 
 ## Unreleased
 
-No unreleased changes.
+### Changed
+
+- Rename the native Apple companion from PiPing to SettleBell to distinguish it
+  from the independently developed `@bukutsu/pi-ping` terminal extension.
+- Prepare a side-by-side identity and guarded migration path while preserving
+  the immutable PiPing `v0.1.0` release and deployed CloudKit v1 wire/storage
+  identifiers.
+- Give SettleBell independent app/helper paths, bundle identities, FIFO runtime,
+  notification authorization, preferences, and unread/backlog state rather than
+  silently copying PiPing state.
+- Add exact legacy source-local validation and separately confirmed PiPing
+  retirement with interruption rollback and at most three validated recovery
+  archives; signed/private PiPing retirement remains out of scope.
 
 ## 0.1.0 - 2026-08-31
 

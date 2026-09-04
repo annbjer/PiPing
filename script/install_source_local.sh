@@ -3,19 +3,19 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-}"
-ARCHIVE="${2:-$ROOT_DIR/dist/source-local/PiPing.app.zip}"
-CANONICAL_APP="/Applications/PiPing.app"
-CANONICAL_EXECUTABLE="$CANONICAL_APP/Contents/MacOS/PiPing"
+ARCHIVE="${2:-$ROOT_DIR/dist/source-local/SettleBell.app.zip}"
+CANONICAL_APP="/Applications/SettleBell.app"
+CANONICAL_EXECUTABLE="$CANONICAL_APP/Contents/MacOS/SettleBell"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 MAX_ARCHIVE_BYTES=$((100 * 1024 * 1024))
 
 if [[ "$MODE" != "--check" && "$MODE" != "--install" ]] || [[ $# -gt 2 ]]; then
-  echo "usage: $0 [--check|--install] [path/to/PiPing.app.zip]" >&2
+  echo "usage: $0 [--check|--install] [path/to/SettleBell.app.zip]" >&2
   echo "Build the local ad-hoc archive with script/build_source_local.sh first." >&2
   exit 2
 fi
 if [[ ! -f "$ARCHIVE" || -L "$ARCHIVE" ]]; then
-  echo "Source-local PiPing archive must be a regular, non-symbolic-link file." >&2
+  echo "Source-local SettleBell archive must be a regular, non-symbolic-link file." >&2
   exit 1
 fi
 if [[ ! -w /Applications ]]; then
@@ -24,7 +24,15 @@ if [[ ! -w /Applications ]]; then
 fi
 
 stale_transaction="$(find /Applications -maxdepth 1 \
-  \( -name '.PiPing-source-transaction.*' \
+  \( -name '.SettleBell-source-transaction.*' \
+     -o -name '.SettleBell-source-uninstall.*' \
+     -o -name '.SettleBell-signed-transaction.*' \
+     -o -name '.SettleBell-piping-retirement.*' \
+     -o -name '.SettleBell-source-installing-*.app' \
+     -o -name '.SettleBell-source-previous-*.app' \
+     -o -name '.SettleBell-installing-*.app' \
+     -o -name '.SettleBell-previous-*.app' \
+     -o -name '.PiPing-source-transaction.*' \
      -o -name '.PiPing-source-uninstall.*' \
      -o -name '.PiPing-signed-transaction.*' \
      -o -name '.PiPing-source-installing-*.app' \
@@ -32,13 +40,13 @@ stale_transaction="$(find /Applications -maxdepth 1 \
      -o -name '.PiPing-installing-*.app' \
      -o -name '.PiPing-previous-*.app' \) -print -quit)"
 if [[ -n "$stale_transaction" ]]; then
-  echo "A prior PiPing installation transaction requires manual recovery before continuing." >&2
+  echo "A prior PiPing/SettleBell transaction requires manual recovery before continuing." >&2
   exit 1
 fi
 
-STAGE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/piping-source-install.XXXXXX")"
+STAGE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/settlebell-source-install.XXXXXX")"
 chmod 700 "$STAGE_ROOT"
-FIXED_ARCHIVE="$STAGE_ROOT/PiPing.app.zip"
+FIXED_ARCHIVE="$STAGE_ROOT/SettleBell.app.zip"
 TRANSACTION_ROOT=""
 CANDIDATE_APP=""
 PREVIOUS_APP=""
@@ -55,16 +63,16 @@ path_identity() {
 
 stop_canonical_process() {
   local pids
-  pids="$(pgrep -f '^/Applications/PiPing\.app/Contents/MacOS/PiPing$' || true)"
+  pids="$(pgrep -f '^/Applications/SettleBell\.app/Contents/MacOS/SettleBell$' || true)"
   if [[ -n "$pids" ]]; then
     kill $pids 2>/dev/null || true
     for _ in {1..20}; do
       sleep 0.25
-      if ! pgrep -f '^/Applications/PiPing\.app/Contents/MacOS/PiPing$' >/dev/null 2>&1; then
+      if ! pgrep -f '^/Applications/SettleBell\.app/Contents/MacOS/SettleBell$' >/dev/null 2>&1; then
         return 0
       fi
     done
-    echo "Canonical PiPing process did not exit within five seconds." >&2
+    echo "Canonical SettleBell process did not exit within five seconds." >&2
     return 1
   fi
 }
@@ -76,8 +84,8 @@ handle_signal() {
 cleanup() {
   trap '' HUP INT TERM
   local current_identity preserve_transaction=false
-  "$LSREGISTER" -u "$STAGE_ROOT/PiPing.app" 2>/dev/null || true
-  "$LSREGISTER" -u "$STAGE_ROOT/Backup/PiPing.app" 2>/dev/null || true
+  "$LSREGISTER" -u "$STAGE_ROOT/SettleBell.app" 2>/dev/null || true
+  "$LSREGISTER" -u "$STAGE_ROOT/Backup/SettleBell.app" 2>/dev/null || true
   [[ -z "$CANDIDATE_APP" ]] || "$LSREGISTER" -u "$CANDIDATE_APP" 2>/dev/null || true
   [[ -z "$PREVIOUS_APP" ]] || "$LSREGISTER" -u "$PREVIOUS_APP" 2>/dev/null || true
   [[ -z "$backup_temp" ]] || rm -f "$backup_temp"
@@ -139,9 +147,9 @@ if [[ "$(stat -f %z "$FIXED_ARCHIVE")" -gt "$MAX_ARCHIVE_BYTES" ]]; then
 fi
 "$ROOT_DIR/script/validate_source_local_archive.sh" "$FIXED_ARCHIVE"
 ditto -x -k "$FIXED_ARCHIVE" "$STAGE_ROOT"
-SOURCE_APP="$STAGE_ROOT/PiPing.app"
+SOURCE_APP="$STAGE_ROOT/SettleBell.app"
 if [[ ! -d "$SOURCE_APP" ]]; then
-  echo "Archive does not contain PiPing.app at its root." >&2
+  echo "Archive does not contain SettleBell.app at its root." >&2
   exit 1
 fi
 "$ROOT_DIR/script/validate_source_local_app.sh" "$SOURCE_APP"
@@ -152,18 +160,18 @@ if [[ -L "$CANONICAL_APP" ]]; then
 fi
 if [[ -e "$CANONICAL_APP" ]] \
   && ! "$ROOT_DIR/script/validate_source_local_app.sh" "$CANONICAL_APP" >/dev/null 2>&1; then
-  echo "Refusing to replace a canonical app that is not a source-local PiPing Development build." >&2
+  echo "Refusing to replace a canonical app that is not a source-local SettleBell Development build." >&2
   exit 1
 fi
-PIDS="$(pgrep -x PiPing || true)"
+PIDS="$(pgrep -x SettleBell || true)"
 PID_COUNT="$(printf '%s\n' "$PIDS" | awk 'NF {count++} END {print count+0}')"
 if [[ "$PID_COUNT" -gt 1 ]]; then
-  echo "Refusing installation while multiple PiPing processes exist." >&2
+  echo "Refusing installation while multiple SettleBell processes exist." >&2
   exit 1
 fi
 if [[ "$PID_COUNT" -eq 1 ]] \
    && [[ "$(ps -p "$PIDS" -o command=)" != "$CANONICAL_EXECUTABLE" ]]; then
-  echo "Refusing installation while PiPing runs from a noncanonical path." >&2
+  echo "Refusing installation while SettleBell runs from a noncanonical path." >&2
   exit 1
 fi
 if [[ "$MODE" == "--check" ]]; then
@@ -171,7 +179,7 @@ if [[ "$MODE" == "--check" ]]; then
   exit 0
 fi
 
-TRANSACTION_ROOT="$(mktemp -d /Applications/.PiPing-source-transaction.XXXXXX)"
+TRANSACTION_ROOT="$(mktemp -d /Applications/.SettleBell-source-transaction.XXXXXX)"
 chmod 700 "$TRANSACTION_ROOT"
 CANDIDATE_APP="$TRANSACTION_ROOT/Candidate.payload"
 PREVIOUS_APP="$TRANSACTION_ROOT/Previous.payload"
@@ -204,9 +212,9 @@ if [[ -d "$CANONICAL_APP" ]]; then
 
   BACKUP_DIR="$ROOT_DIR/.build/source-install-backups"
   mkdir -p "$BACKUP_DIR"
-  backup="$BACKUP_DIR/PiPing-before-$(date +%Y%m%dT%H%M%S)-$$.app.zip"
-  backup_temp="$BACKUP_DIR/.PiPing-before-$$.tmp.zip"
-  BACKUP_APP="$STAGE_ROOT/Backup/PiPing.app"
+  backup="$BACKUP_DIR/SettleBell-before-$(date +%Y%m%dT%H%M%S)-$$.app.zip"
+  backup_temp="$BACKUP_DIR/.SettleBell-before-$$.tmp.zip"
+  BACKUP_APP="$STAGE_ROOT/Backup/SettleBell.app"
   mkdir -p "$STAGE_ROOT/Backup"
   ditto "$PREVIOUS_APP" "$BACKUP_APP"
   "$ROOT_DIR/script/validate_source_local_app.sh" "$BACKUP_APP" >/dev/null
@@ -221,9 +229,9 @@ if [[ -d "$CANONICAL_APP" ]]; then
     [[ "$archived_app" != "$backup" ]] || continue
     retained=$((retained + 1))
     if [[ "$retained" -gt 3 ]]; then rm -f "$archived_app"; fi
-  done < <(find "$BACKUP_DIR" -type f -name 'PiPing-before-*.app.zip' -print | sort -r)
+  done < <(find "$BACKUP_DIR" -type f -name 'SettleBell-before-*.app.zip' -print | sort -r)
 elif [[ "$PID_COUNT" -eq 1 ]]; then
-  echo "A canonical PiPing process exists without a canonical app." >&2
+  echo "A canonical SettleBell process exists without a canonical app." >&2
   exit 1
 fi
 

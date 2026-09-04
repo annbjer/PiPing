@@ -88,20 +88,20 @@ the read-only preflight, and explicitly approve installation:
 ./script/install_source_local.sh --install
 ```
 
-The generated `dist/source-local/PiPing.app.zip` uses only:
+The generated `dist/source-local/SettleBell.app.zip` uses only:
 
-- bundle identifier `org.example.PiPing.macOS`;
-- display name **PiPing Development**;
+- bundle identifier `org.example.SettleBell.macOS`;
+- display name **SettleBell Development**;
 - public placeholder container text with CloudKit activation disabled;
 - no provisioning profile, Apple team, or capability entitlement; and
 - ad-hoc app/helper signatures with hardened runtime.
 
 The guarded installer validates the archive before making changes, refuses to
 replace anything except an earlier source-local development build, retains at
-most three compressed update rollbacks, replaces only `/Applications/PiPing.app`, and
+most three compressed update rollbacks, replaces only `/Applications/SettleBell.app`, and
 verifies one app process and one LaunchServices path. It never invokes `sudo`,
 changes Apple accounts, accesses signing credentials, installs Pi, or enables
-notification permission. Grant notification permission in PiPing when macOS
+notification permission. Grant notification permission in SettleBell when macOS
 asks, then install the Pi edge separately as described below.
 
 Generated app archives are ignored local artifacts, not public release files.
@@ -129,7 +129,7 @@ To restore a chosen validated rollback or recovery archive, use the same guarded
 installer rather than extracting an app into a discoverable directory:
 
 ```bash
-rollback=.build/source-uninstall-backups/PiPing-removed-TIMESTAMP.app.zip
+rollback=.build/source-uninstall-backups/SettleBell-removed-TIMESTAMP.app.zip
 ./script/install_source_local.sh --check "$rollback"
 ./script/install_source_local.sh --install "$rollback"
 ```
@@ -147,18 +147,35 @@ identity check and uninstall commit occur before preferences or the quarantined
 app are deleted, so rollback never restores an app after deleting its settings.
 After commit, cleanup is best effort. A power loss, SIGKILL, or
 equivalent uncatchable interruption can leave a hidden
-`/Applications/.PiPing-source-transaction.*`, `.PiPing-source-uninstall.*`, or
-`.PiPing-signed-transaction.*` directory. Subsequent guarded commands refuse to
-continue. Do not delete or launch anything inside it: validate the moved
-`Previous.payload` and the compressed recovery archive, confirm the canonical
-path is empty, and obtain explicit approval for recovery. This exceptional path
-should be handled by a knowledgeable reviewer rather than an improvised `rm`.
+`/Applications/.SettleBell-source-transaction.*`, `.SettleBell-source-uninstall.*`,
+`.SettleBell-signed-transaction.*`, or `.SettleBell-piping-retirement.*`
+directory. Known legacy PiPing transaction residue also blocks migration.
+Subsequent guarded commands refuse to continue. Do not delete or launch anything
+inside residue: validate the moved payload and compressed recovery archive,
+confirm the relevant canonical path, and obtain explicit approval for recovery.
+This exceptional path should be handled by a knowledgeable reviewer rather than
+an improvised `rm`.
+
+## Migrating from PiPing
+
+SettleBell uses a new app path, helper, runtime directory, bundle identity,
+notification identity, and preference domain. Its installers never overwrite or
+remove PiPing. Follow [Migrating from PiPing](MIGRATING_FROM_PIPING.md) to install
+and test SettleBell side by side before separately retiring an exact legacy
+source-local PiPing app. Signed/private PiPing retirement is deliberately not
+performed by the source-local migration script.
+
+The migration does not copy notification authorization, Cloud delivery
+approval, threshold preferences, unread/backlog state, or private configuration.
+The deployed CloudKit v1 identifiers remain unchanged initially as an explicit
+compatibility boundary rather than a branding claim.
 
 ## Signed local Mac build and installation
 
-Version `0.1.0` distributes source only. Each developer creates their own
-ignored `Config/Local.xcconfig`, signing identity, bundle identifiers, and
-CloudKit container. Never reuse or publish another developer's values.
+PiPing `v0.1.0` was source-only, and SettleBell `0.2.0` is currently unreleased.
+Each developer creates their own ignored `Config/Local.xcconfig`, signing
+identity, bundle identifiers, and CloudKit container. Never reuse or publish
+another developer's values.
 
 After replacing every placeholder in the ignored local configuration, increment
 `CURRENT_PROJECT_VERSION` for a new installable build and run:
@@ -168,8 +185,8 @@ After replacing every placeholder in the ignored local configuration, increment
 ```
 
 This performs a Release build with automatic Apple Development signing, embeds
-and signs `PiPingSignal`, verifies the complete bundle, writes the ignored
-local-only archive `dist/private/PiPing.app.zip`, and removes the extracted
+and signs `SettleBellSignal`, verifies the complete bundle, writes the ignored
+local-only archive `dist/private/SettleBell.app.zip`, and removes the extracted
 signed build product. The archive may contain account-specific entitlements and
 must never be attached to the source release.
 
@@ -189,32 +206,32 @@ unexpired provisioning profile to the exact ignored local team, bundle, and
 container configuration; atomically quarantines and revalidates an accepted
 prior signed-local app under a non-`.app` payload name; creates an atomic,
 validated rollback capped at three archives; replaces only
-`/Applications/PiPing.app`; launches it; and runs the canonical installation
+`/Applications/SettleBell.app`; launches it; and runs the canonical installation
 check. If post-install validation fails before commit, it restores the pinned
 previous canonical app.
 After a successful first install, grant notification permission and optionally
-enable PiPing under **System Settings > General > Login Items > Open at Login**.
+enable SettleBell under **System Settings > General > Login Items > Open at Login**.
 
 ### macOS icon appearance
 
 macOS controls app-icon appearance separately from window appearance. Choosing
 Dark windows alone does not require icons to use their Dark rendition. If the
-PiPing Dock or notification icon remains light, open **System Settings >
+SettleBell Dock or notification icon remains light, open **System Settings >
 Appearance**, set **Icon & widget style** to **Dark**, and choose **Auto** rather
 than **Always** for that style. Choose **Auto** in the main **Appearance** row as
 well if you want macOS to change the complete interface automatically. The
 similarly named automatic folder-color option affects Finder folders only.
 
 This distinction can matter for accessibility and for anyone who relies on
-consistent visual cues. PiPing includes native Light and Dark icon renditions
+consistent visual cues. SettleBell includes native Light and Dark icon renditions
 but intentionally does not inspect or change the user's Appearance, icon,
 widget, Liquid Glass, tint, or folder-color preferences.
 
 ## Notification threshold
 
-PiPing defaults to notifying only after a Pi run lasts at least 30 seconds. A
+SettleBell defaults to notifying only after a Pi run lasts at least 30 seconds. A
 fast response is intentionally quiet; this does not mean the integration failed.
-In **PiPing > Settings**, **Notify me** offers three native, locally persisted
+In **SettleBell > Settings**, **Notify me** offers three native, locally persisted
 choices:
 
 - **Every completion**
@@ -232,7 +249,7 @@ From the repository root, an isolated read-only exercise can load the tracked
 hook for one run without altering Pi's saved configuration:
 
 ```bash
-pi --extension Integration/Pi/piping.ts --no-session --tools read,grep,find,ls
+pi --extension Integration/Pi/settlebell.ts --no-session --tools read,grep,find,ls
 ```
 
 For normal use, install the local repository through Pi's official user-package
@@ -243,7 +260,7 @@ pi install .
 pi list
 ```
 
-This adds the PiPing package to Pi's user settings, making it global to newly
+This adds the SettleBell package to Pi's user settings, making it global to newly
 started Pi sessions without replacing other extensions. The Pi peer dependency
 is metadata-only and optional, so package installation does not materialize a
 second Pi runtime or its transitive dependencies. The package-local npm policy
@@ -262,15 +279,16 @@ Installing the Pi package installs only the TypeScript lifecycle edge; it does
 not install the native Mac application. The app and bundled helper must already
 exist at these canonical paths:
 
-- `/Applications/PiPing.app`
-- `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`
+- `/Applications/SettleBell.app`
+- `/Applications/SettleBell.app/Contents/Helpers/SettleBellSignal`
 
 If the canonical helper is unavailable, the extension reports a generic
 availability error in Pi without exposing task content. It never falls back to a
 repository, DerivedData, `dist`, or backup executable. The
 package remains marked `private` to prevent accidental npm publication. The
-repository is MIT-licensed and the planned `0.1.0` release is distributed from
-GitHub as source rather than through npm.
+repository is MIT-licensed. PiPing `v0.1.0` remains available as historical
+source; SettleBell `0.2.0` is planned as a separately audited source release and
+is not published through npm.
 
 Pi `0.84.3` and `0.84.4` have passed package-load and ordinary-turn acceptance.
 Other Pi versions are not claimed compatible until the lifecycle hooks and idle

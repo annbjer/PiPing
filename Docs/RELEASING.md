@@ -1,21 +1,26 @@
 # Release process
 
-## Version 0.1.0 policy
+## SettleBell 0.2.0 policy
 
-The first public release is source-only. Do not attach, upload, or otherwise
-distribute a PiPing application bundle, IPA, provisioning profile, development
-archive, or locally generated `dist/` artifact.
+PiPing `v0.1.0`, its tag, source assets, release notes, links, and announcement
+are immutable historical provenance. Never retag, replace, or regenerate that
+release under the SettleBell name.
 
-The currently installed private development app and generated source-local
-ad-hoc app are not release artifacts. `dist/source-local/` exists only for a
+SettleBell's first planned developer preview is `0.2.0` and remains source-only
+unless a later exact-binary gate is separately approved. Do not attach, upload,
+or otherwise distribute a SettleBell application bundle, IPA, provisioning
+profile, development archive, or locally generated `dist/` artifact.
+
+The currently installed private development apps and generated source-local
+ad-hoc apps are not release artifacts. `dist/source-local/` exists only for a
 source builder's guarded local installation and must not be uploaded. A future
-downloadable Mac binary requires a separately approved public bundle
-identity, Developer ID Application signing, hardened runtime, notarization,
-stapling, final entitlement inspection, and an exact binary-archive audit.
+downloadable Mac binary requires separately approved permanent identities,
+Developer ID Application signing, hardened runtime, notarization, stapling,
+final entitlement inspection, and an exact binary-archive audit.
 
 ## Versioning
 
-PiPing uses semantic versioning for source releases and annotated Git tags in
+SettleBell uses semantic versioning for source releases and annotated Git tags in
 the form `vMAJOR.MINOR.PATCH`.
 
 - `MARKETING_VERSION` and `package.json` must match the release version.
@@ -46,15 +51,14 @@ the form `vMAJOR.MINOR.PATCH`.
    the exact candidate commit and archive. Resolve every finding at every
    severity and repeat affected checks.
 8. Obtain separate explicit approval to push only that exact candidate to the
-   private remote, then require hosted CI to pass for the same commit. Any fix
+   intended remote, then require hosted CI to pass for the same commit. Any fix
    restarts the reconciliation, commit, archive, audit, review, and CI cycle.
-9. Obtain separate explicit owner approval before changing repository
-   visibility. Immediately after the approved public visibility change, enable
-   and exercise GitHub private vulnerability reporting as described in
-   `SECURITY.md`; do not tag, announce, release, or list the package first.
-10. Obtain an independent explicit owner approval for each tag,
-    release-asset upload, GitHub release, public announcement/publication, and
-    package-gallery listing. Approval for one action never authorizes another.
+9. Reverify repository security controls, including private vulnerability
+   reporting, against the intended public repository before tagging.
+10. Obtain an independent explicit owner approval for each repository rename,
+    tag, release-asset upload, GitHub release, public announcement/publication,
+    package publication, package-gallery listing, domain/DNS change, and App
+    Store action. Approval for one action never authorizes another.
 
 ## Canonical source archive
 
@@ -62,15 +66,15 @@ Before requesting tag approval, create and audit the release archive from the
 exact candidate commit rather than the working tree:
 
 ```bash
-version=0.1.0
+version=0.2.0
 candidate_commit="$(git rev-parse HEAD)"
 git archive \
   --format=tar.gz \
-  --prefix="PiPing-${version}/" \
-  --output="PiPing-${version}-source.tar.gz" \
+  --prefix="SettleBell-${version}/" \
+  --output="SettleBell-${version}-source.tar.gz" \
   "$candidate_commit"
-shasum -a 256 "PiPing-${version}-source.tar.gz" \
-  > "PiPing-${version}-source.tar.gz.sha256"
+shasum -a 256 "SettleBell-${version}-source.tar.gz" \
+  > "SettleBell-${version}-source.tar.gz.sha256"
 ```
 
 Extract that archive into a temporary directory, rerun the supported verifier,
@@ -83,16 +87,16 @@ tag_commit="$(git rev-parse "v${version}^{}")"
 test "$tag_commit" = "$candidate_commit"
 git archive \
   --format=tar.gz \
-  --prefix="PiPing-${version}/" \
-  --output="PiPing-${version}-source.from-tag.tar.gz" \
+  --prefix="SettleBell-${version}/" \
+  --output="SettleBell-${version}-source.from-tag.tar.gz" \
   "$tag_commit"
-cmp "PiPing-${version}-source.tar.gz" \
-  "PiPing-${version}-source.from-tag.tar.gz"
-rm "PiPing-${version}-source.from-tag.tar.gz"
+cmp "SettleBell-${version}-source.tar.gz" \
+  "SettleBell-${version}-source.from-tag.tar.gz"
+rm "SettleBell-${version}-source.from-tag.tar.gz"
 ```
 
 Publish the audited source archive, checksum, release notes, and no application
-binary for version 0.1.0.
+binary for version `0.2.0` only after its independent publication approvals.
 
 ## Publication safety
 
@@ -101,4 +105,7 @@ binary for version 0.1.0.
 - Never publish an existing `.build/`, `dist/`, Xcode archive, or backup.
 - Never publish Apple Development-signed software as an official binary.
 - Never include private configuration values in logs or release notes.
+- Never rewrite PiPing `v0.1.0` or remove its historical provenance.
+- Keep package identity, repository rename, domains/DNS, App Store records,
+  promotion, and binary distribution as separate approval gates.
 - If any credential entered Git history, rotate it before repairing history.

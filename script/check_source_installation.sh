@@ -2,24 +2,24 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CANONICAL_APP="/Applications/PiPing.app"
-CANONICAL_EXECUTABLE="$CANONICAL_APP/Contents/MacOS/PiPing"
+CANONICAL_APP="/Applications/SettleBell.app"
+CANONICAL_EXECUTABLE="$CANONICAL_APP/Contents/MacOS/SettleBell"
 PLIST="$CANONICAL_APP/Contents/Info.plist"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
 "$ROOT_DIR/script/validate_source_local_app.sh" "$CANONICAL_APP"
 
-PIDS="$(pgrep -x PiPing || true)"
+PIDS="$(pgrep -x SettleBell || true)"
 PID_COUNT="$(printf '%s\n' "$PIDS" | awk 'NF { count += 1 } END { print count + 0 }')"
 if [[ "$PID_COUNT" -ne 1 ]]; then
-  echo "Expected one PiPing process; found $PID_COUNT" >&2
+  echo "Expected one SettleBell process; found $PID_COUNT" >&2
   exit 1
 fi
 while IFS= read -r pid; do
   [[ -n "$pid" ]] || continue
   COMMAND="$(ps -p "$pid" -o command=)"
   if [[ "$COMMAND" != "$CANONICAL_EXECUTABLE" ]]; then
-    echo "PiPing is running from a noncanonical path." >&2
+    echo "SettleBell is running from a noncanonical path." >&2
     exit 1
   fi
 done <<< "$PIDS"
@@ -27,10 +27,10 @@ done <<< "$PIDS"
 BUNDLE_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST")"
 MARKETING_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$PLIST")"
 BUILD_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$PLIST")"
-LS_DUMP="$(mktemp "${TMPDIR:-/tmp}/piping-source-ls.XXXXXX")"
+LS_DUMP="$(mktemp "${TMPDIR:-/tmp}/settlebell-source-ls.XXXXXX")"
 trap 'rm -f "$LS_DUMP"' EXIT
 "$LSREGISTER" -dump >"$LS_DUMP" 2>/dev/null
-MATCHES="$(mktemp "${TMPDIR:-/tmp}/piping-source-ls-matches.XXXXXX")"
+MATCHES="$(mktemp "${TMPDIR:-/tmp}/settlebell-source-ls-matches.XXXXXX")"
 trap 'rm -f "$LS_DUMP" "$MATCHES"' EXIT
 awk -v expected="$BUNDLE_IDENTIFIER" '
   /^-+$/ {
@@ -63,6 +63,6 @@ if [[ "$MATCH_COUNT" -ne 1 || "$MATCH_PATH" != "$CANONICAL_APP" ]]; then
   exit 1
 fi
 
-echo "Source-local PiPing installation is valid:"
+echo "Source-local SettleBell installation is valid:"
 echo "  $MARKETING_VERSION ($BUILD_VERSION), $BUNDLE_IDENTIFIER"
 echo "  one ad-hoc app/helper, one process, one LaunchServices path"

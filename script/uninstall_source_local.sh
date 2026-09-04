@@ -3,10 +3,10 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-}"
-CANONICAL_APP="/Applications/PiPing.app"
-CANONICAL_EXECUTABLE="$CANONICAL_APP/Contents/MacOS/PiPing"
-PUBLIC_BUNDLE_IDENTIFIER="org.example.PiPing.macOS"
-RUNTIME_DIR="$HOME/.piping"
+CANONICAL_APP="/Applications/SettleBell.app"
+CANONICAL_EXECUTABLE="$CANONICAL_APP/Contents/MacOS/SettleBell"
+PUBLIC_BUNDLE_IDENTIFIER="org.example.SettleBell.macOS"
+RUNTIME_DIR="$HOME/.settlebell"
 FIFO="$RUNTIME_DIR/events.fifo"
 SETTINGS="$HOME/.pi/agent/settings.json"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -20,7 +20,15 @@ if [[ ! -w /Applications ]]; then
   exit 1
 fi
 stale_transaction="$(find /Applications -maxdepth 1 \
-  \( -name '.PiPing-source-transaction.*' \
+  \( -name '.SettleBell-source-transaction.*' \
+     -o -name '.SettleBell-source-uninstall.*' \
+     -o -name '.SettleBell-signed-transaction.*' \
+     -o -name '.SettleBell-piping-retirement.*' \
+     -o -name '.SettleBell-source-installing-*.app' \
+     -o -name '.SettleBell-source-previous-*.app' \
+     -o -name '.SettleBell-installing-*.app' \
+     -o -name '.SettleBell-previous-*.app' \
+     -o -name '.PiPing-source-transaction.*' \
      -o -name '.PiPing-source-uninstall.*' \
      -o -name '.PiPing-signed-transaction.*' \
      -o -name '.PiPing-source-installing-*.app' \
@@ -28,7 +36,7 @@ stale_transaction="$(find /Applications -maxdepth 1 \
      -o -name '.PiPing-installing-*.app' \
      -o -name '.PiPing-previous-*.app' \) -print -quit)"
 if [[ -n "$stale_transaction" ]]; then
-  echo "A prior PiPing transaction requires manual recovery before continuing." >&2
+  echo "A prior PiPing/SettleBell transaction requires manual recovery before continuing." >&2
   exit 1
 fi
 if [[ -L "$CANONICAL_APP" ]]; then
@@ -114,7 +122,7 @@ NODE
 
 launchservices_paths() {
   local dump
-  dump="$(mktemp "${TMPDIR:-/tmp}/piping-source-uninstall-ls.XXXXXX")"
+  dump="$(mktemp "${TMPDIR:-/tmp}/settlebell-source-uninstall-ls.XXXXXX")"
   "$LSREGISTER" -dump >"$dump" 2>/dev/null
   awk -v expected="$PUBLIC_BUNDLE_IDENTIFIER" '
     /^-+$/ {
@@ -134,34 +142,34 @@ launchservices_paths() {
   rm -f "$dump"
 }
 
-PIDS="$(pgrep -x PiPing || true)"
+PIDS="$(pgrep -x SettleBell || true)"
 PID_COUNT="$(printf '%s\n' "$PIDS" | awk 'NF {count++} END {print count+0}')"
 if [[ "$PID_COUNT" -gt 1 ]]; then
-  echo "Refusing to uninstall while multiple PiPing processes exist." >&2
+  echo "Refusing to uninstall while multiple SettleBell processes exist." >&2
   exit 1
 fi
 if [[ "$PID_COUNT" -eq 1 ]] \
    && [[ "$(ps -p "$PIDS" -o command=)" != "$CANONICAL_EXECUTABLE" ]]; then
-  echo "Refusing to stop a noncanonical PiPing process." >&2
+  echo "Refusing to stop a noncanonical SettleBell process." >&2
   exit 1
 fi
 if [[ -L "$RUNTIME_DIR" || -L "$FIFO" ]]; then
-  echo "Refusing to uninstall while the PiPing runtime contains a symbolic link." >&2
+  echo "Refusing to uninstall while the SettleBell runtime contains a symbolic link." >&2
   exit 1
 fi
 runtime_removable=false
 if runtime_is_removable; then runtime_removable=true; fi
 local_package="$(local_package_present)"
 current_ls_paths="$(launchservices_paths)"
-if printf '%s\n' "$current_ls_paths" | awk 'NF && $0 != "/Applications/PiPing.app" {bad=1} END {exit bad ? 0 : 1}'; then
-  echo "Refusing to uninstall while a noncanonical PiPing LaunchServices path exists." >&2
+if printf '%s\n' "$current_ls_paths" | awk 'NF && $0 != "/Applications/SettleBell.app" {bad=1} END {exit bad ? 0 : 1}'; then
+  echo "Refusing to uninstall while a noncanonical SettleBell LaunchServices path exists." >&2
   exit 1
 fi
 
 if [[ "$MODE" == "--check" ]]; then
   echo "Source-local uninstall preflight passed."
   if [[ "$runtime_removable" == true ]]; then
-    echo "The protected PiPing runtime can be removed safely."
+    echo "The protected SettleBell runtime can be removed safely."
   else
     echo "The runtime contains unexpected state and would be preserved." >&2
   fi
@@ -173,10 +181,10 @@ if [[ "$MODE" == "--check" ]]; then
   exit 0
 fi
 
-TRANSACTION_ROOT="$(mktemp -d /Applications/.PiPing-source-uninstall.XXXXXX)"
+TRANSACTION_ROOT="$(mktemp -d /Applications/.SettleBell-source-uninstall.XXXXXX)"
 chmod 700 "$TRANSACTION_ROOT"
 QUARANTINED_APP="$TRANSACTION_ROOT/Previous.payload"
-BACKUP_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/piping-source-uninstall-backup.XXXXXX")"
+BACKUP_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/settlebell-source-uninstall-backup.XXXXXX")"
 chmod 700 "$BACKUP_STAGE"
 quarantined_identity=""
 package_removed=false
@@ -193,7 +201,7 @@ cleanup() {
   local preserve_transaction=false restored_package_state=""
   [[ -z "$backup_temp" ]] || rm -f "$backup_temp"
   "$LSREGISTER" -u "$QUARANTINED_APP" 2>/dev/null || true
-  "$LSREGISTER" -u "$BACKUP_STAGE/PiPing.app" 2>/dev/null || true
+  "$LSREGISTER" -u "$BACKUP_STAGE/SettleBell.app" 2>/dev/null || true
   rm -rf "$BACKUP_STAGE"
   if [[ "$completed" == false && -d "$QUARANTINED_APP" ]]; then
     if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then
@@ -251,10 +259,10 @@ if [[ "$PID_COUNT" -eq 1 ]]; then
   kill "$PIDS" 2>/dev/null || true
   for _ in {1..20}; do
     sleep 0.25
-    if ! pgrep -x PiPing >/dev/null 2>&1; then break; fi
+    if ! pgrep -x SettleBell >/dev/null 2>&1; then break; fi
   done
-  if pgrep -x PiPing >/dev/null 2>&1; then
-    echo "PiPing process did not exit within five seconds." >&2
+  if pgrep -x SettleBell >/dev/null 2>&1; then
+    echo "SettleBell process did not exit within five seconds." >&2
     exit 1
   fi
 fi
@@ -263,9 +271,9 @@ fi
 
 BACKUP_DIR="$ROOT_DIR/.build/source-uninstall-backups"
 mkdir -p "$BACKUP_DIR"
-backup="$BACKUP_DIR/PiPing-removed-$(date +%Y%m%dT%H%M%S)-$$.app.zip"
-backup_temp="$BACKUP_DIR/.PiPing-removed-$$.tmp.zip"
-BACKUP_APP="$BACKUP_STAGE/PiPing.app"
+backup="$BACKUP_DIR/SettleBell-removed-$(date +%Y%m%dT%H%M%S)-$$.app.zip"
+backup_temp="$BACKUP_DIR/.SettleBell-removed-$$.tmp.zip"
+BACKUP_APP="$BACKUP_STAGE/SettleBell.app"
 ditto "$QUARANTINED_APP" "$BACKUP_APP"
 "$ROOT_DIR/script/validate_source_local_app.sh" "$BACKUP_APP" >/dev/null
 ditto -c -k --keepParent "$BACKUP_APP" "$backup_temp"
@@ -279,7 +287,7 @@ while IFS= read -r archived_app; do
   [[ "$archived_app" != "$backup" ]] || continue
   retained=$((retained + 1))
   if [[ "$retained" -gt 3 ]]; then rm -f "$archived_app"; fi
-done < <(find "$BACKUP_DIR" -type f -name 'PiPing-removed-*.app.zip' -print | sort -r)
+done < <(find "$BACKUP_DIR" -type f -name 'SettleBell-removed-*.app.zip' -print | sort -r)
 
 if [[ "$local_package" == true ]]; then
   (cd "$ROOT_DIR" && PATH="$(dirname "$PI_COMMAND"):$PATH" "$PI_COMMAND" remove .)
@@ -292,7 +300,7 @@ fi
 
 if [[ "$runtime_removable" == true ]]; then
   if ! runtime_is_removable; then
-    echo "The PiPing runtime changed after preflight; it was not removed." >&2
+    echo "The SettleBell runtime changed after preflight; it was not removed." >&2
     exit 1
   fi
   if [[ -p "$FIFO" ]]; then rm "$FIFO"; fi
@@ -301,16 +309,16 @@ elif [[ -e "$RUNTIME_DIR" ]]; then
   echo "Preserved the runtime because it contains unexpected state." >&2
 fi
 
-if pgrep -x PiPing >/dev/null 2>&1; then
-  echo "A PiPing process remains after uninstall." >&2
+if pgrep -x SettleBell >/dev/null 2>&1; then
+  echo "A SettleBell process remains after uninstall." >&2
   exit 1
 fi
 if [[ -e "$CANONICAL_APP" || -L "$CANONICAL_APP" ]]; then
-  echo "An unexpected canonical PiPing path appeared during uninstall." >&2
+  echo "An unexpected canonical SettleBell path appeared during uninstall." >&2
   exit 1
 fi
 if [[ -n "$(launchservices_paths)" ]]; then
-  echo "A PiPing LaunchServices path remains after unregistering the app." >&2
+  echo "A SettleBell LaunchServices path remains after unregistering the app." >&2
   exit 1
 fi
 if [[ "$package_removed" == true && "$(local_package_present)" != false ]]; then
@@ -330,9 +338,9 @@ completed=true
 defaults delete "$PUBLIC_BUNDLE_IDENTIFIER" >/dev/null 2>&1 || true
 rm -rf "$QUARANTINED_APP"
 
-echo "Removed the source-local PiPing app and safe app-owned local state."
+echo "Removed the source-local SettleBell app and safe app-owned local state."
 echo "Compressed recovery copy: $backup"
 echo "macOS notification authorization/history remains under Apple control."
 if [[ "$local_package" == false ]]; then
-  echo "If PiPing was installed from Git or another source, remove that exact source with pi remove."
+  echo "If SettleBell was installed from Git or another source, remove that exact source with pi remove."
 fi

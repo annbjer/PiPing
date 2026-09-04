@@ -21,7 +21,10 @@ for required_script in \
   build_source_local.sh \
   check_source_installation.sh \
   install_source_local.sh \
+  retire_legacy_piping_source_local.sh \
   uninstall_source_local.sh \
+  validate_legacy_piping_source_local_app.sh \
+  validate_legacy_piping_source_local_archive.sh \
   validate_source_local_app.sh \
   validate_source_local_archive.sh \
   validate_signed_local_archive.sh; do
@@ -36,14 +39,14 @@ node --experimental-strip-types --test "$ROOT_DIR"/Tests/PiHookTests/*.test.mjs
 "$ROOT_DIR/script/build_and_run.sh" --build-only
 
 xcodebuild \
-  -project "$ROOT_DIR/PiPing.xcodeproj" \
-  -scheme PiPing-iOS \
+  -project "$ROOT_DIR/SettleBell.xcodeproj" \
+  -scheme SettleBell-iOS \
   -configuration Release \
   -destination "generic/platform=iOS Simulator" \
   -derivedDataPath "$IOS_DERIVED_DATA" \
-  PRODUCT_BUNDLE_IDENTIFIER=org.example.PiPing.iOS \
-  PIPING_CLOUDKIT_CONTAINER_IDENTIFIER=iCloud.org.example.PiPing \
-  PIPING_CLOUDKIT_ACTIVATION=NO \
+  PRODUCT_BUNDLE_IDENTIFIER=org.example.SettleBell.iOS \
+  SETTLEBELL_CLOUDKIT_CONTAINER_IDENTIFIER=iCloud.org.example.SettleBell \
+  SETTLEBELL_CLOUDKIT_ACTIVATION=NO \
   DEVELOPMENT_TEAM= \
   CODE_SIGN_ENTITLEMENTS= \
   PROVISIONING_PROFILE_SPECIFIER= \
@@ -56,7 +59,7 @@ swift build \
   --package-path "$ROOT_DIR" \
   --scratch-path "$ROOT_DIR/.build/ios-cross" \
   --configuration release \
-  --product PiPingIOS \
+  --product SettleBellIOS \
   --triple arm64-apple-ios26.0-simulator \
   --sdk "$SIMULATOR_SDK"
 

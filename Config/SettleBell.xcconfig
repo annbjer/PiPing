@@ -1,0 +1,14 @@
+// Public-safe defaults. Ignored private configuration is loaded only by the
+// dedicated signed-local build command; ordinary/source-local builds never
+// read Local.xcconfig.
+
+SETTLEBELL_DEVELOPMENT_TEAM =
+SETTLEBELL_MACOS_BUNDLE_IDENTIFIER = org.example.SettleBell.macOS
+SETTLEBELL_IOS_BUNDLE_IDENTIFIER = org.example.SettleBell.iOS
+SETTLEBELL_CLOUDKIT_CONTAINER_IDENTIFIER = iCloud.org.example.SettleBell
+SETTLEBELL_CLOUDKIT_ACTIVATION = NO
+
+// Standard Apple bundle versioning. Increment CURRENT_PROJECT_VERSION for
+// every installable build so system services can invalidate cached metadata.
+MARKETING_VERSION = 0.2.0
+CURRENT_PROJECT_VERSION = 16

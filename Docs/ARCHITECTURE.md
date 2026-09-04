@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
     Pi[Pi 0.84.3 / 0.84.4 tested] -->|before_agent_start / agent_settled only| Hook[Minimal Pi hook]
-    Hook -->|fixed signal plus ephemeral UUID| Helper[Native PiPingSignal]
+    Hook -->|fixed signal plus ephemeral UUID| Helper[Native SettleBellSignal]
     Helper -->|0600 FIFO in 0700 directory| Mac[macOS companion]
     Mac -->|fixed title and body| Local[macOS UserNotifications]
     Mac -->|private config plus explicit enable| Cloud[Private CloudKit database]
@@ -31,11 +31,11 @@ unread-ID set at 256. Runs under the selected threshold are ignored.
 
 | Component | Responsibility | Network behavior |
 | --- | --- | --- |
-| `PiPingCore` | Fixed copy, two-signal/opaque-token protocol, bounded stream decoder, multi-session duration gate | None |
-| `PiPingSignal` | Validate and atomically write one fixed signal plus UUID | None |
-| `PiPingMac` | Listen locally, apply threshold, present Mac status and notifications | Cloud publishing requires valid private build configuration and explicit user enablement |
-| `PiPingCloudKit` | Build one allowlisted rolling record and a fixed visual subscription | Explicit private container only |
-| `PiPingIOS` | Check iCloud, request notifications, confirm APNs, and install the subscription | User-initiated setup only |
+| `SettleBellCore` | Fixed copy, two-signal/opaque-token protocol, bounded stream decoder, multi-session duration gate | None |
+| `SettleBellSignal` | Validate and atomically write one fixed signal plus UUID | None |
+| `SettleBellMac` | Listen locally, apply threshold, present Mac status and notifications | Cloud publishing requires valid private build configuration and explicit user enablement |
+| `SettleBellCloudKit` | Build one allowlisted rolling record and a fixed visual subscription | Explicit private container only |
+| `SettleBellIOS` | Check iCloud, request notifications, confirm APNs, and install the subscription | User-initiated setup only |
 | Pi hook | Translate two documented Pi lifecycle events and the current cycle's random UUID to native helper calls | None |
 
 The macOS app delegate owns one long-lived `MacAppStore` and starts its FIFO
@@ -51,8 +51,10 @@ validation/install/uninstall scripts refuse foreign canonical apps, preserve
 bounded compressed recovery, and never enable CloudKit or mutate Apple-managed
 notification databases. An ignored private-local build override may enable
 CloudKit only through the separate Apple Development-signed path. The Mac still
-requires a persisted user enable action. Phase 2 controls remain hard-coded to
-`false`.
+requires a persisted user enable action. PiPing and SettleBell otherwise remain
+separate bundle identities, canonical app/helper paths, FIFO runtimes,
+notification permissions, preference domains, and unread/backlog state. Phase 2
+controls remain hard-coded to `false`.
 
 ## Apple delivery behavior
 
@@ -66,17 +68,21 @@ content.
 The Mac serializes attention delivery so rapid completions cannot race updates
 to the one rolling CloudKit record. It reports remote delivery as sent only
 after CloudKit accepts that event's write. This confirms the private-database
-write, not presentation on every device. Normal iPhone notification routing
+write, not presentation on every device. The initial SettleBell migration keeps
+PiPing's deployed v1 record type `PiPingAttention`, rolling record name
+`piping.attention.current`, and subscription ID `piping.attention.v1`. These are
+internal compatibility identifiers; renaming them requires a separately
+reviewed CloudKit reset or migration. Normal iPhone notification routing
 determines whether the iPhone or paired Watch alerts. Siri Announce
-Notifications remains an optional system setting; PiPing does not implement
+Notifications remains an optional system setting; SettleBell does not implement
 speech or voice commands.
 
 The menu-bar attention dot tracks the UUIDs of locally generated notification
-requests in memory. PiPing registers one fixed, actionless notification category
+requests in memory. SettleBell registers one fixed, actionless notification category
 with Apple's public `.customDismissAction` option. Clicking or dismissing a
-PiPing notification acknowledges that exact request through the system delegate;
-opening the PiPing menu acknowledges all. The category presents no action button
-and no command channel. PiPing does not monitor terminal focus or window titles
+SettleBell notification acknowledges that exact request through the system delegate;
+opening the SettleBell menu acknowledges all. The category presents no action button
+and no command channel. SettleBell does not monitor terminal focus or window titles
 and cannot infer the originating terminal without expanding the privacy boundary.
 
 The current private development build has verified the complete path with both

@@ -1,10 +1,10 @@
-# Contributing to PiPing
+# Contributing to SettleBell
 
-Thank you for helping improve PiPing.
+Thank you for helping improve SettleBell.
 
 ## Before opening a change
 
-PiPing Phase 1 is intentionally notification-only and content-free. Read
+SettleBell Phase 1 is intentionally notification-only and content-free. Read
 `SECURITY.md`, `Docs/PRIVACY.md`, `Docs/ARCHITECTURE.md`, and
 `Docs/THREAT_MODEL.md` before changing a trust boundary.
 
@@ -37,7 +37,14 @@ contact CloudKit, or send a notification.
 
 ## Change rules
 
-- Keep `Assets/Brand/AppIcon/PiPing.icon` as the sole official icon source.
+- Keep `Assets/Brand/AppIcon/PiPing.icon` at its historical path and unchanged
+  unless a separately reviewed artwork change is explicitly approved; it is the
+  sole official icon source.
+- Preserve PiPing `v0.1.0` as immutable history and keep rename migration side by
+  side rather than overwriting its app, helper, runtime, permissions, or state.
+- Keep deployed CloudKit v1 identifiers `PiPingAttention`,
+  `piping.attention.current`, and `piping.attention.v1` until a separate reset or
+  migration is approved.
 - Keep the Pi protocol restricted to literal `start` and `settled` signals.
 - Keep notification title and body fixed in source.
 - Do not add a reply, approval, command, deep-link, or remote-control surface to

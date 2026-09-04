@@ -1,14 +1,14 @@
-# PiPing Phase 1 threat model
+# SettleBell Phase 1 threat model
 
 ## Overview
 
-This document models both PiPing's public-safe default and its opt-in signed
+This document models both SettleBell's public-safe default and its opt-in signed
 private-local configuration. The signed Mac lifecycle-to-notification path and
 the signed iPhone/paired-Watch delivery path have been verified with a genuine
 explicit Pi extension run. CloudKit defaults off in tracked configuration and
 additionally requires valid private-local configuration plus an explicit Mac
 enable action. Phase 2 controls remain disabled in source
-(`Sources/PiPingCore/FeatureGates.swift:3-26`).
+(`Sources/SettleBellCore/FeatureGates.swift:3-26`).
 
 Phase 1 accepts only the lifecycle facts `start` and `settled` paired with an
 extension-generated random UUID rotated after each settlement attempt, applies
@@ -16,8 +16,8 @@ a configurable local threshold, and
 emits fixed notification copy. The UUID is not Pi's session ID and never leaves
 the local Mac lifecycle path. Phase 1 intentionally has no reply or control
 channel. The fixed copy is defined in
-`Sources/PiPingCore/AttentionContent.swift`; protocol validation and independent
-bounded state transitions are in `Sources/PiPingCore/LifecycleGate.swift`.
+`Sources/SettleBellCore/AttentionContent.swift`; protocol validation and independent
+bounded state transitions are in `Sources/SettleBellCore/LifecycleGate.swift`.
 
 The primary security objectives are:
 
@@ -27,7 +27,7 @@ The primary security objectives are:
 - preserve the one-way boundary and prevent accidental control surfaces;
 - prevent another local user or a filesystem substitution from supplying IPC;
 - make notification integrity and noise resistance adequate for an attention
-  hint, without treating PiPing as an authorization or safety mechanism; and
+  hint, without treating SettleBell as an authorization or safety mechanism; and
 - keep the repository public-safe before any commit or publication.
 
 ## Threat model, trust boundaries, and assumptions
@@ -49,13 +49,13 @@ The primary security objectives are:
 
 | Component or resource | Current role | Current exposure |
 | --- | --- | --- |
-| Pi TypeScript hook | Maps two documented lifecycle events to fixed signals plus one random UUID per active lifecycle cycle | Local Pi process only; no event/context fields read (`Integration/Pi/piping.ts`) |
-| Native `PiPingSignal` helper | Validates a fixed signal and canonical UUID, then writes one bounded line | Bundled only in the canonical installed Mac app; no network (`Sources/PiPingSignal/main.swift`) |
-| `$HOME/.piping/events.fifo` | Local one-way IPC | `0600` FIFO inside a validated `0700` directory (`Sources/PiPingCore/LocalIPC.swift:30-160`) |
-| Lifecycle gate | Tracks up to 256 opaque tokens independently; replaces only same-token starts and suppresses missing, expired, or short runs | In-memory macOS process state only (`Sources/PiPingCore/LifecycleGate.swift`) |
-| macOS UserNotifications | Presents fixed copy with normal system sound | Permission checked; local notification only (`Sources/PiPingMac/Services/SystemLocalNotificationService.swift:37-52`) |
-| Private CloudKit database | Mac-to-iPhone attention transport | Publishing requires valid private-local configuration and explicit user enablement (`Sources/PiPingMac/Stores/MacAppStore.swift:77-105`, `180-190`) |
-| CloudKit query subscription | Fixed iPhone notification | User-initiated setup; record creation and update, fixed copy/sound, no desired fields (`Sources/PiPingCloudKit/CloudKitSchema.swift:18-30`) |
+| Pi TypeScript hook | Maps two documented lifecycle events to fixed signals plus one random UUID per active lifecycle cycle | Local Pi process only; no event/context fields read (`Integration/Pi/settlebell.ts`) |
+| Native `SettleBellSignal` helper | Validates a fixed signal and canonical UUID, then writes one bounded line | Bundled only in the canonical installed Mac app; no network (`Sources/SettleBellSignal/main.swift`) |
+| `$HOME/.settlebell/events.fifo` | Local one-way IPC | `0600` FIFO inside a validated `0700` directory (`Sources/SettleBellCore/LocalIPC.swift:30-160`) |
+| Lifecycle gate | Tracks up to 256 opaque tokens independently; replaces only same-token starts and suppresses missing, expired, or short runs | In-memory macOS process state only (`Sources/SettleBellCore/LifecycleGate.swift`) |
+| macOS UserNotifications | Presents fixed copy with normal system sound | Permission checked; local notification only (`Sources/SettleBellMac/Services/SystemLocalNotificationService.swift:37-52`) |
+| Private CloudKit database | Mac-to-iPhone attention transport | Publishing requires valid private-local configuration and explicit user enablement (`Sources/SettleBellMac/Stores/MacAppStore.swift:77-105`, `180-190`) |
+| CloudKit query subscription | Fixed iPhone notification | User-initiated setup; record creation and update, fixed copy/sound, no desired fields (`Sources/SettleBellCloudKit/CloudKitSchema.swift:18-30`) |
 | Apple Watch | Normal iPhone notification mirroring | No watchOS target, payload, action, or direct transport |
 | `.build/` and `dist/` | Local signed, unsigned, ad-hoc, and compressed rollback outputs | Ignored and bounded where retained; never release source (`.gitignore:1-5`) |
 
@@ -64,11 +64,11 @@ The primary security objectives are:
 1. **Pi runtime to extension hook.** Prompt and message objects are untrusted and
    may contain secrets. The handlers ignore all event/context fields and pass
    only literal signals plus a random UUID created for the active lifecycle
-   cycle and cleared before its settlement helper call (`Integration/Pi/piping.ts`).
+   cycle and cleared before its settlement helper call (`Integration/Pi/settlebell.ts`).
    Tests inject synthetic private fields and
-   verify no content escapes (`Tests/PiHookTests/piping.test.mjs`).
+   verify no content escapes (`Tests/PiHookTests/settlebell.test.mjs`).
 2. **Hook to native helper.** The hook uses `execFile` with the fixed canonical
-   path `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`, two typed
+   path `/Applications/SettleBell.app/Contents/Helpers/SettleBellSignal`, two typed
    arguments, no shell, a one-second child timeout, and an independent 1.25-second
    Promise deadline. Failure is reported generically without blocking Pi, and
    there is no fallback to a development or backup executable.
@@ -76,25 +76,25 @@ The primary security objectives are:
    permissions, reject extended ACLs, and open relative to a validated directory
    descriptor with `O_NOFOLLOW`. Each write is below `PIPE_BUF`; the listener's
    bounded streaming decoder preserves valid lines across combined or split
-   reads and discards malformed or oversized lines (`Sources/PiPingCore/LocalIPC.swift`,
-   `Sources/PiPingCore/LocalSignalStreamDecoder.swift`).
+   reads and discards malformed or oversized lines (`Sources/SettleBellCore/LocalIPC.swift`,
+   `Sources/SettleBellCore/LocalSignalStreamDecoder.swift`).
 4. **Companion to local notification center.** Notification permission is an
    explicit user action, and delivery checks current authorization before using
    the fixed title, body, and default sound. One fixed category has no actions
    and uses Apple's public `.customDismissAction` solely so clicks and dismissals
    acknowledge the exact local request UUID. No notification content is copied
-   or persisted (`Sources/PiPingMac/Services/SystemLocalNotificationService.swift`).
+   or persisted (`Sources/SettleBellMac/Services/SystemLocalNotificationService.swift`).
 5. **Companion to private CloudKit.** The adapter selects
    `privateCloudDatabase` and saves one allowlisted rolling record
-   (`Sources/PiPingCloudKit/CloudKitAttentionPublisher.swift:12-32`). The
+   (`Sources/SettleBellCloudKit/CloudKitAttentionPublisher.swift:12-32`). The
    boundary is reachable only in a correctly entitled private build with a
    non-placeholder explicit container and persisted user approval. The Mac
    reports sent only after CloudKit accepts the record write.
 6. **CloudKit to iPhone and paired Watch.** The user-installed subscription requests a
    visual notification with fixed copy, normal sound, and no record fields
-   (`Sources/PiPingCloudKit/CloudKitSchema.swift:18-30`). Apple controls delivery,
+   (`Sources/SettleBellCloudKit/CloudKitSchema.swift:18-30`). Apple controls delivery,
    lock-screen presentation, Siri Announce Notifications, and Watch mirroring.
-   PiPing makes no background-latency or routing guarantee.
+   SettleBell makes no background-latency or routing guarantee.
 7. **Trusted source to source-local installation.** The Mac-only builder forces
    the public bundle/container placeholders and disabled CloudKit activation,
    then applies only ad-hoc hardened-runtime signatures. The guarded installer
@@ -105,7 +105,15 @@ The primary security objectives are:
    trust through a pinned commit or verified source checksum before building.
    Install and uninstall require separate explicit flags, use no `sudo`, and
    retain at most three validated compressed recovery archives.
-8. **Checkout to public release.** Signing material, user Xcode state, local
+8. **PiPing to SettleBell migration.** The identities coexist while SettleBell
+   is installed, receives fresh Apple-managed authorization, and passes a genuine
+   notification test. Only the exact legacy public-development PiPing app can be
+   retired by the source-local migration tool. Retirement pins rollback state
+   before quarantine, validates a bounded recovery archive, preserves legacy
+   preferences and Apple notification history, and never reads Pi package
+   settings or private configuration. Signed/private PiPing retirement remains a
+   separate review boundary (`Docs/MIGRATING_FROM_PIPING.md`).
+9. **Checkout to public release.** Signing material, user Xcode state, local
    configuration, runtime files, environment files, logs, and build products are
    ignored (`.gitignore:7-26`). Ignoring is not proof of absence; the required
    history and exact archive audit is specified in
@@ -120,7 +128,7 @@ The primary security objectives are:
   enter the `0700` directory or write the `0600` FIFO.
 - A malicious process already running as the same macOS user can attempt to
   write allowed signals, race runtime objects, stop the app, or modify the
-  checkout. PiPing does not claim to isolate mutually hostile same-user code.
+  checkout. SettleBell does not claim to isolate mutually hostile same-user code.
 - A network attacker cannot address the FIFO. CloudKit transport relies on
   Apple platform security, the signed app's entitlements, and the user's iCloud
   account.
@@ -140,16 +148,17 @@ vulnerabilities.
 | --- | --- | --- | --- | --- |
 | TM-01 | Pi task text tries to become a notification body or command. | Privacy leak or control confusion | Hook ignores event fields; content is fixed in Swift; schema has one timestamp field. | A malicious source change could widen the boundary. Keep tests and review mandatory. |
 | TM-02 | Another local user pre-creates a file or symlink at the IPC path. | Signal interception, spoofing, or unsafe file access | Runtime directory is forced to `0700`; both ends open with `O_NOFOLLOW` and validate the pinned descriptors with `fstat`, requiring same-owner FIFO objects with no group/other bits or extended ACL. | Reassess sandbox/container paths before distribution. |
-| TM-03 | A same-user process writes repeated valid signal/UUID pairs. | Nuisance notification spam, memory growth, or misleading attention state | Exact signal/UUID grammar, threshold gate, 64-event mailbox, 256-token gate, seven-day expiry, 64-delivery backlog, 256 unread IDs, same-token latest-start replacement, no actions or authority. Legitimate overlapping tokens remain independent. | A hostile same-user process can still cause bounded denial of service or nuisance alerts; PiPing does not isolate mutually hostile same-user code. |
+| TM-03 | A same-user process writes repeated valid signal/UUID pairs. | Nuisance notification spam, memory growth, or misleading attention state | Exact signal/UUID grammar, threshold gate, 64-event mailbox, 256-token gate, seven-day expiry, 64-delivery backlog, 256 unread IDs, same-token latest-start replacement, no actions or authority. Legitimate overlapping tokens remain independent. | A hostile same-user process can still cause bounded denial of service or nuisance alerts; SettleBell does not isolate mutually hostile same-user code. |
 | TM-04 | Combined, split, oversized, or malformed local input targets the parser. | Lost events, crash, truncation, or bypass | A stateful decoder reassembles split lines, emits multiple combined lines, caps each line at 64 bytes, discards oversized input through the next newline, and accepts only fixed signals plus a canonical UUID. Unit tests cover each boundary. | Same-user writers can still consume bounded parser/mailbox capacity. Keep decoder and flood tests mandatory. |
-| TM-05 | CloudKit is configured with the wrong database, fields, or subscription payload. | Cross-user exposure or content leakage | Adapter hard-codes the private database; the record has one fixed name and only `occurredAt`; the subscription requests no record keys (`Tests/PiPingCloudKitTests/CloudKitSchemaTests.swift:9-36`). | Signed Mac and iOS entitlements and the end-to-end private delivery path were inspected and verified. Re-inspect exact release artifacts after material changes. |
+| TM-05 | CloudKit is configured with the wrong database, fields, or subscription payload. | Cross-user exposure or content leakage | Adapter hard-codes the private database; the record has one fixed name and only `occurredAt`; the subscription requests no record keys (`Tests/SettleBellCloudKitTests/CloudKitSchemaTests.swift:9-36`). | Signed Mac and iOS entitlements and the end-to-end private delivery path were inspected and verified. Re-inspect exact release artifacts after material changes. |
 | TM-06 | A notification reveals sensitive content on a locked screen or through Siri/AirPods. | Shoulder-surfing or audible disclosure | Copy is generic and contains no node, project, session, prompt, output, or file data. | Users still control notification previews and Announce settings; setup docs must preserve that choice. |
 | TM-07 | Signing keys, Team IDs, device IDs, local paths, or CloudKit identifiers enter Git. | Credential compromise or irreversible public disclosure | Signing credentials remain in local Keychain/Xcode state; account-specific configuration, provisioning data, and build outputs are ignored. Source contains only public placeholders and entitlement templates. | `.gitignore` cannot repair history. Rotate credentials and clean/restart history if contamination ever occurs. |
 | TM-08 | Future yes/no/stop work reuses the notification pipeline as a hidden return channel. | Unauthorized remote action or command confusion | Phase 2 gate is false; the sole category is actionless and reports only local click/dismiss acknowledgement; no command action, deep link, App Intent, or watch target exists. | Treat Phase 2 as a separate protocol, threat model, authorization design, and approval gate. |
-| TM-09 | CloudKit, notifications, the app, or the FIFO is unavailable. | Missed attention alert | Failures are generic and content-free; the transport has no control authority. | Delivery is best effort. Do not use PiPing for safety-critical completion guarantees. |
+| TM-09 | CloudKit, notifications, the app, or the FIFO is unavailable. | Missed attention alert | Failures are generic and content-free; the transport has no control authority. | Delivery is best effort. Do not use SettleBell for safety-critical completion guarantees. |
 | TM-10 | Dashboard, presence, Tailscale, Pi session identity, terminal, project, or file features creep into Phase 1. | Broader metadata and network attack surface | The only correlation value is a locally generated random UUID with no Pi-derived metadata; current architecture has no model for those features. | Keep richer identity or navigation features in a separately approved backlog with a new privacy and connectivity review. |
-| TM-11 | A tampered or untrusted ad-hoc archive is installed as PiPing. | Same-user code execution under a familiar name | Build only trusted pinned/checksummed source; archive path and symlink guards; exact public identity/configuration; no profile or entitlements; ad-hoc hardened-runtime validation; foreign canonical apps are never replaced. | Ad-hoc signatures do not authenticate a publisher. A convenient downloadable binary remains blocked on Developer ID signing, notarization, stapling, and binary audit. |
+| TM-11 | A tampered or untrusted ad-hoc archive is installed as SettleBell. | Same-user code execution under a familiar name | Build only trusted pinned/checksummed source; archive path and symlink guards; exact public identity/configuration; no profile or entitlements; ad-hoc hardened-runtime validation; foreign canonical apps are never replaced. | Ad-hoc signatures do not authenticate a publisher. A convenient downloadable binary remains blocked on Developer ID signing, notarization, stapling, and binary audit. |
 | TM-12 | Install or uninstall removes a private/official app, another package, or unrelated runtime data. | Data loss or broken trusted installation | Exact development identity/signature validation, canonical path only, explicit modes, same-source Pi package resolution, strict runtime owner/mode/content checks, bounded compressed recovery, Apple database exclusion, prior-identity pinning and rollback intent before quarantine, candidate-removal intent before promotion, one-step installer commit, signal-routed rollback, and uninstall commit before preference deletion. | Power loss or `SIGKILL` can leave detected transaction residue requiring the documented guarded recovery procedure. |
+| TM-13 | Rename migration overwrites PiPing, silently transfers identity-keyed consent/state, changes deployed CloudKit v1 identifiers, or strands rollback. | Lost service, duplicate delivery, unexpected authorization, or unrecoverable history | Side-by-side app/helper/runtime identities; fresh permissions; immutable PiPing `v0.1.0`; three explicitly preserved CloudKit compatibility identifiers; exact legacy source-local validator; explicit notification-confirmation flag; transaction rollback and at most three validated recovery archives. | Signed/private PiPing retirement and any CloudKit reset require separate procedures and review. Never weaken the source-local validator to cross that boundary. |
 
 ### Defense-in-depth verification for device testing and release
 
@@ -174,7 +183,7 @@ vulnerabilities.
 
 ## Severity calibration
 
-PiPing carries no control authority in Phase 1, so availability and same-user
+SettleBell carries no control authority in Phase 1, so availability and same-user
 spoofing generally have lower impact than content disclosure or a boundary
 expansion. Use these project-specific levels:
 

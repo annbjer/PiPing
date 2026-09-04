@@ -6,11 +6,11 @@ LOCAL_CONFIG="$ROOT_DIR/Config/Local.xcconfig"
 APP="${1:-}"
 
 if [[ -z "$APP" || $# -ne 1 ]]; then
-  echo "usage: $0 path/to/PiPing.app" >&2
+  echo "usage: $0 path/to/SettleBell.app" >&2
   exit 2
 fi
 if [[ ! -d "$APP" || ! -f "$APP/Contents/Info.plist" ]]; then
-  echo "Signed local PiPing app is missing or malformed." >&2
+  echo "Signed local SettleBell app is missing or malformed." >&2
   exit 1
 fi
 if [[ ! -f "$LOCAL_CONFIG" ]]; then
@@ -32,10 +32,10 @@ config_value() {
   ' "$LOCAL_CONFIG"
 }
 
-expected_team="$(config_value PIPING_DEVELOPMENT_TEAM)"
-expected_bundle="$(config_value PIPING_MACOS_BUNDLE_IDENTIFIER)"
-expected_container="$(config_value PIPING_CLOUDKIT_CONTAINER_IDENTIFIER)"
-expected_activation="$(config_value PIPING_CLOUDKIT_ACTIVATION)"
+expected_team="$(config_value SETTLEBELL_DEVELOPMENT_TEAM)"
+expected_bundle="$(config_value SETTLEBELL_MACOS_BUNDLE_IDENTIFIER)"
+expected_container="$(config_value SETTLEBELL_CLOUDKIT_CONTAINER_IDENTIFIER)"
+expected_activation="$(config_value SETTLEBELL_CLOUDKIT_ACTIVATION)"
 for value in "$expected_team" "$expected_bundle" "$expected_container"; do
   if [[ -z "$value" || "$value" == *PLACEHOLDER* || "$value" == org.example.* ]]; then
     echo "Ignored local signing configuration is incomplete." >&2
@@ -47,15 +47,15 @@ if [[ "$expected_activation" != "YES" ]]; then
   exit 1
 fi
 
-HELPER="$APP/Contents/Helpers/PiPingSignal"
+HELPER="$APP/Contents/Helpers/SettleBellSignal"
 PROFILE="$APP/Contents/embedded.provisionprofile"
 if [[ ! -x "$HELPER" || ! -f "$PROFILE" ]]; then
   echo "Signed local app is missing its helper or provisioning profile." >&2
   exit 1
 fi
 bundle_identifier="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")"
-cloud_activation="$(/usr/libexec/PlistBuddy -c 'Print :PiPingCloudKitActivationEnabled' "$APP/Contents/Info.plist")"
-cloud_container="$(/usr/libexec/PlistBuddy -c 'Print :PiPingCloudKitContainerIdentifier' "$APP/Contents/Info.plist")"
+cloud_activation="$(/usr/libexec/PlistBuddy -c 'Print :SettleBellCloudKitActivationEnabled' "$APP/Contents/Info.plist")"
+cloud_container="$(/usr/libexec/PlistBuddy -c 'Print :SettleBellCloudKitContainerIdentifier' "$APP/Contents/Info.plist")"
 if [[ "$bundle_identifier" != "$expected_bundle" ]]; then
   echo "Signed local app does not use the approved bundle identity." >&2
   exit 1
@@ -113,7 +113,7 @@ if [[ "$helper_signature_details" != *"(runtime)"* ]]; then
   exit 1
 fi
 
-TEMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/piping-signature-validation.XXXXXX")"
+TEMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/settlebell-signature-validation.XXXXXX")"
 trap 'rm -rf "$TEMP_ROOT"' EXIT
 ENTITLEMENTS="$TEMP_ROOT/entitlements.plist"
 PROFILE_PLIST="$TEMP_ROOT/profile.plist"

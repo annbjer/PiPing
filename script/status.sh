@@ -10,7 +10,7 @@ if [[ ! -x "$STABLE_DEVELOPER_DIR/usr/bin/xcodebuild" ]]; then
 fi
 export DEVELOPER_DIR="$STABLE_DEVELOPER_DIR"
 
-echo "PiPing development status"
+echo "SettleBell development status"
 xcodebuild -version
 printf "Pi: "
 pi --version
@@ -39,7 +39,7 @@ fi
 echo "Working tree:"
 git -C "$ROOT_DIR" status --short
 
-CANONICAL_APP="/Applications/PiPing.app"
+CANONICAL_APP="/Applications/SettleBell.app"
 if [[ -d "$CANONICAL_APP" ]]; then
   if "$ROOT_DIR/script/check_installation.sh" >/dev/null 2>&1; then
     echo "Canonical installation: valid (private details hidden)"

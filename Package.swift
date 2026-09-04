@@ -3,47 +3,47 @@
 import PackageDescription
 
 let package = Package(
-    name: "PiPing",
+    name: "SettleBell",
     platforms: [
         .macOS(.v26),
         .iOS(.v26),
     ],
     products: [
-        .library(name: "PiPingCore", targets: ["PiPingCore"]),
-        .library(name: "PiPingCloudKit", targets: ["PiPingCloudKit"]),
-        .executable(name: "PiPingMac", targets: ["PiPingMac"]),
-        .executable(name: "PiPingSignal", targets: ["PiPingSignal"]),
-        .executable(name: "PiPingIOS", targets: ["PiPingIOS"]),
+        .library(name: "SettleBellCore", targets: ["SettleBellCore"]),
+        .library(name: "SettleBellCloudKit", targets: ["SettleBellCloudKit"]),
+        .executable(name: "SettleBellMac", targets: ["SettleBellMac"]),
+        .executable(name: "SettleBellSignal", targets: ["SettleBellSignal"]),
+        .executable(name: "SettleBellIOS", targets: ["SettleBellIOS"]),
     ],
     targets: [
-        .target(name: "PiPingCore"),
+        .target(name: "SettleBellCore"),
         .target(
-            name: "PiPingCloudKit",
-            dependencies: ["PiPingCore"]
+            name: "SettleBellCloudKit",
+            dependencies: ["SettleBellCore"]
         ),
         .executableTarget(
-            name: "PiPingMac",
-            dependencies: ["PiPingCore", "PiPingCloudKit"]
+            name: "SettleBellMac",
+            dependencies: ["SettleBellCore", "SettleBellCloudKit"]
         ),
         .executableTarget(
-            name: "PiPingSignal",
-            dependencies: ["PiPingCore"]
+            name: "SettleBellSignal",
+            dependencies: ["SettleBellCore"]
         ),
         .executableTarget(
-            name: "PiPingIOS",
-            dependencies: ["PiPingCore", "PiPingCloudKit"]
+            name: "SettleBellIOS",
+            dependencies: ["SettleBellCore", "SettleBellCloudKit"]
         ),
         .testTarget(
-            name: "PiPingCoreTests",
-            dependencies: ["PiPingCore"]
+            name: "SettleBellCoreTests",
+            dependencies: ["SettleBellCore"]
         ),
         .testTarget(
-            name: "PiPingCloudKitTests",
-            dependencies: ["PiPingCore", "PiPingCloudKit"]
+            name: "SettleBellCloudKitTests",
+            dependencies: ["SettleBellCore", "SettleBellCloudKit"]
         ),
         .testTarget(
-            name: "PiPingMacTests",
-            dependencies: ["PiPingCore", "PiPingMac"]
+            name: "SettleBellMacTests",
+            dependencies: ["SettleBellCore", "SettleBellMac"]
         ),
     ]
 )

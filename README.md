@@ -1,12 +1,12 @@
-# PiPing
+# SettleBell
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="Assets/Communication/piping-teaser-dark.webp">
   <source media="(prefers-color-scheme: light)" srcset="Assets/Communication/piping-teaser-light.webp">
-  <img alt="A hand touching grass while PiPing shows that Pi has fully settled" src="Assets/Communication/piping-teaser-dark.webp" width="720">
+  <img alt="A hand touching grass beside the fixed notification that Pi has fully settled" src="Assets/Communication/piping-teaser-dark.webp" width="720">
 </picture>
 
-Stop watching the terminal. When a long-running Pi task has fully settled, PiPing
+Stop watching the terminal. When a long-running Pi task has fully settled, SettleBell
 sends a simple notification to your Mac, so you can go do something else while
 your agent works. With optional private Apple signing and CloudKit setup, the
 same signal can also reach your iPhone and mirror to its paired Apple Watch — so
@@ -19,7 +19,7 @@ The notification is always:
 - the normal system notification sound
 
 The message never includes your task, prompt, model output, code, project, or
-file names. PiPing receives only a fixed `start` or `settled` signal and a random
+file names. SettleBell receives only a fixed `start` or `settled` signal and a random
 per-cycle UUID so overlapping runs stay independent. That UUID exists briefly in
 the Pi extension and Mac app, is not Pi's session identifier, and is never sent
 to CloudKit. If remote delivery is enabled, CloudKit stores one timestamp; the
@@ -28,10 +28,15 @@ notification text is fixed in source and subscription configuration.
 See [Privacy](Docs/PRIVACY.md) and the
 [Threat model](Docs/THREAT_MODEL.md) for the complete boundary.
 
-> PiPing is an independent community project and is not affiliated with or
+> SettleBell is an independent community project and is not affiliated with or
 > endorsed by Pi's maintainers. It is a convenience notification, not an alarm
 > or safety-critical system. Phase 1 is intentionally one-way: no commands,
 > replies, or approval actions.
+>
+> **Rename status:** SettleBell is the side-by-side successor to PiPing. The
+> PiPing `v0.1.0` release remains immutable historical provenance; SettleBell's
+> first planned developer preview is `0.2.0`. See
+> [Migrating from PiPing](Docs/MIGRATING_FROM_PIPING.md).
 
 ## What you need
 
@@ -49,8 +54,8 @@ Newer stable Apple releases are expected to work but are confirmed as they becom
 available. Pi compatibility remains version-specific because its extension
 lifecycle APIs can change.
 
-PiPing `0.1.0` is distributed as source. There is no public downloadable app
-binary yet.
+SettleBell `0.2.0` is currently an unreleased source-only developer preview.
+There is no public downloadable SettleBell app binary.
 
 ## Choose a path
 
@@ -74,7 +79,10 @@ duration threshold and posts a local notification.
 If you explicitly enable iPhone / Watch delivery in a privately signed build,
 the Mac updates one rolling record in your private CloudKit database. The iPhone
 app subscribes to that fixed record, and Apple can mirror its notification to a
-paired Watch. There is no watchOS app.
+paired Watch. There is no watchOS app. The first SettleBell migration preserves
+PiPing's deployed v1 CloudKit record type, rolling-record name, and subscription
+ID as internal compatibility identifiers; changing them requires a separate
+migration review.
 
 See [Architecture](Docs/ARCHITECTURE.md) for the complete data flow.
 
@@ -83,11 +91,14 @@ See [Architecture](Docs/ARCHITECTURE.md) for the complete data flow.
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="Assets/Communication/piping-hero-dark.webp">
   <source media="(prefers-color-scheme: light)" srcset="Assets/Communication/piping-hero-light.webp">
-  <img alt="Pi working in a terminal while PiPing posts its fixed settled notification" src="Assets/Communication/piping-hero-dark.webp" width="1352">
+  <img alt="Historical PiPing v0.1.0 screenshot showing Pi working while the fixed settled notification appears" src="Assets/Communication/piping-hero-dark.webp" width="1352">
 </picture>
 
-Your task details stay in Pi and the terminal. PiPing receives only the fixed
-lifecycle signal needed to decide when to show the notification.
+This is the unchanged PiPing `v0.1.0` launch artwork and is retained as historical
+provenance; it is not relabeled SettleBell artwork. The fixed notification and
+content-free boundary are unchanged: task details stay in Pi and the terminal,
+and SettleBell receives only the lifecycle signal needed to decide when to
+notify.
 
 ## Mac-only local build
 
@@ -108,8 +119,10 @@ The installer uses the public development identity, keeps CloudKit disabled,
 and refuses to replace a private, foreign, or future official app. Generated
 archives remain local-only and are not release artifacts.
 
-See [Setup](Docs/SETUP.md) for guarded uninstall and rollback instructions. If an
-agent will run the commands, read
+See [Setup](Docs/SETUP.md) for guarded uninstall and rollback instructions. If
+PiPing is already installed, follow the separate
+[side-by-side migration guide](Docs/MIGRATING_FROM_PIPING.md); no SettleBell
+installer overwrites PiPing. If an agent will run the commands, read
 [Agent-assisted installation](Docs/AGENT_INSTALL.md) first.
 
 ## Signed local build
@@ -142,7 +155,7 @@ To stage the unsigned Mac compile-verification archive without launching it:
 ./script/build_and_run.sh --build-only
 ```
 
-This produces `dist/unsigned/PiPing.app.zip`, labeled **PiPing Development**.
+This produces `dist/unsigned/SettleBell.app.zip`, labeled **SettleBell Development**.
 It is a compile-verification artifact, not an official binary release, and the
 build-only flow retains no discoverable application bundle.
 
@@ -165,7 +178,7 @@ pi remove .
 The extension invokes only the installed helper at:
 
 ```text
-/Applications/PiPing.app/Contents/Helpers/PiPingSignal
+/Applications/SettleBell.app/Contents/Helpers/SettleBellSignal
 ```
 
 It never falls back to a repository, DerivedData, `dist`, or backup executable.
@@ -178,7 +191,7 @@ To load the extension for one session without changing Pi's saved package
 configuration:
 
 ```bash
-pi --extension Integration/Pi/piping.ts --no-session --tools read,grep,find,ls
+pi --extension Integration/Pi/settlebell.ts --no-session --tools read,grep,find,ls
 ```
 
 Exit that Pi process when finished. Nothing was installed, so there is no package
@@ -205,8 +218,8 @@ the macOS bundle identifier. Changing the identifier in ignored
 
 ## Notification threshold
 
-PiPing notifies after 30 seconds by default, so fast responses stay quiet. In
-**PiPing > Settings**, **Notify me** offers:
+SettleBell notifies after 30 seconds by default, so fast responses stay quiet. In
+**SettleBell > Settings**, **Notify me** offers:
 
 - every completion;
 - after 15 seconds; or
@@ -214,10 +227,10 @@ PiPing notifies after 30 seconds by default, so fast responses stay quiet. In
 
 ## Icon appearance on macOS 26
 
-Window appearance and icon appearance are separate macOS settings. If PiPing's
+Window appearance and icon appearance are separate macOS settings. If SettleBell's
 Dock or notification icon stays light, open **System Settings > Appearance**,
 choose **Dark** under **Icon & widget style**, and select **Auto** rather than
-**Always**. PiPing includes native Light and Dark renditions but does not inspect
+**Always**. SettleBell includes native Light and Dark renditions but does not inspect
 or change this user preference. See [Setup](Docs/SETUP.md) for full guidance.
 
 ## Tested Pi compatibility
@@ -252,6 +265,7 @@ boundary and design review.
 ## Documentation
 
 - [Setup and verification](Docs/SETUP.md) — build, install, uninstall, and rollback paths
+- [Migrating from PiPing](Docs/MIGRATING_FROM_PIPING.md) — side-by-side identity, retirement, and rollback boundaries
 - [Agent-assisted installation](Docs/AGENT_INSTALL.md) — approval boundaries for agent-run setup
 - [Architecture](Docs/ARCHITECTURE.md) — data flow, components, and delivery behavior
 - [Privacy](Docs/PRIVACY.md) — allowed and prohibited data
@@ -264,11 +278,11 @@ boundary and design review.
 
 ## License and releases
 
-PiPing source and assets are available under the [MIT License](LICENSE).
+SettleBell source and assets are available under the [MIT License](LICENSE).
 Contributions are welcome under [Contributing](CONTRIBUTING.md).
 
-Version `0.1.0` is source-only. Locally generated ad-hoc or Apple
-Development-signed apps and `dist/` output are not public release artifacts. A
-future downloadable Mac binary requires Developer ID Application signing,
-notarization, stapling, and a separate exact-binary audit. See
-[Releasing](Docs/RELEASING.md).
+PiPing `v0.1.0` remains a source-only historical release. SettleBell `0.2.0` is
+not yet released. Locally generated ad-hoc or Apple Development-signed apps and
+`dist/` output are not public release artifacts. A future downloadable Mac
+binary requires Developer ID Application signing, notarization, stapling, and a
+separate exact-binary audit. See [Releasing](Docs/RELEASING.md).
