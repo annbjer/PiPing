@@ -17,8 +17,9 @@ tags in the form `vMAJOR.MINOR.PATCH`.
   notification authorization, preferences, and unread/backlog state rather than
   silently copying PiPing state.
 - Add legacy source-local validation pinned to PiPing `0.1.0 (15)`, a separately
-  trusted archive/hash and exact installed-tree match, fresh interactive
-  notification attestation, interruption rollback, and at most three validated
+  trusted archive/hash, bounded private input pin, repeated exact installed-tree
+  match, fresh interactive notification attestation, interruption rollback, and
+  at most three validated
   recovery archives; signed/private PiPing retirement remains out of scope.
 
 ## 0.1.0 - 2026-08-31

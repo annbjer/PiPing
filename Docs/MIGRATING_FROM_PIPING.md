@@ -78,9 +78,12 @@ own explicit approval.
 
    The preflight requires one validated, running source-local SettleBell app and
    protected FIFO, pins PiPing to version `0.1.0` build `15`, and requires the
-   installed app's complete path/type/mode/content manifest to match the trusted
-   archive. It refuses signed, foreign, modified, hard-linked, ACL-bearing, or
-   future PiPing apps.
+   script first bounded-copies the archive into private staging, then hashes,
+   validates, and extracts only that pinned copy. The installed app's complete
+   path/type/mode/content manifest must match the in-memory trusted reference;
+   the quarantined payload is compared again before signalling and immediately
+   before commit/deletion. The script refuses signed, foreign, modified,
+   hard-linked, ACL-bearing, or future PiPing apps.
 
 5. Only after the genuine notification check and separate retirement approval:
 

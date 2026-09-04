@@ -109,8 +109,10 @@ The primary security objectives are:
    is installed, receives fresh Apple-managed authorization, and passes a genuine
    notification test. Only PiPing `0.1.0 (15)` whose complete manifest matches a
    separately trusted archive/hash can be retired by the source-local migration
-   tool. Retirement requires a fresh user-typed `/dev/tty` attestation, pins
-   rollback state before quarantine, validates a bounded recovery archive,
+   tool. The archive is bounded-copied before hashing, and the in-memory trusted
+   manifest is rechecked after quarantine and before commit. Retirement requires
+   a fresh user-typed `/dev/tty` attestation, pins rollback state before
+   quarantine, validates a bounded recovery archive,
    preserves legacy preferences and Apple notification history, and never reads Pi package
    settings or private configuration. Signed/private PiPing retirement remains a
    separate review boundary (`Docs/MIGRATING_FROM_PIPING.md`).

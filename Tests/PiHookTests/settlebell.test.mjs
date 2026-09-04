@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
@@ -181,15 +182,18 @@ test("legacy retirement requires validated SettleBell and commits safely", async
   assertTextOrder(
     script,
     [
+      "legacy_pin_archive",
+      '"$LEGACY_ARCHIVE" "$PINNED_LEGACY_ARCHIVE" "$LEGACY_ARCHIVE_SHA256"',
       '"$ROOT_DIR/script/check_source_installation.sh" >/dev/null',
+      'ditto -x -k "$PINNED_LEGACY_ARCHIVE" "$REFERENCE_STAGE"',
       "if ! settlebell_runtime_is_ready; then",
       '"$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$LEGACY_APP"',
-      'app_manifest "$LEGACY_APP"',
-      'app_manifest "$REFERENCE_APP"',
-      'if ! cmp -s "$installed_manifest" "$reference_manifest"; then',
+      'LEGACY_REFERENCE_MANIFEST="$(legacy_app_manifest "$REFERENCE_APP")"',
+      'if ! legacy_manifest_matches_reference "$LEGACY_APP"; then',
       'quarantined_identity="$(path_identity "$LEGACY_APP")"',
       "restore_needed=true",
       'mv "$LEGACY_APP" "$QUARANTINED_APP"',
+      'legacy_manifest_matches_reference "$QUARANTINED_APP"',
     ],
     "legacy retirement preflight and quarantine",
   );
@@ -205,19 +209,64 @@ test("legacy retirement requires validated SettleBell and commits safely", async
     "legacy retirement process pin",
   );
   const finalIdentityCheck = script.lastIndexOf(
-    'if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then',
+    'if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]',
   );
   assert.notEqual(finalIdentityCheck, -1);
   assertTextOrder(
     script.slice(finalIdentityCheck),
     [
-      'if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then',
+      'if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]',
+      'legacy_manifest_matches_reference "$QUARANTINED_APP"',
       "completed=true",
       "restore_needed=false",
       'rm -rf "$QUARANTINED_APP"',
     ],
     "legacy retirement commit",
   );
+});
+
+test("legacy archive pin and manifest reject later source/target mutation", () => {
+  const supportPath = new URL(
+    "../../script/legacy_migration_support.sh",
+    import.meta.url,
+  ).pathname;
+  const output = execFileSync("/bin/bash", ["-c", String.raw`
+set -euo pipefail
+source "$SUPPORT_PATH"
+tmp="$(mktemp -d "$TMPDIR/settlebell-legacy-support-test.XXXXXX")"
+trap 'rm -rf "$tmp"' EXIT
+printf 'archive-payload\n' >"$tmp/source.zip"
+cat >"$tmp/validator" <<'VALIDATOR'
+#!/usr/bin/env bash
+grep -qx archive-payload "$1"
+VALIDATOR
+chmod 700 "$tmp/validator"
+sha="$(shasum -a 256 "$tmp/source.zip" | awk '{print $1}')"
+legacy_pin_archive "$tmp/source.zip" "$tmp/pinned.zip" "$sha" "$tmp/validator"
+printf 'replacement\n' >"$tmp/source.zip"
+grep -qx archive-payload "$tmp/pinned.zip"
+mkdir "$tmp/reference" "$tmp/candidate"
+chmod 700 "$tmp/reference" "$tmp/candidate"
+printf 'payload\n' >"$tmp/reference/item"
+printf 'payload\n' >"$tmp/candidate/item"
+chmod 600 "$tmp/reference/item" "$tmp/candidate/item"
+LEGACY_REFERENCE_MANIFEST="$(legacy_app_manifest "$tmp/reference")"
+legacy_manifest_matches_reference "$tmp/candidate"
+printf 'changed\n' >"$tmp/candidate/item"
+if legacy_manifest_matches_reference "$tmp/candidate"; then exit 1; fi
+printf 'payload\n' >"$tmp/candidate/item"
+ln "$tmp/candidate/item" "$tmp/candidate/hardlink"
+if legacy_manifest_matches_reference "$tmp/candidate" 2>/dev/null; then exit 1; fi
+printf 'pass\n'
+`], {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      SUPPORT_PATH: supportPath,
+      TMPDIR: process.env.TMPDIR ?? "/tmp",
+    },
+  });
+  assert.equal(output, "pass\n");
 });
 
 test("legacy validator pins the v0.1.0 public build and rejects link/ACL expansion", async () => {

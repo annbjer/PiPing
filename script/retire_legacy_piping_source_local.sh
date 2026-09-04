@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/script/guarded_backup_support.sh"
+source "$ROOT_DIR/script/legacy_migration_support.sh"
 MODE="${1:-}"
 LEGACY_ARCHIVE=""
 LEGACY_ARCHIVE_SHA256=""
@@ -23,20 +24,16 @@ if [[ "$MODE" != "--check" && "$MODE" != "--retire" ]] \
 fi
 LEGACY_ARCHIVE="$3"
 LEGACY_ARCHIVE_SHA256="$5"
-if [[ ! "$LEGACY_ARCHIVE_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
-  echo "The trusted legacy archive SHA-256 must be 64 lowercase hexadecimal characters." >&2
-  exit 2
-fi
-if [[ ! -f "$LEGACY_ARCHIVE" || -L "$LEGACY_ARCHIVE" ]]; then
-  echo "The trusted legacy PiPing archive is missing or is a symbolic link." >&2
-  exit 1
-fi
-actual_legacy_archive_sha256="$(shasum -a 256 "$LEGACY_ARCHIVE" | awk '{print $1}')"
-if [[ "$actual_legacy_archive_sha256" != "$LEGACY_ARCHIVE_SHA256" ]]; then
-  echo "The trusted legacy PiPing archive SHA-256 does not match." >&2
-  exit 1
-fi
-"$ROOT_DIR/script/validate_legacy_piping_source_local_archive.sh" "$LEGACY_ARCHIVE" >/dev/null
+LEGACY_INPUT_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/settlebell-piping-input.XXXXXX")"
+chmod 700 "$LEGACY_INPUT_STAGE"
+PINNED_LEGACY_ARCHIVE="$LEGACY_INPUT_STAGE/PiPing.app.zip"
+input_cleanup() {
+  rm -rf "$LEGACY_INPUT_STAGE"
+}
+trap input_cleanup EXIT
+legacy_pin_archive \
+  "$LEGACY_ARCHIVE" "$PINNED_LEGACY_ARCHIVE" "$LEGACY_ARCHIVE_SHA256" \
+  "$ROOT_DIR/script/validate_legacy_piping_source_local_archive.sh"
 
 if [[ ! -w /Applications ]]; then
   echo "/Applications is not writable by the current user; no changes were made." >&2
@@ -77,10 +74,10 @@ REFERENCE_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/settlebell-piping-reference.XXXXXX
 chmod 700 "$REFERENCE_STAGE"
 reference_cleanup() {
   "$LSREGISTER" -u "$REFERENCE_STAGE/PiPing.app" 2>/dev/null || true
-  rm -rf "$REFERENCE_STAGE"
+  rm -rf "$REFERENCE_STAGE" "$LEGACY_INPUT_STAGE"
 }
 trap reference_cleanup EXIT
-ditto -x -k "$LEGACY_ARCHIVE" "$REFERENCE_STAGE"
+ditto -x -k "$PINNED_LEGACY_ARCHIVE" "$REFERENCE_STAGE"
 REFERENCE_APP="$REFERENCE_STAGE/PiPing.app"
 "$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$REFERENCE_APP" >/dev/null
 
@@ -116,42 +113,12 @@ if ! settlebell_runtime_is_ready; then
 fi
 "$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$LEGACY_APP"
 
-app_manifest() {
-  python3 - "$1" <<'PY'
-import hashlib
-import os
-import stat
-import sys
-from pathlib import Path
-
-root = Path(sys.argv[1])
-for path in sorted([root, *root.rglob("*")], key=lambda item: str(item.relative_to(root))):
-    relative = "." if path == root else str(path.relative_to(root))
-    info = path.lstat()
-    mode = stat.S_IMODE(info.st_mode)
-    if stat.S_ISLNK(info.st_mode):
-        raise SystemExit("legacy app manifest refuses symbolic links")
-    if stat.S_ISREG(info.st_mode):
-        if info.st_nlink != 1:
-            raise SystemExit("legacy app manifest refuses hard-linked files")
-        digest = hashlib.sha256(path.read_bytes()).hexdigest()
-        print(f"f\t{mode:o}\t{info.st_size}\t{digest}\t{relative}")
-    elif stat.S_ISDIR(info.st_mode):
-        print(f"d\t{mode:o}\t0\t-\t{relative}")
-    else:
-        raise SystemExit(f"legacy app manifest refuses special object: {relative}")
-PY
-}
-installed_manifest="$(mktemp "${TMPDIR:-/tmp}/settlebell-piping-installed.XXXXXX")"
-reference_manifest="$(mktemp "${TMPDIR:-/tmp}/settlebell-piping-reference-manifest.XXXXXX")"
-app_manifest "$LEGACY_APP" >"$installed_manifest"
-app_manifest "$REFERENCE_APP" >"$reference_manifest"
-if ! cmp -s "$installed_manifest" "$reference_manifest"; then
-  rm -f "$installed_manifest" "$reference_manifest"
+LEGACY_REFERENCE_MANIFEST="$(legacy_app_manifest "$REFERENCE_APP")"
+rm -rf "$REFERENCE_STAGE"
+if ! legacy_manifest_matches_reference "$LEGACY_APP"; then
   echo "Installed PiPing is not byte-for-byte and mode-for-mode identical to the trusted archive." >&2
   exit 1
 fi
-rm -f "$installed_manifest" "$reference_manifest"
 
 legacy_runtime_is_removable() {
   if [[ ! -e "$LEGACY_RUNTIME_DIR" && ! -L "$LEGACY_RUNTIME_DIR" ]]; then return 0; fi
@@ -281,16 +248,19 @@ cleanup() {
   "$LSREGISTER" -u "$BACKUP_STAGE/PiPing.app" 2>/dev/null || true
   rm -rf "$BACKUP_STAGE"
   "$LSREGISTER" -u "$REFERENCE_APP" 2>/dev/null || true
-  rm -rf "$REFERENCE_STAGE"
+  rm -rf "$REFERENCE_STAGE" "$LEGACY_INPUT_STAGE"
 
   if [[ "$completed" == false && "$restore_needed" == true && -d "$QUARANTINED_APP" ]]; then
-    if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then
+    if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]] \
+      || ! "$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$QUARANTINED_APP" >/dev/null 2>&1 \
+      || ! legacy_manifest_matches_reference "$QUARANTINED_APP"; then
       echo "Recovery preserved a changed quarantined PiPing app for manual inspection." >&2
       preserve_transaction=true
     elif [[ ! -e "$LEGACY_APP" && ! -L "$LEGACY_APP" ]]; then
       mv "$QUARANTINED_APP" "$LEGACY_APP"
       if [[ "$(path_identity "$LEGACY_APP")" == "$quarantined_identity" ]] \
-        && "$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$LEGACY_APP" >/dev/null 2>&1; then
+        && "$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$LEGACY_APP" >/dev/null 2>&1 \
+        && legacy_manifest_matches_reference "$LEGACY_APP"; then
         "$LSREGISTER" -f "$LEGACY_APP" 2>/dev/null || true
         open "$LEGACY_APP" 2>/dev/null || true
       else
@@ -324,8 +294,9 @@ fi
 restore_needed=true
 mv "$LEGACY_APP" "$QUARANTINED_APP"
 if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]] \
-  || ! "$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$QUARANTINED_APP" >/dev/null 2>&1; then
-  echo "The atomically quarantined PiPing app failed validation." >&2
+  || ! "$ROOT_DIR/script/validate_legacy_piping_source_local_app.sh" "$QUARANTINED_APP" >/dev/null 2>&1 \
+  || ! legacy_manifest_matches_reference "$QUARANTINED_APP"; then
+  echo "The atomically quarantined PiPing app failed trusted-reference validation." >&2
   exit 1
 fi
 
@@ -389,8 +360,9 @@ if [[ -n "$(legacy_launchservices_paths)" ]]; then
   exit 1
 fi
 "$ROOT_DIR/script/check_source_installation.sh" >/dev/null
-if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]]; then
-  echo "Quarantined PiPing identity changed before retirement commit." >&2
+if [[ "$(path_identity "$QUARANTINED_APP")" != "$quarantined_identity" ]] \
+  || ! legacy_manifest_matches_reference "$QUARANTINED_APP"; then
+  echo "Quarantined PiPing identity or trusted manifest changed before retirement commit." >&2
   exit 1
 fi
 
