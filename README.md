@@ -49,7 +49,7 @@ See [Privacy](Docs/PRIVACY.md) and the
 | **Xcode** | Stable Xcode 26 or later at `/Applications/Xcode.app`; use the latest stable full Xcode available because Command Line Tools alone cannot compile the Icon Composer source |
 | **Swift** | Swift tools 6.2 or later, supplied by the supported Xcode toolchain |
 | **Node** | The Node runtime used by your existing Pi installation, with type-stripping support for hook tests |
-| **Pi** | Tested with 0.84.3 and 0.84.4; newer releases are confirmed individually; see [tested compatibility](#tested-pi-compatibility) |
+| **Pi** | Tested with 0.84.3, 0.84.4, and 0.85.1; newer releases are confirmed individually; see [tested compatibility](#tested-pi-compatibility) |
 | **iPhone / Watch delivery** | Optional; iOS 26 or later plus your own Apple account, signing identity, and private CloudKit container |
 
 The Apple version numbers above are minimum baselines, not exact-version locks.
@@ -92,16 +92,15 @@ See [Architecture](Docs/ARCHITECTURE.md) for the complete data flow.
 ## What it looks like in use
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="Assets/Communication/piping-hero-dark.webp">
-  <source media="(prefers-color-scheme: light)" srcset="Assets/Communication/piping-hero-light.webp">
-  <img alt="Historical PiPing v0.1.0 screenshot showing Pi working while the fixed settled notification appears" src="Assets/Communication/piping-hero-dark.webp" width="1352">
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/Communication/settlebell-hero-dark.webp">
+  <source media="(prefers-color-scheme: light)" srcset="Assets/Communication/settlebell-hero-light.webp">
+  <img alt="SettleBell — Touch Grass: a terminal explanation beside the fixed Pi needs attention notification" src="Assets/Communication/settlebell-hero-dark.webp" width="1352">
 </picture>
 
-This is the unchanged PiPing `v0.1.0` launch artwork and is retained as historical
-provenance; it is not relabeled SettleBell artwork. The fixed notification and
-content-free boundary are unchanged: task details stay in Pi and the terminal,
-and SettleBell receives only the lifecycle signal needed to decide when to
-notify.
+Open the image full-size to read the terminal explanation. The terminal content
+is not part of the notification: task details stay in Pi, and SettleBell receives
+only the lifecycle signal needed to decide when to notify. The original PiPing
+hero images remain unchanged in the assets directory as historical provenance.
 
 ## Mac-only local build
 
@@ -205,8 +204,13 @@ to remove.
 After installation, run the read-only canonical-app check:
 
 ```bash
-./script/check_installation.sh
+./script/check_local_installation.sh
 ```
+
+This selects the source-local or private-signed validator from the canonical
+app's identity. It never falls back to another validator after a failure.
+`check_installation.sh` remains the private-signed-only check used by the signed
+installer.
 
 To inspect toolchain availability, public defaults, private-override presence,
 prospective configuration, and Git state without printing private values:
@@ -214,6 +218,10 @@ prospective configuration, and Git state without printing private values:
 ```bash
 ./script/status.sh
 ```
+
+Outside a Git checkout (for example, an extracted source release), Git-based
+file inventory is explicitly unavailable; the canonical installation check still
+runs. This diagnostic is not a substitute for the release privacy audit.
 
 Notification permission, LaunchServices metadata, and icon caches are keyed to
 the macOS bundle identifier. Changing the identifier in ignored
@@ -241,7 +249,8 @@ or change this user preference. See [Setup](Docs/SETUP.md) for full guidance.
 | Pi version | Package load | Ordinary >30s turn | Notes |
 | --- | --- | --- | --- |
 | 0.84.3 | Passed | Passed | Original lifecycle acceptance baseline |
-| 0.84.4 | Passed | Passed | Final developer-preview acceptance baseline |
+| 0.84.4 | Passed | Passed | Original PiPing developer-preview acceptance baseline |
+| 0.85.1 | Passed | Passed | SettleBell private development acceptance; Mac and paired Watch delivery observed |
 
 The native app and helper do not depend on Pi internals. The TypeScript edge does
 depend on `before_agent_start`, `agent_settled`, and `context.isIdle()`, so other
@@ -249,11 +258,18 @@ Pi versions are not yet claimed compatible.
 
 ## Project status
 
-The source-only Phase 1 path has been verified end to end on development builds:
-an ordinary Pi task settled, the Mac notified, CloudKit accepted the optional
-rolling-record update, the iPhone notified, and Apple mirrored the alert to its
-paired Watch. Overlapping ordinary Pi runs also produced independent Mac
-notifications and acknowledgement state.
+The Phase 1 path has functional acceptance on private development builds:
+an ordinary Pi task settled, the Mac notified, and optional CloudKit-backed
+notification routing reached the paired Watch after iPhone setup. Normal daily
+use has also been accepted. This is not a guarantee of exactly-once delivery or
+presentation on every device.
+
+Two overlapping real Pi sessions passed on the original PiPing baseline.
+SettleBell has controlled-overlap acceptance and automated lifecycle coverage
+for 50 overlapping tokens; a live 5–10-session SettleBell stress test remains
+unverified. Changes in this source candidate still require their own final
+release validation; historical acceptance is not a claim that this candidate
+has been built, installed, or published.
 
 The Mac listener starts with the application lifecycle, including Login Item
 launches where no main window appears. Remote delivery is reported as sent only

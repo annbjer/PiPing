@@ -6,7 +6,23 @@ tags in the form `vMAJOR.MINOR.PATCH`.
 
 ## Unreleased
 
+### Fixed
+
+- Show the existing observable CloudKit delivery status in Mac Settings instead
+  of a static setup message (SB-UI-001).
+- Invalidate queued Cloud publication on disable and prevent stale in-flight
+  outcomes from overwriting current consent status (SB-REV-001).
+- Route generic local-installation checks to the correct strict validator while
+  keeping signed-installer checks private-only (SB-REV-002).
+- Clarify intentional public attribution/artwork exceptions and reconcile the
+  packaged Pi edge's scoped 0.85.1 compatibility statement (SB-REV-003/004).
+
 ### Changed
+
+- Add SettleBell Light/Dark desktop hero images while preserving historical
+  PiPing artwork; use lossless WebP with only sanitized color-profile metadata.
+- Document scoped Pi 0.85.1 private acceptance, status meanings, and remaining
+  release-validation boundaries.
 
 - Rename the native Apple companion from PiPing to SettleBell to distinguish it
   from the independently developed `@bukutsu/pi-ping` terminal extension.

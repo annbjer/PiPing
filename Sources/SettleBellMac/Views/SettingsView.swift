@@ -14,7 +14,7 @@ struct SettingsView: View {
             Text("Shorter Pi runs stay quiet unless Every completion is selected.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            LabeledContent("CloudKit", value: "Inactive until approved setup")
+            LabeledContent("CloudKit", value: store.cloudDeliveryStatus.label)
             LabeledContent("Phase 1", value: "Notifications only")
         }
         .formStyle(.grouped)

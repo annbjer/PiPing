@@ -19,13 +19,24 @@ compatibility; no prompt, task, project, session, or identity data is added.
 
 ## Prohibited data
 
-The app, helper, hook, tests, fixtures, and documentation must not collect,
-store, log, or transmit:
+The app, helper, and hook must not collect, store, log, or transmit users' work
+content as part of the lifecycle/notification flow:
 
 - prompts, system prompts, model responses, or tool results;
 - code, files, logs, paths, project names, or Pi session identifiers;
 - terminal output, commands, approvals, credentials, or model/provider names;
 - personal names, email addresses, device identifiers, or account identifiers.
+
+Tests must use synthetic fixtures rather than real user data. Technical
+identifiers, example commands and paths, and illustrative text may appear in
+source documentation and tests; they are not data collected by the notification
+system. Required license attribution and explicitly owner-approved public
+project/developer identity or artwork are narrow publication exceptions. The
+SettleBell desktop hero images intentionally retain the developer's approved
+first-name greeting. These exceptions do not permit unrelated private data,
+credentials, account/device identifiers, or raw user logs in public artifacts,
+and do not expand the app's runtime data boundary. Private signing/setup
+configuration remains local and excluded from releases.
 
 The PiPing-to-SettleBell migration must not copy bundle-keyed notification
 authorization, Cloud delivery approval, preferences, unread/backlog state, or

@@ -70,6 +70,8 @@ final class MacAppStore {
     private var signalConsumerTask: Task<Void, Never>?
     private var attentionDeliveryTail: Task<Void, Never>?
     private var pendingAttentionDeliveries = 0
+    // In-memory consent epoch, never persisted or included in a publication.
+    private var cloudDeliveryGeneration = UUID()
 
     private(set) var status: RunStatus = .listening
     private(set) var authorization: LocalNotificationAuthorization = .notDetermined
@@ -183,7 +185,7 @@ final class MacAppStore {
             unreadAttentionIDs.insert(attention.id)
             enqueueAttention(
                 attention,
-                publishRemotely: cloudDeliveryEnabled
+                cloudGeneration: cloudDeliveryEnabled ? cloudDeliveryGeneration : nil
             )
             status = gate.isTracking ? .running : .sendingAttention
         }
@@ -191,7 +193,7 @@ final class MacAppStore {
 
     private func enqueueAttention(
         _ event: AttentionEvent,
-        publishRemotely: Bool
+        cloudGeneration: UUID?
     ) {
         pendingAttentionDeliveries += 1
         let precedingDelivery = attentionDeliveryTail
@@ -211,13 +213,25 @@ final class MacAppStore {
                 // Remote delivery can still succeed when Mac notifications
                 // are unavailable, so resolve the final status after both paths.
             }
-            if publishRemotely {
+            // Consent can change while waiting for preceding work or local
+            // delivery. Re-enabling must not revive a previous consent epoch.
+            if let cloudGeneration,
+               self.cloudDeliveryEnabled,
+               self.cloudDeliveryGeneration == cloudGeneration {
                 do {
                     try await self.publisher.publish(event)
-                    self.cloudDeliveryStatus = .delivered
                     sent = true
+                    // An already submitted request may complete after disable.
+                    // Its outcome must not replace the current consent status.
+                    if self.cloudDeliveryEnabled,
+                       self.cloudDeliveryGeneration == cloudGeneration {
+                        self.cloudDeliveryStatus = .delivered
+                    }
                 } catch {
-                    self.cloudDeliveryStatus = .failed
+                    if self.cloudDeliveryEnabled,
+                       self.cloudDeliveryGeneration == cloudGeneration {
+                        self.cloudDeliveryStatus = .failed
+                    }
                 }
             }
 
@@ -272,6 +286,7 @@ final class MacAppStore {
     }
 
     func disableCloudDelivery() {
+        cloudDeliveryGeneration = UUID()
         defaults.set(false, forKey: Self.cloudApprovalDefaultsKey)
         cloudDeliveryEnabled = false
         cloudDeliveryStatus = cloudDeliveryAvailable ? .disabled : .unavailable

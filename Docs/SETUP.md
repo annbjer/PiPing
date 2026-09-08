@@ -50,6 +50,27 @@ The Mac does not publish merely because the private build is capable of it. The
 user must explicitly choose **Enable iPhone / Watch Delivery**. The approval is
 stored locally and can be disabled again in the app.
 
+The main window's **iPhone / Watch** row and Settings' **CloudKit** row use the
+same live status:
+
+- **Unavailable in this build** — CloudKit support/configuration is unavailable.
+- **Setup required** — the build supports CloudKit, but delivery is not enabled.
+- **Ready** — delivery is enabled; this is not a live connectivity test.
+- **Published** — CloudKit accepted a write, not proof that a device showed it.
+- **Delivery needs attention** — a publication failed; local Mac notifications
+  remain an independent path.
+
+The label itself performs no setup or network request. Disabling delivery
+prevents queued work from being handed to the Cloud publisher. A request already
+handed off may still complete, but its outcome cannot overwrite the disabled
+status or a subsequent enablement's status. Re-enabling does not replay work
+queued under earlier consent or while delivery was disabled.
+
+For either local installation class, `./script/check_local_installation.sh`
+selects its strict validator without changing the app or trying a different
+class after a validation failure. The signed installer continues to use the
+private-signed-only `check_installation.sh`.
+
 On iOS, **Configure Notifications** performs the following user-initiated
 sequence:
 
@@ -294,6 +315,7 @@ repository is MIT-licensed. PiPing `v0.1.0` remains available as historical
 source; SettleBell `0.2.0` is planned as a separately audited source release and
 is not published through npm.
 
-Pi `0.84.3` and `0.84.4` have passed package-load and ordinary-turn acceptance.
-Other Pi versions are not claimed compatible until the lifecycle hooks and idle
-semantics are retested.
+Pi `0.84.3` and `0.84.4` passed the original PiPing package-load and ordinary-turn
+acceptance. Pi `0.85.1` passed those checks with the private SettleBell development
+baseline, including owner-observed Watch delivery. Other Pi versions are not
+claimed compatible until the lifecycle hooks and idle semantics are retested.

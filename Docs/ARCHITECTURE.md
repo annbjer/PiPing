@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-    Pi[Pi 0.84.3 / 0.84.4 tested] -->|before_agent_start / agent_settled only| Hook[Minimal Pi hook]
+    Pi[Pi 0.84.3 / 0.84.4 / 0.85.1 tested] -->|before_agent_start / agent_settled only| Hook[Minimal Pi hook]
     Hook -->|fixed signal plus ephemeral UUID| Helper[Native SettleBellSignal]
     Helper -->|0600 FIFO in 0700 directory| Mac[macOS companion]
     Mac -->|fixed title and body| Local[macOS UserNotifications]
@@ -68,7 +68,15 @@ content.
 The Mac serializes attention delivery so rapid completions cannot race updates
 to the one rolling CloudKit record. It reports remote delivery as sent only
 after CloudKit accepts that event's write. This confirms the private-database
-write, not presentation on every device. The initial SettleBell migration keeps
+write, not presentation on every device. Each queued attention captures the
+current in-memory consent generation only if delivery is enabled. Disable
+invalidates that generation; it is checked after local delivery and immediately
+before invoking the publisher, then again before accepting a publication status.
+An already handed-off request may complete, but cannot overwrite a disabled or
+newly re-enabled status. Old queued work is never revived by re-enabling. The
+consent generation is not persisted, sent over IPC, or written to CloudKit.
+
+The initial SettleBell migration keeps
 PiPing's deployed v1 record type `PiPingAttention`, rolling record name
 `piping.attention.current`, and subscription ID `piping.attention.v1`. These are
 internal compatibility identifiers; renaming them requires a separately
@@ -85,12 +93,21 @@ opening the SettleBell menu acknowledges all. The category presents no action bu
 and no command channel. SettleBell does not monitor terminal focus or window titles
 and cannot infer the originating terminal without expanding the privacy boundary.
 
-The current private development build has verified the complete path with both
-an explicitly loaded hook and a newly started ordinary `pi` session: Pi settled,
-the Mac notified, CloudKit accepted the rolling record, the iPhone notified, and
-the paired Apple Watch mirrored the alert. Normal local use installs the
+Private development acceptance includes Pi 0.85.1 package loading and ordinary
+threshold-qualified turns: Pi settled, the Mac notified, and optional delivery
+reached the paired Watch after iPhone notification setup. This is functional
+owner-observed acceptance, not an exactly-once or all-routing-states guarantee.
+The original PiPing baseline also passed two overlapping ordinary Pi sessions;
+SettleBell's controlled overlap and automated token tests do not substitute for
+a live 5–10-process stress test. Normal local use installs the
 repository through Pi's user-package mechanism; no notification or control data
 is added to Pi's configuration beyond the local package reference.
+
+The main window and Settings read the same observable
+`MacAppStore.cloudDeliveryStatus.label`. Status presentation does not enable
+CloudKit, request consent, or perform network operations. `Ready` means delivery
+is enabled, not a live connectivity check; `Published` means CloudKit accepted a
+write, not that a device displayed an alert.
 
 ## Explicit exclusions
 

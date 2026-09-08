@@ -20,6 +20,7 @@ bash -n "$ROOT_DIR"/script/*.sh
 for required_script in \
   build_source_local.sh \
   check_source_installation.sh \
+  check_local_installation.sh \
   install_source_local.sh \
   retire_legacy_piping_source_local.sh \
   uninstall_source_local.sh \

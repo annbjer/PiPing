@@ -1,5 +1,8 @@
 import Foundation
+import Observation
 import SettleBellCore
+import SwiftUI
+import Synchronization
 import Testing
 import UserNotifications
 @testable import SettleBellMac
@@ -48,6 +51,7 @@ struct MacAppStoreTests {
         #expect(await publisher.maximumConcurrentPublications == 1)
         #expect(store.status == .attentionSent)
         #expect(store.cloudDeliveryStatus == .delivered)
+        #expect(store.cloudDeliveryStatus.label == "Published")
         #expect(store.hasUnreadAttention)
 
         let appDelegate = AppDelegate(store: store)
@@ -179,6 +183,178 @@ struct MacAppStoreTests {
 
         #expect(store.cloudDeliveryStatus == .disabled)
         #expect(store.cloudDeliveryStatus.label == "Setup required")
+    }
+
+    @MainActor
+    @Test("both windows observe approval status without performing setup")
+    func cloudStatusViewObservation() async {
+        let defaultsName = "SettleBellMacTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        let publisher = RecordingPublisher()
+        let notifications = RecordingNotifications()
+        let store = MacAppStore(
+            publisher: publisher,
+            notifications: notifications,
+            cloudActivationEnabled: true,
+            cloudContainerIdentifier: "iCloud.org.example.SettleBell.tests",
+            defaults: defaults
+        )
+        let settingsChanges = Mutex(0)
+        let contentChanges = Mutex(0)
+
+        // Read each view independently: observing ContentView alone would not
+        // catch a return to the old hardcoded Settings label.
+        for enabled in [true, false] {
+            withObservationTracking {
+                _ = SettingsView(store: store).body
+            } onChange: {
+                settingsChanges.withLock { $0 += 1 }
+            }
+            withObservationTracking {
+                _ = ContentView(store: store).body
+            } onChange: {
+                contentChanges.withLock { $0 += 1 }
+            }
+            #expect(store.cloudDeliveryEnabled != enabled)
+            #expect(await publisher.eventCount == 0)
+            #expect(await notifications.events.isEmpty)
+            #expect(store.authorization == .notDetermined)
+            #expect(defaults.bool(forKey: "SettleBellCloudDeliveryApprovedV1") != enabled)
+
+            if enabled {
+                store.enableCloudDelivery()
+                #expect(store.cloudDeliveryStatus.label == "Ready")
+            } else {
+                store.disableCloudDelivery()
+                #expect(store.cloudDeliveryStatus.label == "Setup required")
+            }
+            let expectedChanges = enabled ? 1 : 2
+            #expect(settingsChanges.withLock { $0 } == expectedChanges)
+            #expect(contentChanges.withLock { $0 } == expectedChanges)
+            #expect(store.cloudDeliveryEnabled == enabled)
+        }
+        #expect(await publisher.eventCount == 0)
+        #expect(await notifications.events.isEmpty)
+    }
+
+    @MainActor
+    @Test("failed Cloud publication reports attention while local delivery succeeds")
+    func cloudFailureStatus() async throws {
+        let defaultsName = "SettleBellMacTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        defaults.set(true, forKey: "SettleBellCloudDeliveryApprovedV1")
+        let notifications = RecordingNotifications()
+        let store = MacAppStore(
+            notificationThreshold: .everyCompletion,
+            publisher: FailingPublisher(),
+            notifications: notifications,
+            cloudActivationEnabled: true,
+            cloudContainerIdentifier: "iCloud.org.example.SettleBell.tests",
+            defaults: defaults
+        )
+        let token = LocalSessionToken(uuid: UUID())
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        store.receive(event(.start, token), at: now)
+        store.receive(event(.settled, token), at: now)
+        for _ in 0..<100 {
+            if store.cloudDeliveryStatus == .failed { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(store.cloudDeliveryStatus == .failed)
+        #expect(store.cloudDeliveryStatus.label == "Delivery needs attention")
+        #expect(store.status == .attentionSent)
+        #expect(await notifications.events.count == 1)
+    }
+
+    @MainActor
+    @Test("disable invalidates queued and in-flight consent", arguments: [false, true], [false, true])
+    func disableWithPendingCloudWork(failFirst: Bool, reenable: Bool) async throws {
+        let defaultsName = "SettleBellMacTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        defaults.set(true, forKey: "SettleBellCloudDeliveryApprovedV1")
+        let publisher = PausingPublisher()
+        defer { Task { await publisher.release(fail: false) } }
+        let notifications = RecordingNotifications()
+        let store = MacAppStore(
+            notificationThreshold: .everyCompletion,
+            publisher: publisher,
+            notifications: notifications,
+            cloudActivationEnabled: true,
+            cloudContainerIdentifier: "iCloud.org.example.SettleBell.tests",
+            defaults: defaults
+        )
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        for _ in 0..<2 {
+            let token = LocalSessionToken(uuid: UUID())
+            store.receive(event(.start, token), at: now)
+            store.receive(event(.settled, token), at: now)
+        }
+        try await waitUntil { await publisher.isPaused }
+        store.disableCloudDelivery()
+        if reenable { store.enableCloudDelivery() }
+        await publisher.release(fail: failFirst)
+        try await waitUntil {
+            await notifications.events.count == 2 && store.status == .attentionSent
+        }
+        #expect(await publisher.events.count == 1)
+        #expect(store.cloudDeliveryStatus == (reenable ? .ready : .disabled))
+        #expect(store.cloudDeliveryEnabled == reenable)
+        #expect(store.unreadAttentionCount == 2)
+
+        // Re-enable permits future attention, not the old queued completion.
+        if !reenable { store.enableCloudDelivery() }
+        let fresh = LocalSessionToken(uuid: UUID())
+        store.receive(event(.start, fresh), at: now)
+        store.receive(event(.settled, fresh), at: now)
+        try await waitUntil {
+            await publisher.events.count >= 2 && store.status == .attentionSent
+        }
+        #expect(await publisher.events.count == 2)
+        #expect(await notifications.events.count == 3)
+        #expect(store.cloudDeliveryStatus == .delivered)
+    }
+
+    @MainActor
+    @Test("consent is rechecked after local delivery without retroactive opt-in", arguments: [false, true])
+    func consentChangesDuringLocalDelivery(wasEnabled: Bool) async throws {
+        let defaultsName = "SettleBellMacTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: defaultsName)!
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        defaults.set(wasEnabled, forKey: "SettleBellCloudDeliveryApprovedV1")
+        let publisher = RecordingPublisher()
+        let notifications = PausingNotifications()
+        defer { Task { await notifications.release() } }
+        let store = MacAppStore(
+            notificationThreshold: .everyCompletion,
+            publisher: publisher,
+            notifications: notifications,
+            cloudActivationEnabled: true,
+            cloudContainerIdentifier: "iCloud.org.example.SettleBell.tests",
+            defaults: defaults
+        )
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let token = LocalSessionToken(uuid: UUID())
+        store.receive(event(.start, token), at: now)
+        store.receive(event(.settled, token), at: now)
+        try await waitUntil { await notifications.isPaused }
+        if wasEnabled { store.disableCloudDelivery() } else { store.enableCloudDelivery() }
+        await notifications.release()
+        try await waitUntil { store.status == .attentionSent }
+        #expect(await publisher.eventCount == 0)
+        #expect(store.cloudDeliveryStatus == (wasEnabled ? .disabled : .ready))
+        #expect(store.unreadAttentionCount == 1)
+    }
+
+    @MainActor
+    private func waitUntil(_ condition: @MainActor () async -> Bool) async throws {
+        for _ in 0..<100 {
+            if await condition() { return }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        try #require(await condition(), "Timed out waiting for controlled fixture")
     }
 
     @MainActor
@@ -328,6 +504,50 @@ private actor FailingNotifications: LocalNotificationDelivering {
 
     func deliver(_ event: AttentionEvent) async throws {
         throw LocalNotificationDeliveryError.notAuthorized
+    }
+}
+
+private actor FailingPublisher: AttentionPublishing {
+    private enum Failure: Error { case unavailable }
+
+    func publish(_ event: AttentionEvent) async throws {
+        throw Failure.unavailable
+    }
+}
+
+private actor PausingPublisher: AttentionPublishing {
+    private enum Failure: Error { case unavailable }
+    private var continuation: CheckedContinuation<Void, Error>?
+    private(set) var events: [AttentionEvent] = []
+    var isPaused: Bool { continuation != nil }
+
+    func publish(_ event: AttentionEvent) async throws {
+        events.append(event)
+        if events.count == 1 {
+            try await withCheckedThrowingContinuation { continuation = $0 }
+        }
+    }
+
+    func release(fail: Bool) {
+        let pending = continuation
+        continuation = nil
+        if fail { pending?.resume(throwing: Failure.unavailable) }
+        else { pending?.resume() }
+    }
+}
+
+private actor PausingNotifications: LocalNotificationDelivering {
+    private var continuation: CheckedContinuation<Void, Never>?
+    var isPaused: Bool { continuation != nil }
+    func authorization() async -> LocalNotificationAuthorization { .authorized }
+    func requestAuthorization() async throws -> Bool { true }
+    func deliver(_ event: AttentionEvent) async throws {
+        await withCheckedContinuation { continuation = $0 }
+    }
+    func release() {
+        let pending = continuation
+        continuation = nil
+        pending?.resume()
     }
 }
 

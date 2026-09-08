@@ -1,9 +1,12 @@
 # Pi integration edge
 
-`settlebell.ts` is the only non-Swift product boundary. Pi 0.84.3 and 0.84.4 have
-passed package-load and ordinary-turn acceptance with the documented
-`before_agent_start` and `agent_settled` events. Other versions are not claimed
-compatible until these hooks and `context.isIdle()` are retested.
+`settlebell.ts` is the only non-Swift product boundary. Pi 0.84.3 and 0.84.4 passed
+package-load and ordinary-turn acceptance on the original PiPing baseline.
+Pi 0.85.1 passed those checks on the private SettleBell development baseline,
+including owner-observed Watch delivery. This is scoped functional acceptance,
+not an exactly-once or live 5–10-session guarantee. Other versions are not
+claimed compatible until `before_agent_start`, `agent_settled`, and
+`context.isIdle()` are retested.
 
 The hook:
 

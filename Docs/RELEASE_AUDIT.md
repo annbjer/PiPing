@@ -22,6 +22,17 @@ UDIDs, unnecessary Apple Team IDs, private CloudKit identifiers, tokens,
 credentials, `.p8`, provisioning profiles, local xcconfig files, `.env*`,
 `.xcuserdata`, DerivedData, result bundles, logs, and editor/agent metadata.
 
+Required license attribution and explicitly approved public project/developer
+identity are not private configuration. Record each intentional exception; do
+not silently exempt unrelated personal data. Inspect visible screenshot content
+and embedded EXIF/XMP/ICC metadata too. Keep only vetted color-rendering metadata
+needed to preserve appearance, not display identifiers or calibration metadata.
+
+Use generic defaults with CloudKit off. Audit the exact source archive and any
+package payload with private local configuration absent. A successful private
+installation is not proof that a generic user's source build is ready. Never
+copy private development binaries into a public package or release.
+
 Inspect at minimum:
 
 ```bash
