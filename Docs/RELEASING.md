@@ -6,7 +6,7 @@ PiPing `v0.1.0`, its tag, source assets, release notes, links, and announcement
 are immutable historical provenance. Never retag, replace, or regenerate that
 release under the SettleBell name.
 
-SettleBell's first planned developer preview is `0.2.0` and remains source-only
+SettleBell's first developer preview, `0.2.0`, is source-only
 unless a later exact-binary gate is separately approved. Do not attach, upload,
 or otherwise distribute a SettleBell application bundle, IPA, provisioning
 profile, development archive, or locally generated `dist/` artifact.

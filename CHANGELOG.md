@@ -4,7 +4,10 @@ All notable changes to SettleBell will be documented here. SettleBell was
 originally released as PiPing and uses semantic versioning with source-release
 tags in the form `vMAJOR.MINOR.PATCH`.
 
-## Unreleased
+## 0.2.0 — Source-only developer preview
+
+SettleBell's first developer preview is source-only. Locally generated apps and
+archives are not public release artifacts.
 
 ### Fixed
 
@@ -23,7 +26,6 @@ tags in the form `vMAJOR.MINOR.PATCH`.
   PiPing artwork; use lossless WebP with only sanitized color-profile metadata.
 - Document scoped Pi 0.85.1 private acceptance, status meanings, and remaining
   release-validation boundaries.
-
 - Rename the native Apple companion from PiPing to SettleBell to distinguish it
   from the independently developed `@bukutsu/pi-ping` terminal extension.
 - Prepare a side-by-side identity and guarded migration path while preserving

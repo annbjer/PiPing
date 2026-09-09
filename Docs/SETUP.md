@@ -197,8 +197,8 @@ compatibility boundary rather than a branding claim.
 
 ## Signed local Mac build and installation
 
-PiPing `v0.1.0` was source-only, and SettleBell `0.2.0` is currently unreleased.
-Each developer creates their own ignored `Config/Local.xcconfig`, signing
+PiPing `v0.1.0` was source-only; SettleBell `0.2.0` is also a source-only
+developer preview. Each developer creates their own ignored `Config/Local.xcconfig`, signing
 identity, bundle identifiers, and CloudKit container. Never reuse or publish
 another developer's values.
 
@@ -312,8 +312,8 @@ availability error in Pi without exposing task content. It never falls back to a
 repository, DerivedData, `dist`, or backup executable. The
 package remains marked `private` to prevent accidental npm publication. The
 repository is MIT-licensed. PiPing `v0.1.0` remains available as historical
-source; SettleBell `0.2.0` is planned as a separately audited source release and
-is not published through npm.
+source; SettleBell `0.2.0` follows the separately audited source-only release
+process. npm publication is not part of this developer preview.
 
 Pi `0.84.3` and `0.84.4` passed the original PiPing package-load and ordinary-turn
 acceptance. Pi `0.85.1` passed those checks with the private SettleBell development

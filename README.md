@@ -38,7 +38,7 @@ See [Privacy](Docs/PRIVACY.md) and the
 >
 > **Rename status:** SettleBell is the side-by-side successor to PiPing. The
 > PiPing `v0.1.0` release remains immutable historical provenance; SettleBell's
-> first planned developer preview is `0.2.0`. See
+> first developer preview is `0.2.0`. See
 > [Migrating from PiPing](Docs/MIGRATING_FROM_PIPING.md).
 
 ## What you need
@@ -57,8 +57,8 @@ Newer stable Apple releases are expected to work but are confirmed as they becom
 available. Pi compatibility remains version-specific because its extension
 lifecycle APIs can change.
 
-SettleBell `0.2.0` is currently an unreleased source-only developer preview.
-There is no public downloadable SettleBell app binary.
+SettleBell `0.2.0` is a source-only developer preview.
+This source snapshot does not include an official downloadable app binary.
 
 ## Choose a path
 
@@ -267,9 +267,9 @@ presentation on every device.
 Two overlapping real Pi sessions passed on the original PiPing baseline.
 SettleBell has controlled-overlap acceptance and automated lifecycle coverage
 for 50 overlapping tokens; a live 5–10-session SettleBell stress test remains
-unverified. Changes in this source candidate still require their own final
-release validation; historical acceptance is not a claim that this candidate
-has been built, installed, or published.
+unverified. Acceptance applies only to the tested revisions and configurations;
+it does not establish clean-user readiness for every source snapshot. Each
+release requires the [exact-revision validation gates](Docs/RELEASING.md).
 
 The Mac listener starts with the application lifecycle, including Login Item
 launches where no main window appears. Remote delivery is reported as sent only
@@ -301,7 +301,7 @@ SettleBell source and assets are available under the [MIT License](LICENSE).
 Contributions are welcome under [Contributing](CONTRIBUTING.md).
 
 PiPing `v0.1.0` remains a source-only historical release. SettleBell `0.2.0` is
-not yet released. Locally generated ad-hoc or Apple Development-signed apps and
+also a source-only developer preview. Locally generated ad-hoc or Apple Development-signed apps and
 `dist/` output are not public release artifacts. A future downloadable Mac
 binary requires Developer ID Application signing, notarization, stapling, and a
 separate exact-binary audit. See [Releasing](Docs/RELEASING.md).
