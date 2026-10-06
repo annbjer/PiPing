@@ -317,5 +317,16 @@ process. npm publication is not part of this developer preview.
 
 Pi `0.84.3` and `0.84.4` passed the original PiPing package-load and ordinary-turn
 acceptance. Pi `0.85.1` passed those checks with the private SettleBell development
-baseline, including owner-observed Watch delivery. Other Pi versions are not
-claimed compatible until the lifecycle hooks and idle semantics are retested.
+baseline, including owner-observed Watch delivery. On 2026-09-29, the owner also
+reported a real Mac-only notification on a separate Mac (macOS 27.0, Pi 0.87.1)
+after trying the proposed 35-second test prompt with source-local SettleBell
+0.2.0 (17) from commit `bd531628`; elapsed time was not independently recorded.
+The guarded app check and Pi package list passed beforehand.
+
+On 2026-10-06, the owner confirmed a Mac notification after a measured
+35-second tool wait in an ordinary Pi 1.0.4 turn on macOS 27.0.1 with the
+existing private SettleBell 0.2.0 (17) app. The configured hook was byte-identical
+to `bd531628`; no package or app replacement was needed. These are scoped
+local tests, not new iPhone/Watch acceptance or clean-VM/release validation.
+Other Pi versions are not claimed compatible until the lifecycle hooks and
+idle semantics are retested.

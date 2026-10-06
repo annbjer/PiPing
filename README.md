@@ -49,7 +49,7 @@ See [Privacy](Docs/PRIVACY.md) and the
 | **Xcode** | Stable Xcode 26 or later at `/Applications/Xcode.app`; use the latest stable full Xcode available because Command Line Tools alone cannot compile the Icon Composer source |
 | **Swift** | Swift tools 6.2 or later, supplied by the supported Xcode toolchain |
 | **Node** | The Node runtime used by your existing Pi installation, with type-stripping support for hook tests |
-| **Pi** | Tested with 0.84.3, 0.84.4, and 0.85.1; newer releases are confirmed individually; see [tested compatibility](#tested-pi-compatibility) |
+| **Pi** | Version-specific acceptance; see [tested compatibility](#tested-pi-compatibility) for versions and scoped results |
 | **iPhone / Watch delivery** | Optional; iOS 26 or later plus your own Apple account, signing identity, and private CloudKit container |
 
 The Apple version numbers above are minimum baselines, not exact-version locks.
@@ -251,10 +251,13 @@ or change this user preference. See [Setup](Docs/SETUP.md) for full guidance.
 | 0.84.3 | Passed | Passed | Original lifecycle acceptance baseline |
 | 0.84.4 | Passed | Passed | Original PiPing developer-preview acceptance baseline |
 | 0.85.1 | Passed | Passed | SettleBell private development acceptance; Mac and paired Watch delivery observed |
+| 0.87.1 | Passed | Owner-reported | Separate-machine Mac-only test on macOS 27.0, SettleBell 0.2.0 (17), commit `bd531628`; iPhone/Watch and broader release acceptance not tested on this setup |
+| 1.0.4 | Owner-observed lifecycle result | Owner-reported | macOS 27.0.1, existing private SettleBell 0.2.0 (17), hook byte-identical to `bd531628`; a measured 35-second tool wait in an ordinary turn was followed by an owner-confirmed Mac notification; no new iPhone/Watch acceptance |
 
 The native app and helper do not depend on Pi internals. The TypeScript edge does
 depend on `before_agent_start`, `agent_settled`, and `context.isIdle()`, so other
-Pi versions are not yet claimed compatible.
+Pi versions are not yet claimed compatible. The macOS 27 results are scoped to
+the listed local tests, not a general newer-OS compatibility guarantee.
 
 ## Project status
 
@@ -267,9 +270,13 @@ presentation on every device.
 Two overlapping real Pi sessions passed on the original PiPing baseline.
 SettleBell has controlled-overlap acceptance and automated lifecycle coverage
 for 50 overlapping tokens; a live 5–10-session SettleBell stress test remains
-unverified. Acceptance applies only to the tested revisions and configurations;
-it does not establish clean-user readiness for every source snapshot. Each
-release requires the [exact-revision validation gates](Docs/RELEASING.md).
+unverified. In a separate-machine local test, the owner reported a Mac
+notification after trying the proposed 35-second Pi 0.87.1 test prompt on
+macOS 27.0, using source-local SettleBell 0.2.0 (17) from commit `bd531628`.
+Elapsed time and notification presentation were not independently captured.
+Acceptance applies only to the tested revisions and configurations; it does not
+establish clean-user readiness for every source snapshot. Each release requires
+the [exact-revision validation gates](Docs/RELEASING.md).
 
 The Mac listener starts with the application lifecycle, including Login Item
 launches where no main window appears. Remote delivery is reported as sent only

@@ -29,6 +29,34 @@ the form `vMAJOR.MINOR.PATCH`.
 - Release notes identify whether the release is source-only or includes audited
   binaries.
 
+## Current local evidence (updated 2026-10-06; not release clearance)
+
+The clean `bd531628` source snapshot passed `./script/verify.sh` and produced a
+validated Mac-only source-local 0.2.0 (17) archive on the development Mac. A
+matching archive and exact-commit source copy were transferred privately to a
+separate test Mac; its guarded native installation and Pi package installation
+passed. The owner reported a real notification on macOS 27.0 with Pi 0.87.1 after trying the
+proposed 35-second test prompt; independent elapsed-time measurement was not
+recorded. This does **not** replace clean-VM, pinned package,
+iPhone/Watch, history/privacy audit, independent security review, or exact
+candidate/CI gates below. No remote, main branch, push, tag, or public release
+was created from this local candidate. Keep generated archives private.
+
+On 2026-10-06, an isolated source workspace (HEAD plus documentation edits)
+passed 56 Swift tests, 24 hook tests, public-safe macOS/iOS Release builds, and
+the iOS cross-build under Xcode 27.0 on macOS 27.0.1. Existing app trees,
+canonical process, and prior registrations were preserved. The owner also
+confirmed a Mac notification after a measured 35-second tool wait in an
+ordinary Pi 1.0.4 turn with the existing private 0.2.0 (17) app and a hook
+byte-identical to `bd531628`. This is not new iPhone/Watch acceptance or the
+final committed-archive/guest gate. A test-only discarded throwing Task
+compiler diagnostic remains recorded; no product failure was identified.
+
+Next: freeze the reconciled candidate, complete its exact archive/guest,
+privacy and independent-review gates, then seek separate approval for remote
+configuration and candidate push. Do not treat this evidence as approval to
+publish a binary or reuse an unaudited ad-hoc app as a release asset.
+
 ## Required release sequence
 
 1. Complete the required Mac, iPhone/Watch, clean-VM, and pinned Pi-package

@@ -3,10 +3,18 @@
 `settlebell.ts` is the only non-Swift product boundary. Pi 0.84.3 and 0.84.4 passed
 package-load and ordinary-turn acceptance on the original PiPing baseline.
 Pi 0.85.1 passed those checks on the private SettleBell development baseline,
-including owner-observed Watch delivery. This is scoped functional acceptance,
-not an exactly-once or live 5–10-session guarantee. Other versions are not
-claimed compatible until `before_agent_start`, `agent_settled`, and
-`context.isIdle()` are retested.
+including owner-observed Watch delivery. Pi 0.87.1 passed local package
+installation on a separate Mac (macOS 27.0) with source-local SettleBell 0.2.0
+(17), commit `bd531628`; the owner reported a real notification after trying a
+35-second test prompt. Elapsed time was not independently captured, and mobile
+delivery was disabled on this setup. On 2026-10-06, an ordinary Pi 1.0.4 turn
+on macOS 27.0.1 included a measured 35-second tool wait; the owner confirmed
+normal Mac notification delivery with the existing private SettleBell 0.2.0
+(17) app and a configured hook byte-identical to `bd531628`. No new mobile
+acceptance was performed. These are scoped functional results, not an
+exactly-once or live 5–10-session guarantee. Other versions are not claimed
+compatible until `before_agent_start`, `agent_settled`, and `context.isIdle()`
+are retested.
 
 The hook:
 
