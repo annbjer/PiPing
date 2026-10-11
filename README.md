@@ -1,13 +1,13 @@
 # SettleBell
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="Assets/Communication/piping-teaser-dark.webp">
-  <source media="(prefers-color-scheme: light)" srcset="Assets/Communication/piping-teaser-light.webp">
-  <img alt="A hand touching grass beside the fixed notification that Pi has fully settled" src="Assets/Communication/piping-teaser-dark.webp" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/Communication/settlebell-teaser-dark.webp">
+  <source media="(prefers-color-scheme: light)" srcset="Assets/Communication/settlebell-teaser-light.webp">
+  <img alt="A hand touching grass beside the fixed notification that Pi has fully settled" src="Assets/Communication/settlebell-teaser-dark.webp" width="720">
 </picture>
 
-*Unchanged PiPing `v0.1.0` teaser artwork, retained as historical provenance;
-not relabeled as new SettleBell artwork.*
+*Teaser artwork reused unchanged from PiPing `v0.1.0`; the original files
+remain preserved under their PiPing filenames.*
 
 Stop watching the terminal. When a long-running Pi task has fully settled, SettleBell
 sends a simple notification to your Mac, so you can go do something else while
