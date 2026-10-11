@@ -32,8 +32,10 @@ identifiers, example commands and paths, and illustrative text may appear in
 source documentation and tests; they are not data collected by the notification
 system. Required license attribution and explicitly owner-approved public
 project/developer identity or artwork are narrow publication exceptions. The
-SettleBell desktop hero images intentionally retain the developer's approved
-first-name greeting. These exceptions do not permit unrelated private data,
+historical SettleBell hero captures retain an approved first-name greeting;
+current captures retain the explicitly approved public project path, branch,
+and Pi status/model information. This illustrative screenshot content is not
+collected or transmitted by SettleBell. These exceptions do not permit unrelated private data,
 credentials, account/device identifiers, or raw user logs in public artifacts,
 and do not expand the app's runtime data boundary. Private signing/setup
 configuration remains local and excluded from releases.

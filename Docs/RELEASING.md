@@ -29,7 +29,7 @@ the form `vMAJOR.MINOR.PATCH`.
 - Release notes identify whether the release is source-only or includes audited
   binaries.
 
-## Current local evidence (updated 2026-10-06; not release clearance)
+## Current local evidence (updated 2026-10-11; not release clearance)
 
 The clean `bd531628` source snapshot passed `./script/verify.sh` and produced a
 validated Mac-only source-local 0.2.0 (17) archive on the development Mac. A
@@ -42,20 +42,37 @@ iPhone/Watch, history/privacy audit, independent security review, or exact
 candidate/CI gates below. No remote, main branch, push, tag, or public release
 was created from this local candidate. Keep generated archives private.
 
-On 2026-10-06, an isolated source workspace (HEAD plus documentation edits)
-passed 56 Swift tests, 24 hook tests, public-safe macOS/iOS Release builds, and
-the iOS cross-build under Xcode 27.0 on macOS 27.0.1. Existing app trees,
+On 2026-10-06, the exact committed `8cbca6019a0cea99aff4ff8115d11a0a6d93bf41`
+source archive passed 56 Swift tests, 24 hook tests, public-safe macOS/iOS Release
+builds, and the iOS cross-build under Xcode 27.0 on macOS 27.0.1. All 109 source
+files matched Git bytes, types, and executable modes. Existing app trees,
 canonical process, and prior registrations were preserved. The owner also
 confirmed a Mac notification after a measured 35-second tool wait in an
 ordinary Pi 1.0.4 turn with the existing private 0.2.0 (17) app and a hook
-byte-identical to `bd531628`. This is not new iPhone/Watch acceptance or the
-final committed-archive/guest gate. A test-only discarded throwing Task
-compiler diagnostic remains recorded; no product failure was identified.
+byte-identical to `bd531628`. This is not new iPhone/Watch acceptance. A test-only
+discarded throwing Task compiler diagnostic remains recorded; no product
+failure was identified, and independent review of that diagnostic is pending.
 
-Next: freeze the reconciled candidate, complete its exact archive/guest,
-privacy and independent-review gates, then seek separate approval for remote
-configuration and candidate push. Do not treat this evidence as approval to
-publish a binary or reuse an unaudited ad-hoc app as a release asset.
+On 2026-10-11, an owner-relayed desktop-control test report recorded a successful
+install, genuine canonical installation check, and guarded uninstall of the
+Mac-only app derived from that exact source archive. The guest ran macOS 26.6.2
+with Command Line Tools 26.6, using an existing administrator account as a
+non-root user. This does not establish standard-account installation success.
+The expected missing-full-Xcode status failure was checked; full status-success
+acceptance was not performed. Guest evidence and the compressed recovery archive
+were retained. A private test-harness route-detection correction was required;
+product source and app archive checksums remained unchanged. This was not a new
+notification, Pi integration, mobile, or migration test campaign.
+
+The subsequent `c4212af` revision changes only README artwork and references;
+these documentation corrections also leave product, configuration, test, and
+script bytes unchanged. Prior tests remain scoped to the revisions above, not
+an assertion that a later exact archive's full verifier or independent review
+has run. Next: freeze the reconciled candidate, audit its exact source archive,
+reconcile required affected checks with the retained evidence, and complete the
+independent-review and exact-candidate CI gates. Remote configuration and
+candidate push still require separate approval. None of this evidence authorizes
+binary publication or use of a local ad-hoc app as a release asset.
 
 ## Required release sequence
 
