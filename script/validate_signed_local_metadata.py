@@ -31,6 +31,11 @@ def validate_metadata(app_entitlements, helper_entitlements, profile,
         raise ValueError("Provisioning profile has an unexpected application identifier.")
     if profile_entitlements.get("com.apple.developer.icloud-container-identifiers") != [container]:
         raise ValueError("Provisioning profile has an unexpected iCloud container.")
+    profile_services = profile_entitlements.get("com.apple.developer.icloud-services")
+    if (not isinstance(profile_services, list)
+            or not all(isinstance(service, str) for service in profile_services)
+            or "CloudKit" not in profile_services):
+        raise ValueError("Provisioning profile does not authorize the requested CloudKit service.")
     # A profile authorizes a capability ceiling, not the actual app/helper
     # entitlement set. Profile UUID/hash/capability-set pinning is not claimed.
     developer_certificates = profile.get("DeveloperCertificates", [])

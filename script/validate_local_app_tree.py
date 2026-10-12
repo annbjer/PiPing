@@ -6,8 +6,25 @@ import subprocess
 import sys
 
 
+# Reviewed Darwin flags that do not block normal reads/moves/removal:
+# UF_NODUMP, UF_COMPRESSED, UF_TRACKED, UF_HIDDEN and SF_ARCHIVED.
+# Use SDK values rather than newer Python-only constant names so CLT Python 3.9
+# has the same policy. Never clear flags on an input app to make it pass.
+ALLOWED_BSD_FLAGS = 0x00000001 | 0x00000020 | 0x00000040 | 0x00008000 | 0x00010000
+
+
 def reject(reason):
     raise ValueError("Local SettleBell app tree " + reason + ".")
+
+
+def validate_flags(metadata):
+    flags = getattr(metadata, "st_flags", None)
+    if not isinstance(flags, int):
+        reject("requires native BSD file-flag metadata")
+    if flags & ~ALLOWED_BSD_FLAGS:
+        # Includes user/system immutable, append/no-unlink, platform-restricted
+        # objects and unknown flags; only the reviewed benign bits are allowed.
+        reject("must not contain mutation-blocking, restricted or unreviewed BSD file flags")
 
 
 def validate(path, relative):
@@ -16,6 +33,7 @@ def validate(path, relative):
     before = os.lstat(path)
     if before.st_uid != os.geteuid():
         reject("must be owned entirely by the effective user")
+    validate_flags(before)
     mode = stat.S_IMODE(before.st_mode)
     if mode & 0o022:
         reject("must not be writable by group or others")
@@ -41,7 +59,7 @@ def validate(path, relative):
     after = os.lstat(path)
     def identity(value):
         return (value.st_dev, value.st_ino, value.st_uid, value.st_mode,
-                value.st_nlink, value.st_ctime_ns)
+                value.st_nlink, value.st_ctime_ns, getattr(value, "st_flags", None))
     if identity(before) != identity(after):
         reject("changed during metadata validation")
     if stat.S_ISDIR(before.st_mode):

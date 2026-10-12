@@ -11,6 +11,10 @@ archives are not public release artifacts.
 
 ### Fixed
 
+- Reject mutation-blocking/restricted or unreviewed BSD file flags while allowing
+  reviewed benign flags, and check flags for metadata stability (SB-NEW-01).
+- Verify that a signed-local provisioning profile authorizes the requested
+  CloudKit service without expanding actual app/helper entitlements (SB-NEW-02).
 - Reject unsafe app-tree ownership, modes, ACLs, hardlinks, symlinks and special
   objects in both local installation validators (SB-SEC-01).
 - Require exact signed app entitlements, an entitlement-free helper and its

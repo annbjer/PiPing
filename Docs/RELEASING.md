@@ -71,9 +71,23 @@ unchanged. Daybreak independently reviewed all 111 files of the `d5bd76a` source
 packet, reconstructed tree `81ecea6ef2337bbb9ead2d4c454b10cd083a2fbd`, and verified
 archive SHA-256 `f249f860086fe5d64ea192a5e0f6df855e91d6751e93d10b053b7e3f000b5aae`.
 It identified installer validation defects and release/evidence gaps; it did not
-approve publication or execute tests. See
-[review disposition](SECURITY_REVIEW_20261011.md) for the local repair scope,
-remaining acceptance and proposed risk dispositions.
+approve publication or execute tests.
+
+Replacement commit `77b22030ea6adc265901ed81408b366ca7cc917c`, tree
+`29587f0c529651c2610c74f198ae98f6849e998e`, source archive SHA-256
+`1833ba509fdd195c1e03ca2dcd312488d1ad0a89007a9fd2df10f9c739993162`, passed the
+full exact extracted-source verifier:63 Swift test functions,26 Node tests
+including26-method Python fixtures, public-safe macOS/iOS Release and iOS
+cross-builds. Its Mac-only ad-hoc build18 and11 native artifact/unsafe-derivative
+cases passed without installation, preserving18 existing app trees, the running
+canonical process and27 prior registrations with zero new relevant registrations.
+Daybreak independently verified all118 source files and the supplied commit/tree
+link, and accepted the original three code repairs within static scope. It found
+two new Low omissions (BSD flags/profile CloudKit authorization), not release
+clearance. The next repaired installable build is19; new exact-source evidence
+must remain pinned separately. See
+[review disposition](SECURITY_REVIEW_20261011.md) for finding statuses, accepted
+source-only risk dispositions and remaining acceptance/publication gates.
 
 Prior functional tests remain scoped to their pinned revisions. Product/script
 repairs require affected checks and a new exact-source verifier, audited archive,

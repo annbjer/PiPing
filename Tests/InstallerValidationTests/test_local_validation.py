@@ -10,6 +10,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -88,6 +89,9 @@ class AppTreeTests(unittest.TestCase):
             # Not runnable code; no app/helper execution is part of these tests.
             executable.write_bytes(b"synthetic non-executable payload\n")
             executable.chmod(0o755)
+        resource = app / "Contents/Resources/resource.dat"
+        resource.write_bytes(b"synthetic resource fixture\n")
+        resource.chmod(0o644)
         return app
 
     def invoke(self, script, *arguments):
@@ -110,6 +114,64 @@ class AppTreeTests(unittest.TestCase):
             path.chmod(0o700 if path.is_dir() or os.access(path, os.X_OK) else 0o600)
         self.app.chmod(0o700)
         TREE.validate_tree(self.app)
+
+    def test_native_mutation_blocking_flags(self):
+        # Only owner-settable flags on freshly created fixtures. Darwin's SDK
+        # reserves/comments out UF_NOUNLINK; system/no-unlink bits are covered
+        # synthetically below, never set with sudo or on a working app.
+        for name in ("uchg", "uappnd"):
+            for relative in ("", "Contents/Helpers/SettleBellSignal", "Contents/Resources/resource.dat"):
+                with self.subTest(flag=name, relative=relative):
+                    target = self.app / relative
+                    original = target.lstat().st_flags
+                    try:
+                        subprocess.run(["/usr/bin/chflags", name, str(target)], check=True)
+                        self.assertNotEqual(target.lstat().st_flags, original)
+                        self.assert_rejected_by_both_app_validators("BSD file flags")
+                    finally:
+                        os.chflags(target, original)
+        TREE.validate_tree(self.app)
+
+    def test_benign_flags_are_not_indiscriminately_rejected(self):
+        target = self.app / "Contents/Resources/resource.dat"
+        original = target.lstat().st_flags
+        try:
+            subprocess.run(["/usr/bin/chflags", "nodump,hidden", str(target)], check=True)
+            TREE.validate_tree(self.app)
+        finally:
+            os.chflags(target, original)
+        # Compression/tracking/archive bits are recognized from Darwin's SDK;
+        # do not manufacture compressed data or set privileged system flags.
+        for flag in (0, 0x1, 0x20, 0x40, 0x8000, 0x10000, TREE.ALLOWED_BSD_FLAGS):
+            TREE.validate_flags(SimpleNamespace(st_flags=flag))
+
+    def test_synthetic_system_no_unlink_and_unreviewed_flags(self):
+        for flag in (0x2, 0x4, 0x10, 0x8, 0x80, 0x20000, 0x40000,
+                     0x80000, 0x100000, 0x200000, 0x800000, 0x40000000, 0x100):
+            with self.subTest(flag=hex(flag)):
+                with self.assertRaisesRegex(ValueError, "BSD file flags"):
+                    TREE.validate_flags(SimpleNamespace(st_flags=flag))
+        for metadata in (SimpleNamespace(), SimpleNamespace(st_flags=None)):
+            with self.assertRaisesRegex(ValueError, "native BSD file-flag metadata"):
+                TREE.validate_flags(metadata)
+
+    def test_flag_change_alone_is_rejected(self):
+        original = os.lstat
+        calls = 0
+
+        def changed(path):
+            nonlocal calls
+            result = original(path)
+            calls += 1
+            if calls == 3:
+                return SimpleNamespace(**{name: getattr(result, name) for name in
+                    ("st_dev", "st_ino", "st_uid", "st_mode", "st_nlink", "st_ctime_ns")},
+                    st_flags=result.st_flags ^ 0x1)
+            return result
+
+        with patch.object(TREE.os, "lstat", side_effect=changed):
+            with self.assertRaisesRegex(ValueError, "changed during"):
+                TREE.validate_tree(self.app)
 
     def test_writable_helper(self):
         (self.app / "Contents/Helpers/SettleBellSignal").chmod(0o777)
@@ -270,6 +332,21 @@ fi
         self.assertIn("not approved", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
 
+    def test_signed_shell_checks_profile_cloudkit_authorization(self):
+        self.prepare_synthetic_signed_shell()
+        target = Path(self.env["FIXTURE_PROFILE"])
+        profile = plistlib.loads(target.read_bytes())
+        for services in (None, ["CloudDocuments"], ["CloudKit"], ["CloudKit", "CloudDocuments"]):
+            with self.subTest(services=services):
+                if services is None:
+                    profile["Entitlements"].pop("com.apple.developer.icloud-services", None)
+                else:
+                    profile["Entitlements"]["com.apple.developer.icloud-services"] = services
+                target.write_bytes(plistlib.dumps(profile))
+                result = self.invoke("validate_signed_local_app.sh", self.app)
+                expected = 0 if services and "CloudKit" in services else 1
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+
     def test_signed_shell_rejects_wrong_helper_identifier_and_extraction_failure(self):
         self.prepare_synthetic_signed_shell()
         self.env["FIXTURE_HELPER_ID"] = "OtherHelper"
@@ -279,6 +356,54 @@ fi
         self.env.update(FIXTURE_HELPER_ID="SettleBellSignal", FIXTURE_HELPER_EXTRACTION_FAIL="1")
         result = self.invoke("validate_signed_local_app.sh", self.app)
         self.assertNotEqual(result.returncode, 0, "Failed entitlement extraction must not become an empty dictionary")
+
+    def test_check_rejects_flags_on_extracted_fixture_before_signature(self):
+        archive = self.root / "safe-metadata.zip"
+        with zipfile.ZipFile(archive, "w") as output:
+            for path in [self.app, *self.app.rglob("*")]:
+                member = "SettleBell.app" + ("/" + path.relative_to(self.app).as_posix() if path != self.app else "")
+                directory = path.is_dir()
+                info = zipfile.ZipInfo(member + ("/" if directory else ""))
+                info.create_system = 3
+                info.external_attr = path.stat().st_mode << 16
+                if directory:
+                    info.external_attr |= 0x10
+                output.writestr(info, b"" if directory else path.read_bytes())
+        # ZIP need not encode BSD flags. Inject actual native owner flags ONLY
+        # after genuine ditto extraction in disposable installer copies, to test
+        # the boundary that receives preserved filesystem metadata. This is not
+        # evidence that a particular ZIP format preserves a flag.
+        injected = self.root / "injected-flag-paths"
+        wrapper = self.bin / "ditto"
+        wrapper.write_text('''#!/bin/bash
+set -euo pipefail
+/usr/bin/ditto "$@"
+target="${@: -1}/SettleBell.app${FIXTURE_FLAG_RELATIVE:+/$FIXTURE_FLAG_RELATIVE}"
+printf '%s\\n' "$target" >> "$FIXTURE_FLAG_PATHS"
+/usr/bin/chflags "$FIXTURE_FLAG_NAME" "$target"
+''')
+        wrapper.chmod(0o700)
+        self.env["FIXTURE_FLAG_PATHS"] = str(injected)
+        for flag in ("uchg", "uappnd"):
+            for relative in ("", "Contents/Helpers/SettleBellSignal", "Contents/Resources/resource.dat"):
+                for script in ("install_source_local.sh", "install_signed_local.sh"):
+                    with self.subTest(flag=flag, relative=relative, script=script):
+                        self.env.update(FIXTURE_FLAG_NAME=flag, FIXTURE_FLAG_RELATIVE=relative)
+                        injected.write_text("")
+                        try:
+                            result = self.invoke(script, "--check", archive)
+                            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                            self.assertIn("BSD file flags", result.stderr)
+                            self.assertFalse(self.trace.exists())
+                            self.assertEqual(list(self.applications.iterdir()), [self.applications / "KEEP"])
+                            self.assertEqual((self.applications / "KEEP").read_text(), "unchanged\n")
+                        finally:
+                            for name in injected.read_text().splitlines():
+                                target = Path(name)
+                                self.assertTrue(target.resolve().is_relative_to(self.root.resolve()))
+                                if target.exists():
+                                    flags = target.lstat().st_flags
+                                    os.chflags(target, flags & ~(stat.UF_IMMUTABLE | stat.UF_APPEND))
 
     def test_check_refuses_unwritable_applications_without_mutation(self):
         archive = self.root / "unused.zip"
@@ -388,6 +513,24 @@ class SignedMetadataTests(unittest.TestCase):
         self.profile["Entitlements"]["keychain-access-groups"] = ["synthetic"]
         self.validate()
         self.entitlements["keychain-access-groups"] = ["synthetic"]
+        with self.assertRaisesRegex(ValueError, "only the exact"):
+            self.validate()
+
+    def test_profile_cloudkit_service_authorization(self):
+        profile_entitlements = self.profile["Entitlements"]
+        for services in (None, [], ["CloudDocuments"], "CloudKit", {"CloudKit": True}, ["CloudKit", 1]):
+            with self.subTest(services=services):
+                if services is None:
+                    profile_entitlements.pop("com.apple.developer.icloud-services", None)
+                else:
+                    profile_entitlements["com.apple.developer.icloud-services"] = services
+                with self.assertRaisesRegex(ValueError, "does not authorize"):
+                    self.validate()
+        profile_entitlements["com.apple.developer.icloud-services"] = ["CloudKit"]
+        self.validate()
+        profile_entitlements["com.apple.developer.icloud-services"] = ["CloudKit", "CloudDocuments"]
+        self.validate()  # Broader profile ceiling does not widen the actual app.
+        self.entitlements["com.apple.developer.icloud-services"].append("CloudDocuments")
         with self.assertRaisesRegex(ValueError, "only the exact"):
             self.validate()
 

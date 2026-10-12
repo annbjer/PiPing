@@ -145,8 +145,12 @@ asks, then install the Pi edge separately as described below.
 
 Both local app validators first require the entire app tree to be owned by the
 effective user, with no group/other write access, extended ACLs, hardlinks,
-symlinks or special objects. Directories and the two expected executables use
-mode `0755` or `0700`; other files use `0644` or `0600`. Unexpected modes are
+symlinks or special objects. Mutation-blocking/restricted or unreviewed BSD file
+flags also reject, including immutable, append-only and no-unlink flags; flags
+are included in the before/after metadata identity check. Reviewed benign flags
+(nodump, compression, document tracking, hidden and archived) remain allowed.
+The validator does not clear flags on an input app to make it pass.
+Directories and the two expected executables use mode `0755` or `0700`; other files use `0644` or `0600`. Unexpected modes are
 rejected, not repaired. The same check applies to staging, accepted prior apps,
 backups and rollback; signed bundles currently have no framework-symlink
 exception. Signature checks do not replace this filesystem boundary.
@@ -261,8 +265,11 @@ debugging, Keychain and app-group capabilities. If Xcode emits a new entitlement
 stop for review rather than widening the allowlist automatically.
 
 The unexpired provisioning profile must authorize the configured team,
-application/container and the app/helper's shared Apple Development leaf
-certificate. This is **not** an exact profile UUID/hash or profile-capability-set
+application/container, the requested `CloudKit` service and the app/helper's
+shared Apple Development leaf certificate. The profile's service list may
+contain additional service ceilings, but the actual app's service entitlement
+remains exactly `["CloudKit"]` and the helper remains entitlement-free.
+This is **not** an exact profile UUID/hash or profile-capability-set
 pin: another same-team profile may pass those authorization checks, but cannot
 expand the actual app/helper entitlements. The installer atomically quarantines
 and revalidates an accepted prior signed-local app under a non-`.app` payload

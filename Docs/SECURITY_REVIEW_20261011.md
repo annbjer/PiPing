@@ -1,6 +1,51 @@
 # Independent review and local repair disposition
 
-## Reviewed baseline, not release clearance
+## Follow-up: build18 reviewed, two Low omissions repaired
+
+Daniel relayed Daybreak's read-only follow-up of commit
+`77b22030ea6adc265901ed81408b366ca7cc917c`, tree
+`29587f0c529651c2610c74f198ae98f6849e998e`, source SHA-256
+`1833ba509fdd195c1e03ca2dcd312488d1ad0a89007a9fd2df10f9c739993162`.
+It verified all118 files and independently proved the supplied commit object and
+tree link. It accepted the three original code repairs within static scope,
+without widening the content/FIFO/parser/lifecycle/consent boundaries, but found
+two Low validation omissions. It did not execute code or approve publication.
+
+| Finding | Subsequent local repair | Remaining gate |
+| --- | --- | --- |
+| SB-NEW-01 — Low, BSD flags | Read native st_flags before accepting an object and pin flags in the before/after identity. Reject mutation-blocking, restricted and unreviewed bits; explicitly allow nodump, compression, document tracking, hidden and archived flags. Never clear input flags to make an app pass. | Native owner-settable flag fixtures cover root/helper/resource and both app validators/sandboxed check paths. System/no-unlink flags use synthetic metadata only; no privileged setters. New exact-source/artifact and affected transaction acceptance remain required. |
+| SB-NEW-02 — Low, profile CloudKit authorization | Require a well-typed profile service list containing CloudKit. Additional profile-only service ceilings remain allowed, but actual app services stay exactly CloudKit and the helper entitlement-free. | Synthetic missing/CloudDocuments-only/exact/broader-profile fixtures; real intended Apple Development build still requires separate approval/acceptance. |
+
+The owner approved the local repair/commit/exact-verification scope with working
+apps/settings preserved. These are installation/preflight checks, not changes to
+running notification delivery. New installable artifacts use build19; installed
+build17 apps and retained build18 artifacts/evidence are unchanged. Git commits
+and private evidence provide a reversible source checkpoint; no automatic
+installation, permissions repair, CloudKit reset or feature disable is authorized.
+Real private signed compatibility is not established by synthetic tests.
+
+Follow-up dispositions accepted for this trusted-source-only/source-only preview:
+
+- SB-RISK-01: defer ZIP parser unification/collision hardening, not proof of safety;
+  reopen before downloadable binaries or arbitrary app ZIP acceptance.
+- SB-RISK-02: migration documentation mitigation accepted, requiring inactive
+  PiPing/hook and a fresh Pi process; attestation stays noncryptographic.
+- SB-RESIDUAL-01: documented submitted timestamp may complete after disable.
+- SB-EVID-02/03/04: wording/prerequisite/task repairs accepted. No interruption
+  matrix or standard-account installation acceptance is claimed.
+
+SB-EVID-01 advanced for77b2203: its exact extracted-source verifier and real
+Mac-only artifact/unsafe-derivative checks passed, with preserved apps/process/
+registrations. Those are reported local receipts, not Daybreak execution.
+Real signed build, current transaction acceptance, read-only historical CloudKit
+subscription normalization/compatibility, exact-commit hosted CI, final history/
+publication audit, immutable PiPing tag and intended repository/security/owner
+publication gates remain open. No broad VM/mobile campaign or subscription reset
+is authorized. Record subsequent commit/archive verification separately rather
+than editing a tested commit after the fact. These new repairs are not yet
+independently reviewed.
+
+## Historical reviewed baseline, not release clearance
 
 Daniel relayed Daybreak's independent read-only review of SettleBell 0.2.0 (17):
 
