@@ -50,6 +50,7 @@ See [Privacy](Docs/PRIVACY.md) and the
 | **Swift** | Swift tools 6.2 or later, supplied by the supported Xcode toolchain |
 | **Node** | The Node runtime used by your existing Pi installation, with type-stripping support for hook tests |
 | **Pi** | Version-specific acceptance; see [tested compatibility](#tested-pi-compatibility) for versions and scoped results |
+| **Local installation** | The invoking user must already have write access to `/Applications`—normally an administrator account. No `sudo` or password prompt; standard-account installation is not supported/accepted in this preview |
 | **iPhone / Watch delivery** | Optional; iOS 26 or later plus your own Apple account, signing identity, and private CloudKit container |
 
 The Apple version numbers above are minimum baselines, not exact-version locks.
@@ -59,6 +60,8 @@ lifecycle APIs can change.
 
 SettleBell `0.2.0` is a source-only developer preview.
 This source snapshot does not include an official downloadable app binary.
+App/archive validation also requires Python 3 available as `python3` on `PATH`
+(for example, from the installed Xcode Command Line Tools). No script installs it.
 
 ## Choose a path
 

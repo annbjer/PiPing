@@ -31,6 +31,9 @@ struct MobileStatusView: View {
                 } else if store.status == .registrationRestartRequired {
                     Label("Close and reopen SettleBell before retrying", systemImage: "arrow.clockwise")
                         .foregroundStyle(.orange)
+                } else if store.status == .subscriptionResetRequired {
+                    Label("Existing subscription differs; review CloudKit setup before retrying", systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.orange)
                 } else {
                     Button(
                         store.status == .configuring
@@ -45,7 +48,7 @@ struct MobileStatusView: View {
                 }
             } footer: {
                 if FeatureGates.cloudKitActivationEnabled {
-                    Text("Requests notification permission and creates one fixed subscription in your private iCloud database.")
+                    Text("Requests notification permission and verifies or creates one fixed subscription in your private iCloud database. An existing mismatch requires separately reviewed recovery.")
                 } else {
                     Text("Disabled until the local signing and CloudKit configuration is approved.")
                 }

@@ -11,6 +11,14 @@ archives are not public release artifacts.
 
 ### Fixed
 
+- Reject unsafe app-tree ownership, modes, ACLs, hardlinks, symlinks and special
+  objects in both local installation validators (SB-SEC-01).
+- Require exact signed app entitlements, an entitlement-free helper and its
+  expected signature identifier; distinguish profile authorization from profile
+  identity pinning (SB-SEC-02).
+- Validate an existing CloudKit subscription's complete fixed schema and stop
+  with a reset-required state on mismatch, without replacing it (SB-SEC-03).
+- Retain and await the delayed APNs test callback task (SB-EVID-04).
 - Show the existing observable CloudKit delivery status in Mac Settings instead
   of a static setup message (SB-UI-001).
 - Invalidate queued Cloud publication on disable and prevent stale in-flight
@@ -83,10 +91,14 @@ PiPing's first public version is a source-only developer preview.
 - Guarded install/uninstall transactions pin prior identity and establish
   rollback, candidate-promotion, or commit state before atomic moves and
   preference deletion; normal
-  HUP, INT, and TERM signals route through cleanup, with regression and clean-VM
-  interruption coverage.
+  HUP, INT, and TERM signals route through cleanup. Repository regressions
+  inspect transaction source ordering; retained clean-VM acceptance is scoped
+  separately. This wording does not claim a behavioral interruption matrix or
+  automatic recovery from power loss/SIGKILL.
 - Guarded local installation validates archive paths, identity, signatures,
   hardened runtime, canonical paths, and bounded compressed recovery without
   using `sudo`; source-local apps must have no entitlements, while signed-local
-  apps must match the exact approved profile, entitlements, team, container,
-  activation metadata, certificate, and helper configuration.
+  apps validate team, container, activation metadata, certificate and helper
+  configuration with provisioning-profile authorization checks. For current
+  SettleBell, the app/helper entitlement sets are exact; the profile itself is
+  not pinned by UUID/hash or by its complete capability set.

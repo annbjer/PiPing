@@ -16,6 +16,7 @@ final class MobileSetupStore {
         case notificationsDenied
         case iCloudUnavailable
         case registrationRestartRequired
+        case subscriptionResetRequired
         case failed
 
         var label: String {
@@ -26,6 +27,7 @@ final class MobileSetupStore {
             case .notificationsDenied: "Notifications are off"
             case .iCloudUnavailable: "iCloud is unavailable"
             case .registrationRestartRequired: "Restart SettleBell to retry"
+            case .subscriptionResetRequired: "Subscription reset required"
             case .failed: "Setup needs attention"
             }
         }
@@ -123,6 +125,10 @@ final class MobileSetupStore {
     }
 
     private func setFailureStatus(for error: any Error) {
+        if error as? CloudKitSubscriptionError == .subscriptionResetRequired {
+            status = .subscriptionResetRequired
+            return
+        }
         guard let registrationError = error as? RemoteNotificationRegistrationError else {
             status = .failed
             return

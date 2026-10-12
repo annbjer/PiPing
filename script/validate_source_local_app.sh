@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="${1:-}"
 PUBLIC_BUNDLE_IDENTIFIER="org.example.SettleBell.macOS"
 PUBLIC_CONTAINER_IDENTIFIER="iCloud.org.example.SettleBell"
@@ -13,10 +14,7 @@ if [[ ! -d "$APP" || ! -f "$APP/Contents/Info.plist" ]]; then
   echo "Source-local SettleBell app is missing or malformed." >&2
   exit 1
 fi
-if find "$APP" -type l -print -quit | grep -q .; then
-  echo "Source-local SettleBell app must not contain symbolic links." >&2
-  exit 1
-fi
+"$ROOT_DIR/script/validate_local_app_tree.sh" "$APP"
 
 PLIST="$APP/Contents/Info.plist"
 EXECUTABLE="$APP/Contents/MacOS/SettleBell"
@@ -72,4 +70,4 @@ for binary in "$APP" "$HELPER"; do
   fi
 done
 
-echo "Source-local app/helper identity, configuration, signatures, runtime, and entitlements are valid."
+echo "Source-local app tree, app/helper identity, configuration, signatures, runtime, and entitlements are valid."

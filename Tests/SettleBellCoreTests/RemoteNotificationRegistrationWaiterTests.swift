@@ -17,12 +17,15 @@ struct RemoteNotificationRegistrationWaiterTests {
     func delayedSuccess() async throws {
         let waiter = RemoteNotificationRegistrationWaiter()
 
+        var callbackTask: Task<Void, Error>?
+        defer { callbackTask?.cancel() }
         try await waiter.wait(timeout: .seconds(1)) {
-            Task { @MainActor in
+            callbackTask = Task { @MainActor in
                 try await Task.sleep(for: .milliseconds(20))
                 waiter.didRegister()
             }
         }
+        try await callbackTask?.value
     }
 
     @Test("reports a failed registration callback")

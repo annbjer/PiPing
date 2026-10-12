@@ -58,10 +58,16 @@ own explicit approval.
 
    This does not modify `/Applications/PiPing.app` or `$HOME/.piping`.
 
-3. Approve SettleBell notifications manually. Install or reload the SettleBell
-   Pi package only after separate approval, then complete one ordinary eligible
-   Pi run. With the default setting, the run must last at least 30 seconds.
-   Confirm that the SettleBell notification was presented and acknowledge it.
+3. Approve SettleBell notifications manually. Before the fresh notification
+   test, quit PiPing and, after separate approval, temporarily disable/remove only
+   its exact Pi package source. Record that source for rollback; preserve the
+   PiPing app, preferences and notification permission. Install the SettleBell
+   Pi package only after separate approval, then start a fresh Pi process so an
+   already-loaded PiPing hook cannot contribute. Complete one ordinary eligible
+   run; with the default setting, it must last at least 30 seconds. Confirm and
+   acknowledge the newly presented notification. The products share an icon and
+   fixed copy, so a notification while both paths are active is not sufficient
+   provenance for retirement.
 
 4. Locate the trusted PiPing app archive that was installed, or a validated
    recovery archive made from that installation, and establish its SHA-256 from
@@ -93,8 +99,10 @@ own explicit approval.
      --legacy-sha256 "$legacy_sha256"
    ```
 
-   The script then requires a fresh typed attestation on `/dev/tty`; a copied
-   command-line option cannot stand in for observing and acknowledging the
+   Keep PiPing and its hook inactive through this final check. The script then
+   requires a fresh typed attestation on `/dev/tty`; this is owner evidence, not
+   cryptographic notification provenance. A copied command-line option cannot
+   stand in for observing and acknowledging the
    SettleBell notification. Retirement atomically quarantines and revalidates
    PiPing, creates a validated
    compressed recovery archive, retains at most three such archives, unregisters

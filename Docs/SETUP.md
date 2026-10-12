@@ -8,6 +8,16 @@ Requirements:
 - the latest stable full Xcode 26 or later at `/Applications/Xcode.app`
 - Swift tools 6.2 or later, supplied by Xcode
 - Node provided by the existing Pi installation for hook tests
+- Python 3 available as `python3` on `PATH` for app/archive validation and
+  synthetic installer fixtures; installed Xcode Command Line Tools can supply it
+
+Local install, update, rollback and uninstall additionally require the invoking
+user to already have write access to `/Applications`. This normally means an
+administrator account running as a non-root user. No script requests a password,
+invokes `sudo`, or changes account permissions. Standard-account installation is
+not supported or accepted in this developer preview; lack of write access stops
+the preflight without changing the canonical app. Verification/build-only work
+does not require `/Applications` write access.
 
 Run:
 
@@ -78,7 +88,15 @@ sequence:
 2. confirm that the iCloud account is available;
 3. request alert and sound permission;
 4. confirm APNs registration within a 15-second bound; and
-5. install the fixed private-database subscription if needed.
+5. install the fixed private-database subscription if absent, or verify the
+   complete schema of the existing historical subscription before reusing it.
+
+A subscription with the historical ID but different type, record/predicate/zone,
+triggers, notification copy/sound or extra payload settings is not ready.
+SettleBell reports **Subscription reset required** and does not delete, overwrite
+or duplicate it. Any reset needs separately reviewed, explicitly approved
+CloudKit recovery; no reset command is provided by this preview. Empty and
+absent desired-key arrays are equivalent because both request no record fields.
 
 Because Apple's APNs callback does not identify individual attempts, a timed-out
 or cancelled registration requires closing and reopening the iPhone app before
@@ -124,6 +142,14 @@ verifies one app process and one LaunchServices path. It never invokes `sudo`,
 changes Apple accounts, accesses signing credentials, installs Pi, or enables
 notification permission. Grant notification permission in SettleBell when macOS
 asks, then install the Pi edge separately as described below.
+
+Both local app validators first require the entire app tree to be owned by the
+effective user, with no group/other write access, extended ACLs, hardlinks,
+symlinks or special objects. Directories and the two expected executables use
+mode `0755` or `0700`; other files use `0644` or `0600`. Unexpected modes are
+rejected, not repaired. The same check applies to staging, accepted prior apps,
+backups and rollback; signed bundles currently have no framework-symlink
+exception. Signature checks do not replace this filesystem boundary.
 
 Generated app archives are ignored local artifacts, not public release files.
 Ad-hoc installation is intended for source-building developers; it is not a
@@ -224,14 +250,24 @@ explicit guarded command:
 ```
 
 The installer rejects public-safe, ad-hoc, foreign-team, wrong-identity,
-mismatched-helper, and altered-CloudKit artifacts before copying or launching
-anything. It also refuses to replace a source-local, foreign, or future official
-canonical app. It binds the app, helper, hardened runtime, entitlements, and
-unexpired provisioning profile to the exact ignored local team, bundle, and
-container configuration; atomically quarantines and revalidates an accepted
-prior signed-local app under a non-`.app` payload name; creates an atomic,
-validated rollback capped at three archives; replaces only
-`/Applications/SettleBell.app`; launches it; and runs the canonical installation
+mismatched-helper, and altered-CloudKit artifacts before canonical-path
+replacement or app launch. It also refuses to replace a source-local, foreign,
+or future official canonical app. It requires hardened runtime, an app
+entitlement dictionary containing exactly the configured iCloud container,
+`CloudKit` service, team identifier and application identifier, and an
+entitlement-free helper with signature identifier
+`SettleBellSignal`. All extra app/helper entitlements are rejected, including
+debugging, Keychain and app-group capabilities. If Xcode emits a new entitlement,
+stop for review rather than widening the allowlist automatically.
+
+The unexpired provisioning profile must authorize the configured team,
+application/container and the app/helper's shared Apple Development leaf
+certificate. This is **not** an exact profile UUID/hash or profile-capability-set
+pin: another same-team profile may pass those authorization checks, but cannot
+expand the actual app/helper entitlements. The installer atomically quarantines
+and revalidates an accepted prior signed-local app under a non-`.app` payload
+name; creates an atomic, validated rollback capped at three archives; replaces
+only `/Applications/SettleBell.app`; launches it; and runs the canonical installation
 check. If post-install validation fails before commit, it restores the pinned
 previous canonical app.
 After a successful first install, grant notification permission and optionally

@@ -16,7 +16,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-bash -n "$ROOT_DIR"/script/*.sh
+for script in "$ROOT_DIR"/script/*.sh; do
+  bash -n "$script"
+done
 for required_script in \
   build_source_local.sh \
   check_source_installation.sh \
@@ -26,8 +28,10 @@ for required_script in \
   uninstall_source_local.sh \
   validate_legacy_piping_source_local_app.sh \
   validate_legacy_piping_source_local_archive.sh \
+  validate_local_app_tree.sh \
   validate_source_local_app.sh \
   validate_source_local_archive.sh \
+  validate_signed_local_app.sh \
   validate_signed_local_archive.sh; do
   if [[ ! -x "$ROOT_DIR/script/$required_script" ]]; then
     echo "Required source-local script is not executable: $required_script" >&2

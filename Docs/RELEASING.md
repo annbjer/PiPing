@@ -49,9 +49,10 @@ files matched Git bytes, types, and executable modes. Existing app trees,
 canonical process, and prior registrations were preserved. The owner also
 confirmed a Mac notification after a measured 35-second tool wait in an
 ordinary Pi 1.0.4 turn with the existing private 0.2.0 (17) app and a hook
-byte-identical to `bd531628`. This is not new iPhone/Watch acceptance. A test-only
-discarded throwing Task compiler diagnostic remains recorded; no product
-failure was identified, and independent review of that diagnostic is pending.
+byte-identical to `bd531628`. This is not new iPhone/Watch acceptance. The
+historical test-only discarded throwing Task diagnostic remains in that run's
+evidence. Independent review classified it as informational, not a product
+vulnerability; a subsequent focused fixture pass retains/awaits the task.
 
 On 2026-10-11, an owner-relayed desktop-control test report recorded a successful
 install, genuine canonical installation check, and guarded uninstall of the
@@ -64,15 +65,22 @@ were retained. A private test-harness route-detection correction was required;
 product source and app archive checksums remained unchanged. This was not a new
 notification, Pi integration, mobile, or migration test campaign.
 
-The subsequent `c4212af` revision changes only README artwork and references;
-these documentation corrections also leave product, configuration, test, and
-script bytes unchanged. Prior tests remain scoped to the revisions above, not
-an assertion that a later exact archive's full verifier or independent review
-has run. Next: freeze the reconciled candidate, audit its exact source archive,
-reconcile required affected checks with the retained evidence, and complete the
-independent-review and exact-candidate CI gates. Remote configuration and
-candidate push still require separate approval. None of this evidence authorizes
-binary publication or use of a local ad-hoc app as a release asset.
+The subsequent `c4212af` artwork/README revision and `d5bd76a` privacy/release
+documentation corrections left product, configuration, test and script bytes
+unchanged. Daybreak independently reviewed all 111 files of the `d5bd76a` source
+packet, reconstructed tree `81ecea6ef2337bbb9ead2d4c454b10cd083a2fbd`, and verified
+archive SHA-256 `f249f860086fe5d64ea192a5e0f6df855e91d6751e93d10b053b7e3f000b5aae`.
+It identified installer validation defects and release/evidence gaps; it did not
+approve publication or execute tests. See
+[review disposition](SECURITY_REVIEW_20261011.md) for the local repair scope,
+remaining acceptance and proposed risk dispositions.
+
+Prior functional tests remain scoped to their pinned revisions. Product/script
+repairs require affected checks and a new exact-source verifier, audited archive,
+independent follow-up and exact-commit hosted CI; the old guest PASS is not
+acceptance of new validators. Remote configuration and candidate push still
+require separate approval. None of this evidence authorizes binary publication
+or use of a local ad-hoc app as a release asset.
 
 ## Required release sequence
 
