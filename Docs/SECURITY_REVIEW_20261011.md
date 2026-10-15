@@ -1,6 +1,37 @@
 # Independent review and local repair disposition
 
-## Follow-up: build18 reviewed, two Low omissions repaired
+## Signed compatibility correction: build20 checkpoint
+
+The approved Xcode27 existing-only private build attempts for41fb00c stopped
+before producing an installable artifact; automatic provisioning updates were
+disabled. Read-only inspection found a matching unexpired cached Mac profile,
+valid existing signing certificate and correct Apple silicon Provisioning UDID.
+Xcode's automatic selection did not resolve that material; explicit existing
+profile selection is the next bounded diagnostic, not an established cure.
+
+The real Mac profile's service ceiling is scalar `"*"`, unlike the array shape
+assumed by the SB-NEW-02 repair. Accept Apple's wildcard ceiling (scalar or array
+member) alongside explicit CloudKit arrays. Missing/malformed/CloudDocuments-only
+ceilings still reject; configured team/app/container/certificate/expiry binding
+and exact four-key actual app/empty helper rules remain unchanged. This is a
+profile authorization-format correction, not permission to add app capabilities.
+
+The retained development app has the four required fields plus debugger attach.
+Do not weaken final validation for it. Before final Release signing, remove ONLY
+Xcode's known boolean `com.apple.security.get-task-allow` entitlement and require
+all remaining fields to match the exact dictionary; unknown keys or malformed
+debug values reject. This does not edit the installed app. Its later update/
+rollback handling requires explicit acceptance, not automatic grandfathering.
+
+Owner-approved scope: bounded code/fixtures/docs/commit/build20/exact-source
+checks plus one existing-profile signing compatibility attempt, no installation,
+launch, profile generation, account repair, CloudKit operation or publication.
+No installable build20 existed before this checkpoint. Preserve working build17,
+all previous artifacts/evidence and41fb00c source-local acceptance. Subsequent
+results belong to separately sealed exact commit/archive receipts; neither these
+corrections nor new private artifact are independently reviewed/release-cleared.
+
+## Historical follow-up: build18 reviewed, two Low omissions repaired
 
 Daniel relayed Daybreak's read-only follow-up of commit
 `77b22030ea6adc265901ed81408b366ca7cc917c`, tree

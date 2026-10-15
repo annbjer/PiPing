@@ -11,4 +11,4 @@ SETTLEBELL_CLOUDKIT_ACTIVATION = NO
 // Standard Apple bundle versioning. Increment CURRENT_PROJECT_VERSION for
 // every installable build so system services can invalidate cached metadata.
 MARKETING_VERSION = 0.2.0
-CURRENT_PROJECT_VERSION = 19
+CURRENT_PROJECT_VERSION = 20

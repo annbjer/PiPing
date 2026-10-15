@@ -261,14 +261,23 @@ entitlement dictionary containing exactly the configured iCloud container,
 `CloudKit` service, team identifier and application identifier, and an
 entitlement-free helper with signature identifier
 `SettleBellSignal`. All extra app/helper entitlements are rejected, including
-debugging, Keychain and app-group capabilities. If Xcode emits a new entitlement,
-stop for review rather than widening the allowlist automatically.
+debugging, Keychain and app-group capabilities. Before final signing the builder
+removes only Xcode's known boolean `com.apple.security.get-task-allow` entitlement;
+it requires every remaining field to match that exact four-key dictionary. It
+does not silently strip arbitrary capabilities. If Xcode emits any other new or
+malformed entitlement, stop for review rather than widening the allowlist.
+A historical debugger-enabled development app does not pass this new policy;
+its update/recovery must be separately planned, not silently grandfathered.
 
 The unexpired provisioning profile must authorize the configured team,
 application/container, the requested `CloudKit` service and the app/helper's
-shared Apple Development leaf certificate. The profile's service list may
-contain additional service ceilings, but the actual app's service entitlement
-remains exactly `["CloudKit"]` and the helper remains entitlement-free.
+shared Apple Development leaf certificate. Service authorization accepts an
+explicit string array containing `CloudKit`, or Apple's wildcard ceiling (`"*"`
+as a scalar or array member). Missing/malformed or CloudDocuments-only ceilings
+reject. The profile may authorize additional services, but the actual app's
+service entitlement remains exactly `["CloudKit"]` and the helper remains
+entitlement-free. Wildcards are not accepted for the configured app/container
+binding or the actual app's entitlements.
 This is **not** an exact profile UUID/hash or profile-capability-set
 pin: another same-team profile may pass those authorization checks, but cannot
 expand the actual app/helper entitlements. The installer atomically quarantines

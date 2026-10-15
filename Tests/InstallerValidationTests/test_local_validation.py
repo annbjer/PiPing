@@ -336,7 +336,7 @@ fi
         self.prepare_synthetic_signed_shell()
         target = Path(self.env["FIXTURE_PROFILE"])
         profile = plistlib.loads(target.read_bytes())
-        for services in (None, ["CloudDocuments"], ["CloudKit"], ["CloudKit", "CloudDocuments"]):
+        for services in (None, ["CloudDocuments"], ["CloudKit"], ["CloudKit", "CloudDocuments"], "*", ["*"]):
             with self.subTest(services=services):
                 if services is None:
                     profile["Entitlements"].pop("com.apple.developer.icloud-services", None)
@@ -344,7 +344,7 @@ fi
                     profile["Entitlements"]["com.apple.developer.icloud-services"] = services
                 target.write_bytes(plistlib.dumps(profile))
                 result = self.invoke("validate_signed_local_app.sh", self.app)
-                expected = 0 if services and "CloudKit" in services else 1
+                expected = 0 if services in (["CloudKit"], ["CloudKit", "CloudDocuments"], "*", ["*"]) else 1
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
 
     def test_signed_shell_rejects_wrong_helper_identifier_and_extraction_failure(self):
@@ -487,6 +487,60 @@ class SignedMetadataTests(unittest.TestCase):
                     self.validate()
                 del self.entitlements[key]
 
+    def test_final_debug_entitlement_rejected_even_when_false(self):
+        for value in (True, False):
+            self.entitlements["com.apple.security.get-task-allow"] = value
+            with self.assertRaisesRegex(ValueError, "only the exact"):
+                self.validate()
+
+    def test_release_preparation_removes_only_known_debug_permission(self):
+        for value in (None, True, False):
+            generated = copy.deepcopy(self.entitlements)
+            if value is not None:
+                generated["com.apple.security.get-task-allow"] = value
+            original = copy.deepcopy(generated)
+            prepared = METADATA.prepare_release_entitlements(generated, self.team, self.bundle, self.container)
+            self.assertEqual(prepared, self.entitlements)
+            self.assertEqual(generated, original, "Do not mutate the generated input dictionary")
+            METADATA.validate_metadata(prepared, {}, self.profile, self.certificate,
+                                       self.certificate, self.team, self.bundle, self.container)
+
+    def test_release_preparation_rejects_unknown_or_malformed_entitlements(self):
+        for key, value in (("com.apple.security.get-task-allow", 1),
+                           ("com.apple.security.get-task-allow", "true"),
+                           ("get-task-allow", True), ("unknown-capability", False),
+                           ("keychain-access-groups", ["synthetic"]),
+                           ("com.apple.developer.team-identifier", "OTHERTEAM"),
+                           ("com.apple.developer.icloud-services", ["CloudKit", "CloudDocuments"])):
+            with self.subTest(key=key, value=value):
+                generated = dict(self.entitlements, **{key: value})
+                with self.assertRaises(ValueError):
+                    METADATA.prepare_release_entitlements(generated, self.team, self.bundle, self.container)
+        for generated in ([], None, {}):
+            with self.assertRaises(ValueError):
+                METADATA.prepare_release_entitlements(generated, self.team, self.bundle, self.container)
+
+    def test_release_preparation_cli_and_failures_are_private(self):
+        with tempfile.TemporaryDirectory(prefix="settlebell-entitlement-fixture-") as directory:
+            generated = Path(directory) / "generated.plist"
+            output = Path(directory) / "prepared.plist"
+            value = dict(self.entitlements, **{"com.apple.security.get-task-allow": True})
+            generated.write_bytes(plistlib.dumps(value))
+            command = [sys.executable, "-B", str(ROOT / "script/validate_signed_local_metadata.py"),
+                       "--prepare-release-entitlements", str(generated), str(output),
+                       self.team, self.bundle, self.container]
+            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(plistlib.loads(output.read_bytes()), self.entitlements)
+            prior = output.read_bytes()
+            value["unknown-private-fixture-value"] = True
+            generated.write_bytes(plistlib.dumps(value))
+            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 1)
+            self.assertNotIn("unknown-private-fixture", result.stderr)
+            self.assertNotIn(str(generated), result.stderr)
+            self.assertEqual(output.read_bytes(), prior)
+
     def test_extra_helper_entitlement(self):
         self.helper["get-task-allow"] = True
         with self.assertRaisesRegex(ValueError, "helper must not"):
@@ -518,7 +572,8 @@ class SignedMetadataTests(unittest.TestCase):
 
     def test_profile_cloudkit_service_authorization(self):
         profile_entitlements = self.profile["Entitlements"]
-        for services in (None, [], ["CloudDocuments"], "CloudKit", {"CloudKit": True}, ["CloudKit", 1]):
+        for services in (None, [], ["CloudDocuments"], "CloudKit", "CloudDocuments", "**", "Cloud*",
+                         True, {"CloudKit": True}, ["CloudKit", 1], ["*", 1]):
             with self.subTest(services=services):
                 if services is None:
                     profile_entitlements.pop("com.apple.developer.icloud-services", None)
@@ -526,8 +581,9 @@ class SignedMetadataTests(unittest.TestCase):
                     profile_entitlements["com.apple.developer.icloud-services"] = services
                 with self.assertRaisesRegex(ValueError, "does not authorize"):
                     self.validate()
-        profile_entitlements["com.apple.developer.icloud-services"] = ["CloudKit"]
-        self.validate()
+        for services in (["CloudKit"], "*", ["*"], ["CloudKit", "*"]):
+            profile_entitlements["com.apple.developer.icloud-services"] = services
+            self.validate()
         profile_entitlements["com.apple.developer.icloud-services"] = ["CloudKit", "CloudDocuments"]
         self.validate()  # Broader profile ceiling does not widen the actual app.
         self.entitlements["com.apple.developer.icloud-services"].append("CloudDocuments")

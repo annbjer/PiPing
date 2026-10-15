@@ -11,6 +11,9 @@ archives are not public release artifacts.
 
 ### Fixed
 
+- Recognize Apple Mac wildcard CloudKit service ceilings without broadening
+  actual signed app/helper entitlements; deliberately remove only Xcode's known
+  debugger-attach permission before final Release signing.
 - Reject mutation-blocking/restricted or unreviewed BSD file flags while allowing
   reviewed benign flags, and check flags for metadata stability (SB-NEW-01).
 - Verify that a signed-local provisioning profile authorizes the requested

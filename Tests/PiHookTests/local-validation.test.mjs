@@ -24,4 +24,7 @@ test("both validators enforce metadata before codesign; helper identity and enti
   assert.match(signed, /helper_identifier.*!= "SettleBellSignal"/);
   assert.match(signed, /codesign -d --entitlements - --xml "\$HELPER"/);
   assert.match(signed, /validate_signed_local_metadata\.py/);
+  const builder = await readFile(new URL("../../script/build_signed_local.sh", import.meta.url), "utf8");
+  const preparation = builder.indexOf("--prepare-release-entitlements");
+  assert.ok(preparation >= 0 && preparation < builder.indexOf('  --sign "$identity"'));
 });

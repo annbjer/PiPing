@@ -51,11 +51,12 @@ required_setting() {
     echo "Config/Local.xcconfig has no approved private value for $key." >&2
     exit 1
   fi
+  printf '%s\n' "$value"
 }
 
-required_setting SETTLEBELL_DEVELOPMENT_TEAM
-required_setting SETTLEBELL_MACOS_BUNDLE_IDENTIFIER
-required_setting SETTLEBELL_CLOUDKIT_CONTAINER_IDENTIFIER
+expected_team="$(required_setting SETTLEBELL_DEVELOPMENT_TEAM)"
+expected_bundle="$(required_setting SETTLEBELL_MACOS_BUNDLE_IDENTIFIER)"
+expected_container="$(required_setting SETTLEBELL_CLOUDKIT_CONTAINER_IDENTIFIER)"
 cloud_activation="$(awk -F= '
   $1 ~ "^[[:space:]]*SETTLEBELL_CLOUDKIT_ACTIVATION[[:space:]]*$" {
     sub(/^[^=]*=[[:space:]]*/, "")
@@ -121,8 +122,12 @@ if [[ -z "$identity" ]]; then
   exit 1
 fi
 
+generated_entitlements="$STAGE_ROOT/generated-entitlements.plist"
 entitlements="$STAGE_ROOT/app-entitlements.plist"
-codesign -d --entitlements - --xml "$STAGED_APP" >"$entitlements" 2>/dev/null
+codesign -d --entitlements - --xml "$STAGED_APP" >"$generated_entitlements" 2>/dev/null
+python3 "$ROOT_DIR/script/validate_signed_local_metadata.py" \
+  --prepare-release-entitlements "$generated_entitlements" "$entitlements" \
+  "$expected_team" "$expected_bundle" "$expected_container"
 plutil -lint "$entitlements" >/dev/null
 
 codesign \
