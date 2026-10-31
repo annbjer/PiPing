@@ -1,6 +1,40 @@
 # Independent review and local repair disposition
 
-## Signed compatibility correction: build20 checkpoint
+## Current evidence: build20, updated 2026-10-31
+
+Commit `aadb769cd98c9df1967e8879df0e0e3a718ca8d6`, tree
+`cb21a63de05b94e25a0845cc991b99b2e28e0e54`, source archive SHA-256
+`2b60faf10021d792bf58323089e5785f8742d357d48acd8d1e5c8fcdb3558a57`,
+passed the October15 exact extracted-source verifier and separately bounded
+existing-profile signed-artifact compatibility checks. Those checks did not
+install or launch an app or contact CloudKit.
+
+On October31, a fresh Mac-only ad-hoc build20 from that source passed production
+artifact validation and one offline administrator-account VM transaction batch:
+install, genuine canonical checks, same-build update, one controlled SIGTERM
+after candidate promotion with original-directory identity restoration,
+guarded uninstall and retained recovery archive validation. The persisted guest
+PASS receipt SHA-256 is
+`4a6a4a7d14d8a74545af4904e346b3cfe5f1947c708015586e954f9d82b4b436`.
+The original build17 evidence and host installed app were preserved.
+
+These results advance the exact-source, artifact and affected source-local
+transaction gates for the BSD-flag/profile/debugger-entitlement repairs. They
+are local receipts, not independent execution or security clearance. One
+promotion-TERM checkpoint does not establish a full interruption matrix, and
+the expected missing-Xcode status failure is not full status success.
+Standard-account installation, private legacy signed-app transition, live
+CloudKit compatibility and new notification/Pi/mobile/Watch acceptance remain
+unverified in this batch. Earlier sections and tables below retain historical
+finding dispositions and the evidence available at those checkpoints.
+
+The owner approved final evidence documentation, independent Daybreak Blue
+review and candidate push/pull-request hosted CI on October31. Record the
+independent disposition and exact-commit CI result separately when completed;
+this approval does not authorize merging, renaming the repository, tagging,
+uploading release assets or publishing a release. Product code remains frozen.
+
+## Historical signed compatibility correction: build20 checkpoint
 
 The approved Xcode27 existing-only private build attempts for41fb00c stopped
 before producing an installable artifact; automatic provisioning updates were

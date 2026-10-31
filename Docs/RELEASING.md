@@ -29,7 +29,7 @@ the form `vMAJOR.MINOR.PATCH`.
 - Release notes identify whether the release is source-only or includes audited
   binaries.
 
-## Current local evidence (updated 2026-10-11; not release clearance)
+## Current local evidence (updated 2026-10-31; not release clearance)
 
 The clean `bd531628` source snapshot passed `./script/verify.sh` and produced a
 validated Mac-only source-local 0.2.0 (17) archive on the development Mac. A
@@ -89,6 +89,36 @@ must remain pinned separately. See
 [review disposition](SECURITY_REVIEW_20261011.md) for finding statuses, accepted
 source-only risk dispositions and remaining acceptance/publication gates.
 
+On 2026-10-15, exact commit `aadb769cd98c9df1967e8879df0e0e3a718ca8d6`,
+tree `cb21a63de05b94e25a0845cc991b99b2e28e0e54`, source archive SHA-256
+`2b60faf10021d792bf58323089e5785f8742d357d48acd8d1e5c8fcdb3558a57`, passed the
+exact extracted-source verifier:63 Swift test functions,26 Node tests including
+37 Python fixture methods, public-safe macOS/iOS Release and iOS cross-builds.
+The separately bounded existing-profile signed-artifact compatibility and15
+native/unsafe artifact cases passed without installation, launch or live CloudKit.
+
+On 2026-10-31, a fresh Mac-only ad-hoc build20 from the same exact source archive
+passed production artifact validation. Its private app ZIP SHA-256 was
+`1df5065b743a0e5ad8eb763f652b638605c5ec19db959e4de1e8c3ae4b67a38d`.
+The restored offline SettleBell VM then passed one single-use transaction batch
+under non-root Lab Administrator: install, real canonical checks, same-build
+update, one controlled promotion-TERM rollback restoring the original canonical
+directory identity, guarded uninstall and retained recovery archive validation.
+Terminal exit was0; the persisted guest PASS.json SHA-256 was
+`4a6a4a7d14d8a74545af4904e346b3cfe5f1947c708015586e954f9d82b4b436`.
+The expected missing-full-Xcode status failure was checked separately; full
+status success and standard-account installation remain unverified. This is one
+rollback checkpoint, not a broad interruption matrix. No new notification,
+Pi integration, mobile/Watch, private legacy signed-app transition or live
+CloudKit acceptance is claimed. Prior build17 evidence, the host installed app,
+Pi settings and frozen tracked source were preserved. Keep test apps private.
+
+The local tracked-source/archive/reachable-history audit was refreshed for
+`aadb769`; its heuristic findings were classified and no private credential or
+configuration hit remained. This is not independent review clearance. Final
+documentation reconciliation, exact-candidate independent follow-up, hosted CI
+and separately approved repository/publication actions remain open.
+
 Prior functional tests remain scoped to their pinned revisions. Product/script
 repairs require affected checks and a new exact-source verifier, audited archive,
 independent follow-up and exact-commit hosted CI; the old guest PASS is not
@@ -114,9 +144,11 @@ or use of a local ad-hoc app as a release asset.
 6. Confirm the intended Git author and committer identities, remove local
    agent/checkpoint refs that are not release history, and inspect the exact
    private branch and ref list.
-7. Run a fresh read-only GPT 5.6 Daybreak Blue security/privacy review against
+7. Run a fresh read-only Daybreak Blue security/privacy review against
    the exact candidate commit and archive. Resolve every finding at every
-   severity and repeat affected checks.
+   severity and repeat affected checks. The owner approved using the currently
+   available Daybreak Blue model for the October31 independent follow-up;
+   record its exact model and reviewed commit in the separate review receipt.
 8. Obtain separate explicit approval to push only that exact candidate to the
    intended remote, then require hosted CI to pass for the same commit. Any fix
    restarts the reconciliation, commit, archive, audit, review, and CI cycle.
