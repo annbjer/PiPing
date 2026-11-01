@@ -5,9 +5,9 @@ Date: 2026-08-28
 ## Finding
 
 The official `Assets/Brand/AppIcon/PiPing.icon` and Xcode 26.6 output were valid.
-A signed probe with a fresh bundle identifier used byte-for-byte copies of build
-8's `Assets.car` and `PiPing.icns` and rendered the correct Light icon in a real
-macOS notification. Dark appearance also rendered correctly.
+A signed PiPing probe with a fresh bundle identifier used byte-for-byte copies
+of build 8's `Assets.car` and `PiPing.icns` and rendered the correct Light icon in
+a real macOS notification. Dark appearance also rendered correctly.
 
 The old private Mac identity continued to show the pale grid placeholder even
 after clean builds, version increments, restarts, and a candidate whose compiled
@@ -16,22 +16,24 @@ Notification Center/IconServices state keyed to the old bundle identifier, not
 Swift, UserNotifications, signing, artwork contrast, plist keys, or zero-sized
 asset-stack references.
 
-Because PiPing was still a private development app, the Mac target was migrated
-once to a clean final private identifier in ignored `Config/Local.xcconfig`.
-The canonical app path, helper path, CloudKit container, iOS identity, official
-Icon Composer source, and automatic Light/Dark selection were preserved.
+Because PiPing was still a private development app, its Mac target was migrated
+once to a clean private identifier in ignored `Config/Local.xcconfig`. Its
+canonical app path, helper path, CloudKit container, iOS identity, official Icon
+Composer source, and automatic Light/Dark selection were preserved at that time.
+SettleBell now uses a separate identity and path while retaining the validated
+icon source and native appearance behavior.
 
 ## Reliability rules
 
-- Keep exactly one production app at `/Applications/PiPing.app`.
+- Keep exactly one production app at `/Applications/SettleBell.app`.
 - The Pi extension invokes only
-  `/Applications/PiPing.app/Contents/Helpers/PiPingSignal`.
+  `/Applications/SettleBell.app/Contents/Helpers/SettleBellSignal`.
 - Do not launch production helpers from DerivedData, `dist`, backups, or a
   worktree.
 - Keep rollback applications compressed. Merely changing an extracted app
   directory's suffix does not stop LaunchServices from recognizing its internal
   bundle structure.
-- Give unsigned local builds the distinct display name **PiPing Development**.
+- Give unsigned local builds the distinct display name **SettleBell Development**.
 - Increment `CURRENT_PROJECT_VERSION` for every installed build.
 - Run `script/check_installation.sh` after installing a signed build.
 - Do not edit Notification Center or IconServices private databases. Historical
@@ -48,7 +50,7 @@ or identity-cache regression, open **System Settings > Appearance**, select
 **Always**. Select the main **Appearance > Auto** option too when automatic
 whole-interface switching is desired.
 
-PiPing must preserve this as a user-controlled accessibility and personalization
+SettleBell must preserve this as a user-controlled accessibility and personalization
 preference. It must not automate System Settings, use Accessibility control, or
 replace native icon selection with runtime artwork overrides.
 
@@ -56,7 +58,7 @@ replace native icon selection with runtime artwork overrides.
 
 The accepted build must pass all of the following:
 
-1. deep/strict signature verification, including `PiPingSignal`;
+1. deep/strict signature verification, including `SettleBellSignal`;
 2. one canonical process and one LaunchServices path;
 3. a real threshold-qualified Light notification with the Pi mark;
 4. automatic live update to the Dark icon in the banner and Notification Center;

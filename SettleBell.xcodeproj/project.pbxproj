@@ -1,0 +1,395 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		100000000000000000000001 /* SettleBellMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000001 /* SettleBellMacApp.swift */; };
+		100000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000002 /* ContentView.swift */; };
+		100000000000000000000003 /* MenuBarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000003 /* MenuBarContent.swift */; };
+		100000000000000000000004 /* NotificationPreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000004 /* NotificationPreviewCard.swift */; };
+		100000000000000000000005 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000005 /* SettingsView.swift */; };
+		100000000000000000000006 /* LocalSignalListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000006 /* LocalSignalListener.swift */; };
+		100000000000000000000007 /* SystemLocalNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000007 /* SystemLocalNotificationService.swift */; };
+		100000000000000000000008 /* MacAppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000008 /* MacAppStore.swift */; };
+		100000000000000000000009 /* SettleBellIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000009 /* SettleBellIOSApp.swift */; };
+		10000000000000000000000A /* MobileSetupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000A /* MobileSetupStore.swift */; };
+		10000000000000000000000B /* MobileRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000B /* MobileRootView.swift */; };
+		10000000000000000000000C /* MobileStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000C /* MobileStatusView.swift */; };
+		10000000000000000000000D /* PrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000D /* PrivacyView.swift */; };
+		10000000000000000000000E /* SettleBellCore in Frameworks */ = {isa = PBXBuildFile; productRef = 900000000000000000000001 /* SettleBellCore */; };
+		10000000000000000000000F /* SettleBellCloudKit in Frameworks */ = {isa = PBXBuildFile; productRef = 900000000000000000000002 /* SettleBellCloudKit */; };
+		100000000000000000000010 /* SettleBellCore in Frameworks */ = {isa = PBXBuildFile; productRef = 900000000000000000000001 /* SettleBellCore */; };
+		100000000000000000000011 /* SettleBellCloudKit in Frameworks */ = {isa = PBXBuildFile; productRef = 900000000000000000000002 /* SettleBellCloudKit */; };
+		100000000000000000000012 /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000015 /* MenuBarLabel.swift */; };
+		100000000000000000000013 /* SettleBellMenuBar.svg in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000016 /* SettleBellMenuBar.svg */; };
+		100000000000000000000014 /* SettleBellMenuBarAttentionLight.svg in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000017 /* SettleBellMenuBarAttentionLight.svg */; };
+		100000000000000000000015 /* PiPing.icon in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000018 /* PiPing.icon */; };
+		100000000000000000000016 /* PiPing.icon in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000018 /* PiPing.icon */; };
+		100000000000000000000017 /* SettleBellMenuBarAttentionDark.svg in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000019 /* SettleBellMenuBarAttentionDark.svg */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		200000000000000000000001 /* SettleBellMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettleBellMacApp.swift; sourceTree = "<group>"; };
+		200000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		200000000000000000000003 /* MenuBarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContent.swift; sourceTree = "<group>"; };
+		200000000000000000000004 /* NotificationPreviewCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPreviewCard.swift; sourceTree = "<group>"; };
+		200000000000000000000005 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		200000000000000000000006 /* LocalSignalListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalSignalListener.swift; sourceTree = "<group>"; };
+		200000000000000000000007 /* SystemLocalNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLocalNotificationService.swift; sourceTree = "<group>"; };
+		200000000000000000000008 /* MacAppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAppStore.swift; sourceTree = "<group>"; };
+		200000000000000000000009 /* SettleBellIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettleBellIOSApp.swift; sourceTree = "<group>"; };
+		20000000000000000000000A /* MobileSetupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSetupStore.swift; sourceTree = "<group>"; };
+		20000000000000000000000B /* MobileRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRootView.swift; sourceTree = "<group>"; };
+		20000000000000000000000C /* MobileStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileStatusView.swift; sourceTree = "<group>"; };
+		20000000000000000000000D /* PrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyView.swift; sourceTree = "<group>"; };
+		20000000000000000000000E /* SettleBell.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SettleBell.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		20000000000000000000000F /* SettleBell-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SettleBell-iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		200000000000000000000010 /* SettleBell.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = SettleBell.xcconfig; sourceTree = "<group>"; };
+		200000000000000000000011 /* SettleBell-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "SettleBell-macOS.entitlements"; sourceTree = "<group>"; };
+		200000000000000000000012 /* SettleBell-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "SettleBell-iOS.entitlements"; sourceTree = "<group>"; };
+		200000000000000000000013 /* SettleBell-macOS-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SettleBell-macOS-Info.plist"; sourceTree = "<group>"; };
+		200000000000000000000014 /* SettleBell-iOS-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SettleBell-iOS-Info.plist"; sourceTree = "<group>"; };
+		200000000000000000000015 /* MenuBarLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabel.swift; sourceTree = "<group>"; };
+		200000000000000000000016 /* SettleBellMenuBar.svg */ = {isa = PBXFileReference; lastKnownFileType = image.svg; name = SettleBellMenuBar.svg; path = Assets/Brand/Runtime/MenuBar/SettleBellMenuBar.svg; sourceTree = SOURCE_ROOT; };
+		200000000000000000000017 /* SettleBellMenuBarAttentionLight.svg */ = {isa = PBXFileReference; lastKnownFileType = image.svg; name = SettleBellMenuBarAttentionLight.svg; path = Assets/Brand/Runtime/MenuBar/SettleBellMenuBarAttentionLight.svg; sourceTree = SOURCE_ROOT; };
+		200000000000000000000018 /* PiPing.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; name = PiPing.icon; path = Assets/Brand/AppIcon/PiPing.icon; sourceTree = SOURCE_ROOT; };
+		200000000000000000000019 /* SettleBellMenuBarAttentionDark.svg */ = {isa = PBXFileReference; lastKnownFileType = image.svg; name = SettleBellMenuBarAttentionDark.svg; path = Assets/Brand/Runtime/MenuBar/SettleBellMenuBarAttentionDark.svg; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		300000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				10000000000000000000000E /* SettleBellCore in Frameworks */,
+				10000000000000000000000F /* SettleBellCloudKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		300000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000010 /* SettleBellCore in Frameworks */,
+				100000000000000000000011 /* SettleBellCloudKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		400000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				40000000000000000000000D /* Brand Assets */,
+				40000000000000000000000C /* Config */,
+				400000000000000000000002 /* SettleBellMac */,
+				400000000000000000000007 /* SettleBellIOS */,
+				40000000000000000000000B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		400000000000000000000002 /* SettleBellMac */ = {
+			isa = PBXGroup;
+			children = (
+				400000000000000000000003 /* App */,
+				400000000000000000000004 /* Views */,
+				400000000000000000000005 /* Services */,
+				400000000000000000000006 /* Stores */,
+			);
+			name = SettleBellMac;
+			path = Sources/SettleBellMac;
+			sourceTree = SOURCE_ROOT;
+		};
+		400000000000000000000003 /* App */ = {isa = PBXGroup; children = (200000000000000000000001 /* SettleBellMacApp.swift */,); path = App; sourceTree = "<group>"; };
+		400000000000000000000004 /* Views */ = {isa = PBXGroup; children = (200000000000000000000002 /* ContentView.swift */, 200000000000000000000003 /* MenuBarContent.swift */, 200000000000000000000015 /* MenuBarLabel.swift */, 200000000000000000000004 /* NotificationPreviewCard.swift */, 200000000000000000000005 /* SettingsView.swift */,); path = Views; sourceTree = "<group>"; };
+		400000000000000000000005 /* Services */ = {isa = PBXGroup; children = (200000000000000000000006 /* LocalSignalListener.swift */, 200000000000000000000007 /* SystemLocalNotificationService.swift */,); path = Services; sourceTree = "<group>"; };
+		400000000000000000000006 /* Stores */ = {isa = PBXGroup; children = (200000000000000000000008 /* MacAppStore.swift */,); path = Stores; sourceTree = "<group>"; };
+		400000000000000000000007 /* SettleBellIOS */ = {
+			isa = PBXGroup;
+			children = (
+				400000000000000000000008 /* App */,
+				400000000000000000000009 /* Views */,
+				40000000000000000000000A /* Stores */,
+			);
+			name = SettleBellIOS;
+			path = Sources/SettleBellIOS;
+			sourceTree = SOURCE_ROOT;
+		};
+		400000000000000000000008 /* App */ = {isa = PBXGroup; children = (200000000000000000000009 /* SettleBellIOSApp.swift */,); path = App; sourceTree = "<group>"; };
+		400000000000000000000009 /* Views */ = {isa = PBXGroup; children = (20000000000000000000000B /* MobileRootView.swift */, 20000000000000000000000C /* MobileStatusView.swift */, 20000000000000000000000D /* PrivacyView.swift */,); path = Views; sourceTree = "<group>"; };
+		40000000000000000000000A /* Stores */ = {isa = PBXGroup; children = (20000000000000000000000A /* MobileSetupStore.swift */,); path = Stores; sourceTree = "<group>"; };
+		40000000000000000000000B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				20000000000000000000000E /* SettleBell.app */,
+				20000000000000000000000F /* SettleBell-iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		40000000000000000000000C /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				200000000000000000000010 /* SettleBell.xcconfig */,
+				200000000000000000000011 /* SettleBell-macOS.entitlements */,
+				200000000000000000000012 /* SettleBell-iOS.entitlements */,
+				200000000000000000000013 /* SettleBell-macOS-Info.plist */,
+				200000000000000000000014 /* SettleBell-iOS-Info.plist */,
+			);
+			path = Config;
+			sourceTree = SOURCE_ROOT;
+		};
+		40000000000000000000000D /* Brand Assets */ = {
+			isa = PBXGroup;
+			children = (
+				200000000000000000000018 /* PiPing.icon */,
+				200000000000000000000016 /* SettleBellMenuBar.svg */,
+				200000000000000000000017 /* SettleBellMenuBarAttentionLight.svg */,
+				200000000000000000000019 /* SettleBellMenuBarAttentionDark.svg */,
+			);
+			name = "Brand Assets";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		500000000000000000000001 /* SettleBell-macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 700000000000000000000002 /* Build configuration list for PBXNativeTarget "SettleBell-macOS" */;
+			buildPhases = (
+				300000000000000000000003 /* Sources */,
+				300000000000000000000001 /* Frameworks */,
+				300000000000000000000005 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = "SettleBell-macOS";
+			packageProductDependencies = (
+				900000000000000000000001 /* SettleBellCore */,
+				900000000000000000000002 /* SettleBellCloudKit */,
+			);
+			productName = SettleBell;
+			productReference = 20000000000000000000000E /* SettleBell.app */;
+			productType = "com.apple.product-type.application";
+		};
+		500000000000000000000002 /* SettleBell-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 700000000000000000000003 /* Build configuration list for PBXNativeTarget "SettleBell-iOS" */;
+			buildPhases = (
+				300000000000000000000004 /* Sources */,
+				300000000000000000000002 /* Frameworks */,
+				300000000000000000000006 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = "SettleBell-iOS";
+			packageProductDependencies = (
+				900000000000000000000001 /* SettleBellCore */,
+				900000000000000000000002 /* SettleBellCloudKit */,
+			);
+			productName = "SettleBell-iOS";
+			productReference = 20000000000000000000000F /* SettleBell-iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		600000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					500000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+						SystemCapabilities = {
+							com.apple.iCloud = {enabled = 1; };
+						};
+					};
+					500000000000000000000002 = {
+						CreatedOnToolsVersion = 26.0;
+						SystemCapabilities = {
+							com.apple.Push = {enabled = 1; };
+							com.apple.iCloud = {enabled = 1; };
+						};
+					};
+				};
+			};
+			buildConfigurationList = 700000000000000000000001 /* Build configuration list for PBXProject "SettleBell" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = 400000000000000000000001;
+			packageReferences = (800000000000000000000001 /* XCLocalSwiftPackageReference "." */,);
+			productRefGroup = 40000000000000000000000B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				500000000000000000000001 /* SettleBell-macOS */,
+				500000000000000000000002 /* SettleBell-iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		300000000000000000000005 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (100000000000000000000013 /* SettleBellMenuBar.svg in Resources */, 100000000000000000000014 /* SettleBellMenuBarAttentionLight.svg in Resources */, 100000000000000000000017 /* SettleBellMenuBarAttentionDark.svg in Resources */, 100000000000000000000015 /* PiPing.icon in Resources */,); runOnlyForDeploymentPostprocessing = 0; };
+		300000000000000000000006 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (100000000000000000000016 /* PiPing.icon in Resources */,); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		300000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000001 /* SettleBellMacApp.swift in Sources */,
+				100000000000000000000002 /* ContentView.swift in Sources */,
+				100000000000000000000003 /* MenuBarContent.swift in Sources */,
+				100000000000000000000012 /* MenuBarLabel.swift in Sources */,
+				100000000000000000000004 /* NotificationPreviewCard.swift in Sources */,
+				100000000000000000000005 /* SettingsView.swift in Sources */,
+				100000000000000000000006 /* LocalSignalListener.swift in Sources */,
+				100000000000000000000007 /* SystemLocalNotificationService.swift in Sources */,
+				100000000000000000000008 /* MacAppStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		300000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000009 /* SettleBellIOSApp.swift in Sources */,
+				10000000000000000000000A /* MobileSetupStore.swift in Sources */,
+				10000000000000000000000B /* MobileRootView.swift in Sources */,
+				10000000000000000000000C /* MobileStatusView.swift in Sources */,
+				10000000000000000000000D /* PrivacyView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		710000000000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; SWIFT_VERSION = 6.0;}; name = Debug; };
+		710000000000000000000002 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_VERSION = 6.0;}; name = Release; };
+		710000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000010 /* SettleBell.xcconfig */;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = PiPing;
+				CODE_SIGN_ENTITLEMENTS = "Config/SettleBell-macOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(SETTLEBELL_DEVELOPMENT_TEAM)";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/SettleBell-macOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = SettleBell;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(SETTLEBELL_MACOS_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = SettleBell;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		710000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000010 /* SettleBell.xcconfig */;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = PiPing;
+				CODE_SIGN_ENTITLEMENTS = "Config/SettleBell-macOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(SETTLEBELL_DEVELOPMENT_TEAM)";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/SettleBell-macOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = SettleBell;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(SETTLEBELL_MACOS_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = SettleBell;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		710000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000010 /* SettleBell.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = PiPing;
+				CODE_SIGN_ENTITLEMENTS = "Config/SettleBell-iOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(SETTLEBELL_DEVELOPMENT_TEAM)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/SettleBell-iOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = SettleBell;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(SETTLEBELL_IOS_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = "SettleBell-iOS";
+				SETTLEBELL_APS_ENVIRONMENT = development;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		710000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 200000000000000000000010 /* SettleBell.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = PiPing;
+				CODE_SIGN_ENTITLEMENTS = "Config/SettleBell-iOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "$(SETTLEBELL_DEVELOPMENT_TEAM)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/SettleBell-iOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = SettleBell;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(SETTLEBELL_IOS_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = "SettleBell-iOS";
+				SETTLEBELL_APS_ENVIRONMENT = production;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		700000000000000000000001 /* Build configuration list for PBXProject "SettleBell" */ = {isa = XCConfigurationList; buildConfigurations = (710000000000000000000001 /* Debug */, 710000000000000000000002 /* Release */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		700000000000000000000002 /* Build configuration list for PBXNativeTarget "SettleBell-macOS" */ = {isa = XCConfigurationList; buildConfigurations = (710000000000000000000003 /* Debug */, 710000000000000000000004 /* Release */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		700000000000000000000003 /* Build configuration list for PBXNativeTarget "SettleBell-iOS" */ = {isa = XCConfigurationList; buildConfigurations = (710000000000000000000005 /* Debug */, 710000000000000000000006 /* Release */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		800000000000000000000001 /* XCLocalSwiftPackageReference "." */ = {isa = XCLocalSwiftPackageReference; relativePath = .; };
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		900000000000000000000001 /* SettleBellCore */ = {isa = XCSwiftPackageProductDependency; package = 800000000000000000000001 /* XCLocalSwiftPackageReference "." */; productName = SettleBellCore; };
+		900000000000000000000002 /* SettleBellCloudKit */ = {isa = XCSwiftPackageProductDependency; package = 800000000000000000000001 /* XCLocalSwiftPackageReference "." */; productName = SettleBellCloudKit; };
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 600000000000000000000001 /* Project object */;
+}

@@ -1,16 +1,21 @@
 {
-  "name": "piping",
-  "version": "0.1.0",
+  "name": "settlebell",
+  "version": "0.2.0",
   "private": true,
-  "description": "Local Pi integration edge for the native PiPing apps",
+  "description": "Local Pi integration edge for the native SettleBell apps",
   "license": "MIT",
   "keywords": [
     "pi-package"
   ],
   "type": "module",
+  "files": [
+    "Integration/Pi/settlebell.ts",
+    "Integration/Pi/README.md",
+    "LICENSE"
+  ],
   "pi": {
     "extensions": [
-      "./Integration/Pi/piping.ts"
+      "./Integration/Pi/settlebell.ts"
     ]
   },
   "peerDependencies": {

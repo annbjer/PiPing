@@ -1,6 +1,6 @@
 # Privacy
 
-PiPing is content-free by design.
+SettleBell is content-free by design.
 
 ## Allowed data
 
@@ -13,17 +13,37 @@ extension/helper/FIFO path and Mac app memory, is never persisted, and is never
 included in a notification or CloudKit record.
 CloudKit overwrites one fixed rolling record whose only application-defined
 field is the `occurredAt` timestamp. Notification title and body are compile-time
-constants.
+constants. SettleBell initially retains PiPing's deployed v1 CloudKit record
+type, rolling-record name, and subscription ID solely for wire/storage
+compatibility; no prompt, task, project, session, or identity data is added.
 
 ## Prohibited data
 
-The app, helper, hook, tests, fixtures, and documentation must not collect,
-store, log, or transmit:
+The app, helper, and hook must not collect, store, log, or transmit users' work
+content as part of the lifecycle/notification flow:
 
 - prompts, system prompts, model responses, or tool results;
 - code, files, logs, paths, project names, or Pi session identifiers;
 - terminal output, commands, approvals, credentials, or model/provider names;
 - personal names, email addresses, device identifiers, or account identifiers.
+
+Tests must use synthetic fixtures rather than real user data. Technical
+identifiers, example commands and paths, and illustrative text may appear in
+source documentation and tests; they are not data collected by the notification
+system. Required license attribution and explicitly owner-approved public
+project/developer identity or artwork are narrow publication exceptions. The
+historical SettleBell hero captures retain an approved first-name greeting;
+current captures retain the explicitly approved public project path, branch,
+and Pi status/model information. This illustrative screenshot content is not
+collected or transmitted by SettleBell. These exceptions do not permit unrelated private data,
+credentials, account/device identifiers, or raw user logs in public artifacts,
+and do not expand the app's runtime data boundary. Private signing/setup
+configuration remains local and excluded from releases.
+
+The PiPing-to-SettleBell migration must not copy bundle-keyed notification
+authorization, Cloud delivery approval, preferences, unread/backlog state, or
+private configuration. Each SettleBell identity requests its own Apple-managed
+permission through normal user interaction.
 
 ## Repository invariant
 

@@ -11,7 +11,7 @@ case "$MODE" in
     ;;
 esac
 
-APP_NAME="PiPing"
+APP_NAME="SettleBell"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DERIVED_DATA="$ROOT_DIR/.build/DerivedData-run"
 if [[ "$MODE" == "--build-only" || "$MODE" == "build-only" ]]; then
@@ -21,11 +21,11 @@ else
   XCODE_CONFIGURATION="Debug"
   SWIFT_CONFIGURATION="debug"
 fi
-BUILT_APP="$DERIVED_DATA/Build/Products/$XCODE_CONFIGURATION/PiPing.app"
+BUILT_APP="$DERIVED_DATA/Build/Products/$XCODE_CONFIGURATION/SettleBell.app"
 DIST_DIR="$ROOT_DIR/dist/unsigned"
-DIST_APP="$DIST_DIR/PiPing.app"
-DIST_ZIP="$DIST_DIR/PiPing.app.zip"
-PUBLIC_BUNDLE_IDENTIFIER="org.example.PiPing.macOS"
+DIST_APP="$DIST_DIR/SettleBell.app"
+DIST_ZIP="$DIST_DIR/SettleBell.app.zip"
+PUBLIC_BUNDLE_IDENTIFIER="org.example.SettleBell.macOS"
 STABLE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 OFFICIAL_ICON_SOURCE="$ROOT_DIR/Assets/Brand/AppIcon/PiPing.icon"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -74,18 +74,18 @@ swift build \
   --package-path "$ROOT_DIR" \
   --scratch-path "$ROOT_DIR/.build/swiftpm" \
   --configuration "$SWIFT_CONFIGURATION" \
-  --product PiPingSignal
+  --product SettleBellSignal
 
 xcodebuild \
-  -project "$ROOT_DIR/PiPing.xcodeproj" \
-  -scheme PiPing-macOS \
+  -project "$ROOT_DIR/SettleBell.xcodeproj" \
+  -scheme SettleBell-macOS \
   -configuration "$XCODE_CONFIGURATION" \
   -destination "generic/platform=macOS" \
   -derivedDataPath "$DERIVED_DATA" \
   PRODUCT_BUNDLE_IDENTIFIER="$PUBLIC_BUNDLE_IDENTIFIER" \
-  INFOPLIST_KEY_CFBundleDisplayName="PiPing Development" \
-  PIPING_CLOUDKIT_CONTAINER_IDENTIFIER="iCloud.org.example.PiPing" \
-  PIPING_CLOUDKIT_ACTIVATION=NO \
+  INFOPLIST_KEY_CFBundleDisplayName="SettleBell Development" \
+  SETTLEBELL_CLOUDKIT_CONTAINER_IDENTIFIER="iCloud.org.example.SettleBell" \
+  SETTLEBELL_CLOUDKIT_ACTIVATION=NO \
   DEVELOPMENT_TEAM= \
   CODE_SIGN_ENTITLEMENTS= \
   PROVISIONING_PROFILE_SPECIFIER= \
@@ -97,17 +97,17 @@ SIGNAL_BINARY="$(swift build \
   --package-path "$ROOT_DIR" \
   --scratch-path "$ROOT_DIR/.build/swiftpm" \
   --configuration "$SWIFT_CONFIGURATION" \
-  --show-bin-path)/PiPingSignal"
+  --show-bin-path)/SettleBellSignal"
 mkdir -p "$DIST_DIR"
 STAGE_ROOT="$(mktemp -d "$ROOT_DIR/.build/unsigned-stage.XXXXXX")"
-STAGED_APP="$STAGE_ROOT/PiPing.app"
+STAGED_APP="$STAGE_ROOT/SettleBell.app"
 ditto "$BUILT_APP" "$STAGED_APP"
 mkdir -p "$STAGED_APP/Contents/Helpers"
-cp "$SIGNAL_BINARY" "$STAGED_APP/Contents/Helpers/PiPingSignal"
-chmod +x "$STAGED_APP/Contents/Helpers/PiPingSignal"
+cp "$SIGNAL_BINARY" "$STAGED_APP/Contents/Helpers/SettleBellSignal"
+chmod +x "$STAGED_APP/Contents/Helpers/SettleBellSignal"
 
 if [[ -e "$DIST_APP" ]]; then
-  PREVIOUS_ZIP="$ROOT_DIR/.build/PiPing-unsigned-previous-$(date +%Y%m%dT%H%M%S).app.zip"
+  PREVIOUS_ZIP="$ROOT_DIR/.build/SettleBell-unsigned-previous-$(date +%Y%m%dT%H%M%S).app.zip"
   PREVIOUS_ARCHIVE_TEMP="${PREVIOUS_ZIP}.tmp"
   ditto -c -k --sequesterRsrc --keepParent "$DIST_APP" "$PREVIOUS_ARCHIVE_TEMP"
   unzip -tq "$PREVIOUS_ARCHIVE_TEMP"
@@ -143,7 +143,7 @@ case "$MODE" in
     open_app
     ;;
   --build-only|build-only)
-    DIST_ARCHIVE_TEMP="$DIST_DIR/.PiPing.app.$$.zip"
+    DIST_ARCHIVE_TEMP="$DIST_DIR/.SettleBell.app.$$.zip"
     ditto -c -k --sequesterRsrc --keepParent "$DIST_APP" "$DIST_ARCHIVE_TEMP"
     unzip -tq "$DIST_ARCHIVE_TEMP"
     mv -f "$DIST_ARCHIVE_TEMP" "$DIST_ZIP"
@@ -155,17 +155,17 @@ case "$MODE" in
     ;;
   --debug|debug)
     stop_existing_app
-    lldb -- "$DIST_APP/Contents/MacOS/PiPing"
+    lldb -- "$DIST_APP/Contents/MacOS/SettleBell"
     ;;
   --logs|logs)
     stop_existing_app
     open_app
-    /usr/bin/log stream --info --style compact --predicate 'process == "PiPing"'
+    /usr/bin/log stream --info --style compact --predicate 'process == "SettleBell"'
     ;;
   --telemetry|telemetry)
     stop_existing_app
     open_app
-    /usr/bin/log stream --info --style compact --predicate 'subsystem == "org.example.PiPing.macOS"'
+    /usr/bin/log stream --info --style compact --predicate 'subsystem == "org.example.SettleBell.macOS"'
     ;;
   --verify|verify)
     stop_existing_app

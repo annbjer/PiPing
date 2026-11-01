@@ -1,6 +1,6 @@
 # Security policy
 
-PiPing is intentionally small and one-way. Its security model is based on fixed
+SettleBell is intentionally small and one-way. Its security model is based on fixed
 notification content, minimal local signals, private CloudKit storage when
 enabled, and guarded installation paths.
 
@@ -28,19 +28,19 @@ provisioning data, or device identifiers. If those details seem necessary,
 describe the situation in prose instead of pasting the data.
 
 Security reports are taken seriously and will be reviewed as soon as reasonably
-possible. PiPing is maintained by one independent developer, so no fixed response
+possible. SettleBell is maintained by one independent developer, so no fixed response
 time can be promised; investigation and fix timing will depend on severity and
 maintainer availability.
 
 ## Supported versions
 
-PiPing is currently distributed as source. Security fixes land on `main` and in
+SettleBell is currently distributed as source. Security fixes land on `main` and in
 later source releases. Rebuild from a reviewed current revision rather than
 patching an installed app bundle in place.
 
 ## Phase 1 security boundaries
 
-- PiPing is one-way and notification-only.
+- SettleBell is one-way and notification-only.
 - Only `start` and `settled` cross the Pi-to-native boundary.
 - Notification text is fixed in source and uses a normal system sound.
 - The minimum eligible duration defaults to 30 seconds.
@@ -49,7 +49,11 @@ patching an installed app bundle in place.
   crosses any boundary.
 - Local IPC is same-user, bounded, non-networked, and rejects non-FIFO objects,
   insecure permissions, and symlinks.
-- CloudKit and notification setup occurs only after an explicit user action.
+- Initial CloudKit subscription setup and notification permission request require
+  explicit user action. Opening an already-configured iPhone app may check iCloud
+  and the existing subscription and re-register for remote notifications when
+  CloudKit is enabled and notification permission is already allowed. This
+  refresh does not request permission or change the subscription.
 - No secrets or personal identifiers belong in the repository or Git history.
 - Source-local installation requires trusted pinned or checksummed source,
   explicit approval, exact public-development validation, no `sudo`, and bounded
@@ -58,8 +62,13 @@ patching an installed app bundle in place.
   establish rollback and commit state before destructive boundaries; route
   normal termination signals through cleanup; and never edit Apple's private
   notification databases.
+- PiPing-to-SettleBell migration is side by side: preserve PiPing `v0.1.0`,
+  request fresh identity-keyed permissions, retain the deployed CloudKit v1
+  wire/storage identifiers initially, and never copy preferences, unread state,
+  approval state, or private configuration. Legacy retirement requires its own
+  exact validation, user confirmation, rollback, and approval gate.
 
-These boundaries are part of PiPing's design and acceptance criteria. They do not
+These boundaries are part of SettleBell's design and acceptance criteria. They do not
 replace the warranty terms in the [MIT License](LICENSE).
 
 ## Maintainer security gates

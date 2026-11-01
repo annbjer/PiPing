@@ -34,6 +34,6 @@ Local.xcconfig
 .env.*
 !.env.example
 .pi/
-.piping/
+.settlebell/
 .codex/
 *.log

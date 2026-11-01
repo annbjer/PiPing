@@ -4,11 +4,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOCAL_CONFIG="$ROOT_DIR/Config/Local.xcconfig"
 DERIVED_DATA="$ROOT_DIR/.build/DerivedData-signed-local"
-BUILT_APP="$DERIVED_DATA/Build/Products/Release/PiPing.app"
+BUILT_APP="$DERIVED_DATA/Build/Products/Release/SettleBell.app"
 SWIFT_SCRATCH="$ROOT_DIR/.build/swiftpm-signed-local"
 OUTPUT_DIR="$ROOT_DIR/dist/private"
-OUTPUT_ZIP="$OUTPUT_DIR/PiPing.app.zip"
-OUTPUT_TEMP="$OUTPUT_DIR/.PiPing.app.$$.zip"
+OUTPUT_ZIP="$OUTPUT_DIR/SettleBell.app.zip"
+OUTPUT_TEMP="$OUTPUT_DIR/.SettleBell.app.$$.zip"
 BUILD_LOG="$ROOT_DIR/.build/signed-local-xcodebuild.log"
 STABLE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -51,13 +51,14 @@ required_setting() {
     echo "Config/Local.xcconfig has no approved private value for $key." >&2
     exit 1
   fi
+  printf '%s\n' "$value"
 }
 
-required_setting PIPING_DEVELOPMENT_TEAM
-required_setting PIPING_MACOS_BUNDLE_IDENTIFIER
-required_setting PIPING_CLOUDKIT_CONTAINER_IDENTIFIER
+expected_team="$(required_setting SETTLEBELL_DEVELOPMENT_TEAM)"
+expected_bundle="$(required_setting SETTLEBELL_MACOS_BUNDLE_IDENTIFIER)"
+expected_container="$(required_setting SETTLEBELL_CLOUDKIT_CONTAINER_IDENTIFIER)"
 cloud_activation="$(awk -F= '
-  $1 ~ "^[[:space:]]*PIPING_CLOUDKIT_ACTIVATION[[:space:]]*$" {
+  $1 ~ "^[[:space:]]*SETTLEBELL_CLOUDKIT_ACTIVATION[[:space:]]*$" {
     sub(/^[^=]*=[[:space:]]*/, "")
     sub(/[[:space:]]*$/, "")
     print
@@ -77,21 +78,21 @@ rm -f "$OUTPUT_TEMP"
 rm -rf "$DERIVED_DATA"
 
 if ! xcodebuild \
-  -project "$ROOT_DIR/PiPing.xcodeproj" \
+  -project "$ROOT_DIR/SettleBell.xcodeproj" \
   -xcconfig "$LOCAL_CONFIG" \
-  -scheme PiPing-macOS \
+  -scheme SettleBell-macOS \
   -configuration Release \
   -destination "generic/platform=macOS" \
   -derivedDataPath "$DERIVED_DATA" \
   -allowProvisioningUpdates \
-  PIPING_CLOUDKIT_ACTIVATION=YES \
+  SETTLEBELL_CLOUDKIT_ACTIVATION=YES \
   build >"$BUILD_LOG" 2>&1; then
   echo "Signed Xcode build failed. Review the ignored local build log." >&2
   exit 1
 fi
 
 if [[ ! -d "$BUILT_APP" ]]; then
-  echo "Signed Xcode build did not produce PiPing.app." >&2
+  echo "Signed Xcode build did not produce SettleBell.app." >&2
   exit 1
 fi
 
@@ -99,20 +100,20 @@ swift build \
   --package-path "$ROOT_DIR" \
   --scratch-path "$SWIFT_SCRATCH" \
   --configuration release \
-  --product PiPingSignal >/dev/null
+  --product SettleBellSignal >/dev/null
 SIGNAL_BINARY="$(swift build \
   --package-path "$ROOT_DIR" \
   --scratch-path "$SWIFT_SCRATCH" \
   --configuration release \
-  --show-bin-path)/PiPingSignal"
+  --show-bin-path)/SettleBellSignal"
 
 STAGE_ROOT="$(mktemp -d "$ROOT_DIR/.build/signed-stage.XXXXXX")"
-STAGED_APP="$STAGE_ROOT/PiPing.app"
+STAGED_APP="$STAGE_ROOT/SettleBell.app"
 
 ditto "$BUILT_APP" "$STAGED_APP"
 mkdir -p "$STAGED_APP/Contents/Helpers"
-cp "$SIGNAL_BINARY" "$STAGED_APP/Contents/Helpers/PiPingSignal"
-chmod +x "$STAGED_APP/Contents/Helpers/PiPingSignal"
+cp "$SIGNAL_BINARY" "$STAGED_APP/Contents/Helpers/SettleBellSignal"
+chmod +x "$STAGED_APP/Contents/Helpers/SettleBellSignal"
 
 identity="$(codesign -dv --verbose=4 "$STAGED_APP" 2>&1 \
   | awk -F= '/^Authority=/ && !found {print $2; found=1}')"
@@ -121,8 +122,12 @@ if [[ -z "$identity" ]]; then
   exit 1
 fi
 
+generated_entitlements="$STAGE_ROOT/generated-entitlements.plist"
 entitlements="$STAGE_ROOT/app-entitlements.plist"
-codesign -d --entitlements - --xml "$STAGED_APP" >"$entitlements" 2>/dev/null
+codesign -d --entitlements - --xml "$STAGED_APP" >"$generated_entitlements" 2>/dev/null
+python3 "$ROOT_DIR/script/validate_signed_local_metadata.py" \
+  --prepare-release-entitlements "$generated_entitlements" "$entitlements" \
+  "$expected_team" "$expected_bundle" "$expected_container"
 plutil -lint "$entitlements" >/dev/null
 
 codesign \
@@ -130,7 +135,7 @@ codesign \
   --options runtime \
   --timestamp=none \
   --sign "$identity" \
-  "$STAGED_APP/Contents/Helpers/PiPingSignal"
+  "$STAGED_APP/Contents/Helpers/SettleBellSignal"
 codesign \
   --force \
   --options runtime \
@@ -146,5 +151,5 @@ mv -f "$OUTPUT_TEMP" "$OUTPUT_ZIP"
 
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$STAGED_APP/Contents/Info.plist")"
 build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$STAGED_APP/Contents/Info.plist")"
-echo "Built private local PiPing $version ($build): $OUTPUT_ZIP"
+echo "Built private local SettleBell $version ($build): $OUTPUT_ZIP"
 echo "This Apple Development-signed archive is local-only and must not be published."

@@ -1,6 +1,6 @@
 # Agent-assisted local installation
 
-PiPing can be installed with an agent's help, but the user remains in control.
+SettleBell can be installed with an agent's help, but the user remains in control.
 This procedure is for the source-local Mac-only development build. It does not
 enable CloudKit, install the iPhone app, configure an Apple account, or produce
 a public distributable binary.
@@ -18,8 +18,11 @@ An installation agent must:
 - access no Apple account, Keychain item, signing credential, provisioning
   profile, ignored `Config/Local.xcconfig`, provider credential, or unrelated
   user file;
-- install only `/Applications/PiPing.app` and only after the guarded installer
+- install only `/Applications/SettleBell.app` and only after the guarded installer
   accepts the public development identity;
+- leave any existing `/Applications/PiPing.app`, `$HOME/.piping`, legacy
+  permissions, preferences, and Pi package untouched unless the user separately
+  approves the guarded migration procedure;
 - install the Pi package only through Pi's official `pi install` command;
 - never edit Notification Center databases, authorization records, Login Items,
   shell startup files, or unrelated Pi settings; and
@@ -44,7 +47,7 @@ git status --short --branch        # when installing from Git
 ```
 
 Report the exact source commit or archive checksum, Pi version, Xcode presence,
-whether `/Applications/PiPing.app` already exists, and whether the working tree
+whether `/Applications/SettleBell.app` already exists, and whether the working tree
 is clean. Do not print ignored local configuration values.
 
 If the canonical app is a private, foreign, or future official build, do not
@@ -61,7 +64,7 @@ After explicit approval to create ignored local build output, run:
 Report the resulting version/build and whether validation confirmed the public
 bundle identity, disabled CloudKit activation, no provisioning profile, no
 entitlements, ad-hoc app/helper signatures, and hardened runtime. Do not upload
-or publish `dist/source-local/PiPing.app.zip`.
+or publish `dist/source-local/SettleBell.app.zip`.
 
 ## Approval checkpoint 3: installation preflight
 
@@ -122,15 +125,51 @@ Only after explicit approval:
 The script preserves a compressed recovery copy, refuses non-development apps,
 and removes the runtime only when its ownership, permissions, and contents are
 exact. It removes a matching local-checkout Pi package when safely detected. If
-PiPing was installed from Git or another source, identify the exact saved source
+SettleBell was installed from Git or another source, identify the exact saved source
 and ask approval before using `pi remove` for that source.
 
 Apple-managed notification authorization and history are intentionally left to
 System Settings. Never edit Apple's private notification databases.
 
+## Guarded migration from PiPing
+
+Read [Migrating from PiPing](MIGRATING_FROM_PIPING.md) before acting. Installing
+SettleBell does not authorize retiring PiPing. First install SettleBell side by
+side, let the user grant its fresh permissions, reload or install its Pi package
+under a separate approval, and have the user confirm one genuine eligible
+SettleBell notification.
+
+For the exact old public-development source-local PiPing app, the read-only
+retirement preflight is:
+
+```bash
+./script/retire_legacy_piping_source_local.sh --check \
+  --legacy-archive /trusted/path/PiPing.app.zip \
+  --legacy-sha256 64_LOWERCASE_HEXADECIMAL_SHA256
+```
+
+The archive hash must come from a separately trusted installation record, not
+from the same untrusted download. Only after the user separately confirms the
+notification and approves retirement may an agent run:
+
+```bash
+./script/retire_legacy_piping_source_local.sh --retire \
+  --legacy-archive /trusted/path/PiPing.app.zip \
+  --legacy-sha256 64_LOWERCASE_HEXADECIMAL_SHA256
+```
+
+The user must then personally type the exact notification attestation on
+`/dev/tty`; the agent must not answer it. The script rejects signed/private
+PiPing apps and any installed tree that differs from the trusted archive. If it
+rejects the legacy app,
+stop and leave PiPing in place; do not weaken the validator or improvise manual
+removal. Pi package removal is also separate and must name only the exact saved
+legacy source. Never copy identity-keyed authorization, preferences, unread
+state, or private configuration into SettleBell.
+
 ## Copyable install prompt
 
-> Help me install PiPing's Mac-only source-local development build. Read
+> Help me install SettleBell's Mac-only source-local development build. Read
 > `README.md`, `Docs/SETUP.md`, `Docs/AGENT_INSTALL.md`, `SECURITY.md`, and any
 > repository agent instructions first. Use a trusted pinned commit or verified
 > source checksum. Begin with inspection only and report the source identity,
@@ -146,7 +185,7 @@ System Settings. Never edit Apple's private notification databases.
 
 ## Copyable uninstall prompt
 
-> Help me uninstall only PiPing's source-local development build. Read
+> Help me uninstall only SettleBell's source-local development build. Read
 > `Docs/SETUP.md` and `Docs/AGENT_INSTALL.md`, then run
 > `./script/uninstall_source_local.sh --check` only. Report the exact canonical
 > app, process, runtime, package, preference, recovery, and Apple-managed state

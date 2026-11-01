@@ -8,7 +8,7 @@ MAX_EXPANDED_BYTES=$((500 * 1024 * 1024))
 MAX_ARCHIVE_ENTRIES=4096
 
 if [[ $# -ne 1 || ! -f "$ARCHIVE" || -L "$ARCHIVE" ]]; then
-  echo "usage: $0 path/to/PiPing.app.zip" >&2
+  echo "usage: $0 path/to/SettleBell.app.zip" >&2
   exit 2
 fi
 archive_bytes="$(stat -f %z "$ARCHIVE")"
@@ -29,8 +29,8 @@ if [[ "$archive_entry_count" -eq 0 || "$archive_entry_count" -gt "$MAX_ARCHIVE_E
 fi
 while IFS= read -r archive_path; do
   case "$archive_path" in
-    PiPing.app/*|__MACOSX/|__MACOSX/._PiPing.app) ;;
-    __MACOSX/PiPing.app/*)
+    SettleBell.app/*|__MACOSX/|__MACOSX/._SettleBell.app) ;;
+    __MACOSX/SettleBell.app/*)
       metadata_basename="${archive_path##*/}"
       if [[ "$archive_path" != */ && "$metadata_basename" != ._* ]]; then
         echo "Signed local archive contains non-AppleDouble side metadata." >&2
@@ -38,7 +38,7 @@ while IFS= read -r archive_path; do
       fi
       ;;
     *)
-      echo "Signed local archive contains content outside PiPing.app metadata." >&2
+      echo "Signed local archive contains content outside SettleBell.app metadata." >&2
       exit 1
       ;;
   esac
@@ -51,17 +51,17 @@ while IFS= read -r archive_path; do
 done < <(zipinfo -1 "$ARCHIVE")
 
 unzip -tq "$ARCHIVE"
-STAGE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/piping-signed-archive-validation.XXXXXX")"
+STAGE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/settlebell-signed-archive-validation.XXXXXX")"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 cleanup() {
-  "$LSREGISTER" -u "$STAGE_ROOT/PiPing.app" 2>/dev/null || true
+  "$LSREGISTER" -u "$STAGE_ROOT/SettleBell.app" 2>/dev/null || true
   rm -rf "$STAGE_ROOT"
 }
 trap cleanup EXIT
 ditto -x -k "$ARCHIVE" "$STAGE_ROOT"
-if [[ ! -d "$STAGE_ROOT/PiPing.app" ]]; then
-  echo "Signed local archive does not contain PiPing.app at its root." >&2
+if [[ ! -d "$STAGE_ROOT/SettleBell.app" ]]; then
+  echo "Signed local archive does not contain SettleBell.app at its root." >&2
   exit 1
 fi
-"$ROOT_DIR/script/validate_signed_local_app.sh" "$STAGE_ROOT/PiPing.app" >/dev/null
-echo "Signed local PiPing archive is valid and restorable."
+"$ROOT_DIR/script/validate_signed_local_app.sh" "$STAGE_ROOT/SettleBell.app" >/dev/null
+echo "Signed local SettleBell archive is valid and restorable."
