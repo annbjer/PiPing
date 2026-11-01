@@ -49,7 +49,11 @@ patching an installed app bundle in place.
   crosses any boundary.
 - Local IPC is same-user, bounded, non-networked, and rejects non-FIFO objects,
   insecure permissions, and symlinks.
-- CloudKit and notification setup occurs only after an explicit user action.
+- Initial CloudKit subscription setup and notification permission request require
+  explicit user action. Opening an already-configured iPhone app may check iCloud
+  and the existing subscription and re-register for remote notifications when
+  CloudKit is enabled and notification permission is already allowed. This
+  refresh does not request permission or change the subscription.
 - No secrets or personal identifiers belong in the repository or Git history.
 - Source-local installation requires trusted pinned or checksummed source,
   explicit approval, exact public-development validation, no `sudo`, and bounded

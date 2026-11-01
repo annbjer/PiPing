@@ -76,15 +76,15 @@ approve publication or execute tests.
 Replacement commit `77b22030ea6adc265901ed81408b366ca7cc917c`, tree
 `29587f0c529651c2610c74f198ae98f6849e998e`, source archive SHA-256
 `1833ba509fdd195c1e03ca2dcd312488d1ad0a89007a9fd2df10f9c739993162`, passed the
-full exact extracted-source verifier:63 Swift test functions,26 Node tests
-including26-method Python fixtures, public-safe macOS/iOS Release and iOS
-cross-builds. Its Mac-only ad-hoc build18 and11 native artifact/unsafe-derivative
-cases passed without installation, preserving18 existing app trees, the running
-canonical process and27 prior registrations with zero new relevant registrations.
-Daybreak independently verified all118 source files and the supplied commit/tree
+full exact extracted-source verifier: 63 Swift test functions, 26 Node tests
+including 26-method Python fixtures, public-safe macOS/iOS Release and iOS
+cross-builds. Its Mac-only ad-hoc build 18 and 11 native artifact/unsafe-derivative
+cases passed without installation, preserving 18 existing app trees, the running
+canonical process and 27 prior registrations with zero new relevant registrations.
+Daybreak independently verified all 118 source files and the supplied commit/tree
 link, and accepted the original three code repairs within static scope. It found
 two new Low omissions (BSD flags/profile CloudKit authorization), not release
-clearance. The next repaired installable build is19; new exact-source evidence
+clearance. The next repaired installable build is 19; new exact-source evidence
 must remain pinned separately. See
 [review disposition](SECURITY_REVIEW_20261011.md) for finding statuses, accepted
 source-only risk dispositions and remaining acceptance/publication gates.
@@ -92,25 +92,25 @@ source-only risk dispositions and remaining acceptance/publication gates.
 On 2026-10-15, exact commit `aadb769cd98c9df1967e8879df0e0e3a718ca8d6`,
 tree `cb21a63de05b94e25a0845cc991b99b2e28e0e54`, source archive SHA-256
 `2b60faf10021d792bf58323089e5785f8742d357d48acd8d1e5c8fcdb3558a57`, passed the
-exact extracted-source verifier:63 Swift test functions,26 Node tests including
+exact extracted-source verifier: 63 Swift test functions, 26 Node tests including
 37 Python fixture methods, public-safe macOS/iOS Release and iOS cross-builds.
-The separately bounded existing-profile signed-artifact compatibility and15
+The separately bounded existing-profile signed-artifact compatibility and 15
 native/unsafe artifact cases passed without installation, launch or live CloudKit.
 
-On 2026-10-31, a fresh Mac-only ad-hoc build20 from the same exact source archive
+On 2026-10-31, a fresh Mac-only ad-hoc build 20 from the same exact source archive
 passed production artifact validation. Its private app ZIP SHA-256 was
 `1df5065b743a0e5ad8eb763f652b638605c5ec19db959e4de1e8c3ae4b67a38d`.
 The restored offline SettleBell VM then passed one single-use transaction batch
 under non-root Lab Administrator: install, real canonical checks, same-build
 update, one controlled promotion-TERM rollback restoring the original canonical
 directory identity, guarded uninstall and retained recovery archive validation.
-Terminal exit was0; the persisted guest PASS.json SHA-256 was
+Terminal exit was 0; the persisted guest PASS.json SHA-256 was
 `4a6a4a7d14d8a74545af4904e346b3cfe5f1947c708015586e954f9d82b4b436`.
 The expected missing-full-Xcode status failure was checked separately; full
 status success and standard-account installation remain unverified. This is one
 rollback checkpoint, not a broad interruption matrix. No new notification,
 Pi integration, mobile/Watch, private legacy signed-app transition or live
-CloudKit acceptance is claimed. Prior build17 evidence, the host installed app,
+CloudKit acceptance is claimed. Prior build 17 evidence, the host installed app,
 Pi settings and frozen tracked source were preserved. Keep test apps private.
 
 The local tracked-source/archive/reachable-history audit was refreshed for
@@ -147,7 +147,7 @@ or use of a local ad-hoc app as a release asset.
 7. Run a fresh read-only Daybreak Blue security/privacy review against
    the exact candidate commit and archive. Resolve every finding at every
    severity and repeat affected checks. The owner approved using the currently
-   available Daybreak Blue model for the October31 independent follow-up;
+   available Daybreak Blue model for the October 31 independent follow-up;
    record its exact model and reviewed commit in the separate review receipt.
 8. Obtain separate explicit approval to push only that exact candidate to the
    intended remote, then require hosted CI to pass for the same commit. Any fix

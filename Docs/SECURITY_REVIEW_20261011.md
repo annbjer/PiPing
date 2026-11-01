@@ -1,22 +1,22 @@
 # Independent review and local repair disposition
 
-## Current evidence: build20, updated 2026-10-31
+## Current evidence: build 20, updated 2026-10-31
 
 Commit `aadb769cd98c9df1967e8879df0e0e3a718ca8d6`, tree
 `cb21a63de05b94e25a0845cc991b99b2e28e0e54`, source archive SHA-256
 `2b60faf10021d792bf58323089e5785f8742d357d48acd8d1e5c8fcdb3558a57`,
-passed the October15 exact extracted-source verifier and separately bounded
+passed the October 15 exact extracted-source verifier and separately bounded
 existing-profile signed-artifact compatibility checks. Those checks did not
 install or launch an app or contact CloudKit.
 
-On October31, a fresh Mac-only ad-hoc build20 from that source passed production
+On October 31, a fresh Mac-only ad-hoc build 20 from that source passed production
 artifact validation and one offline administrator-account VM transaction batch:
 install, genuine canonical checks, same-build update, one controlled SIGTERM
 after candidate promotion with original-directory identity restoration,
 guarded uninstall and retained recovery archive validation. The persisted guest
 PASS receipt SHA-256 is
 `4a6a4a7d14d8a74545af4904e346b3cfe5f1947c708015586e954f9d82b4b436`.
-The original build17 evidence and host installed app were preserved.
+The original build 17 evidence and host installed app were preserved.
 
 These results advance the exact-source, artifact and affected source-local
 transaction gates for the BSD-flag/profile/debugger-entitlement repairs. They
@@ -29,14 +29,14 @@ unverified in this batch. Earlier sections and tables below retain historical
 finding dispositions and the evidence available at those checkpoints.
 
 The owner approved final evidence documentation, independent Daybreak Blue
-review and candidate push/pull-request hosted CI on October31. Record the
+review and candidate push/pull-request hosted CI on October 31. Record the
 independent disposition and exact-commit CI result separately when completed;
 this approval does not authorize merging, renaming the repository, tagging,
 uploading release assets or publishing a release. Product code remains frozen.
 
-## Historical signed compatibility correction: build20 checkpoint
+## Historical signed compatibility correction: build 20 checkpoint
 
-The approved Xcode27 existing-only private build attempts for41fb00c stopped
+The approved Xcode 27 existing-only private build attempts for 41fb00c stopped
 before producing an installable artifact; automatic provisioning updates were
 disabled. Read-only inspection found a matching unexpired cached Mac profile,
 valid existing signing certificate and correct Apple silicon Provisioning UDID.
@@ -57,21 +57,21 @@ all remaining fields to match the exact dictionary; unknown keys or malformed
 debug values reject. This does not edit the installed app. Its later update/
 rollback handling requires explicit acceptance, not automatic grandfathering.
 
-Owner-approved scope: bounded code/fixtures/docs/commit/build20/exact-source
+Owner-approved scope: bounded code/fixtures/docs/commit/build 20/exact-source
 checks plus one existing-profile signing compatibility attempt, no installation,
 launch, profile generation, account repair, CloudKit operation or publication.
-No installable build20 existed before this checkpoint. Preserve working build17,
-all previous artifacts/evidence and41fb00c source-local acceptance. Subsequent
+No installable build 20 existed before this checkpoint. Preserve working build 17,
+all previous artifacts/evidence and 41fb00c source-local acceptance. Subsequent
 results belong to separately sealed exact commit/archive receipts; neither these
 corrections nor new private artifact are independently reviewed/release-cleared.
 
-## Historical follow-up: build18 reviewed, two Low omissions repaired
+## Historical follow-up: build 18 reviewed, two Low omissions repaired
 
 Daniel relayed Daybreak's read-only follow-up of commit
 `77b22030ea6adc265901ed81408b366ca7cc917c`, tree
 `29587f0c529651c2610c74f198ae98f6849e998e`, source SHA-256
 `1833ba509fdd195c1e03ca2dcd312488d1ad0a89007a9fd2df10f9c739993162`.
-It verified all118 files and independently proved the supplied commit object and
+It verified all 118 files and independently proved the supplied commit object and
 tree link. It accepted the three original code repairs within static scope,
 without widening the content/FIFO/parser/lifecycle/consent boundaries, but found
 two Low validation omissions. It did not execute code or approve publication.
@@ -83,8 +83,8 @@ two Low validation omissions. It did not execute code or approve publication.
 
 The owner approved the local repair/commit/exact-verification scope with working
 apps/settings preserved. These are installation/preflight checks, not changes to
-running notification delivery. New installable artifacts use build19; installed
-build17 apps and retained build18 artifacts/evidence are unchanged. Git commits
+running notification delivery. New installable artifacts use build 19; installed
+build 17 apps and retained build 18 artifacts/evidence are unchanged. Git commits
 and private evidence provide a reversible source checkpoint; no automatic
 installation, permissions repair, CloudKit reset or feature disable is authorized.
 Real private signed compatibility is not established by synthetic tests.
@@ -99,7 +99,7 @@ Follow-up dispositions accepted for this trusted-source-only/source-only preview
 - SB-EVID-02/03/04: wording/prerequisite/task repairs accepted. No interruption
   matrix or standard-account installation acceptance is claimed.
 
-SB-EVID-01 advanced for77b2203: its exact extracted-source verifier and real
+SB-EVID-01 advanced for 77b2203: its exact extracted-source verifier and real
 Mac-only artifact/unsafe-derivative checks passed, with preserved apps/process/
 registrations. Those are reported local receipts, not Daybreak execution.
 Real signed build, current transaction acceptance, read-only historical CloudKit
