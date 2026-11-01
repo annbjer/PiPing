@@ -91,6 +91,13 @@ sequence:
 5. install the fixed private-database subscription if absent, or verify the
    complete schema of the existing historical subscription before reusing it.
 
+When the iPhone app opens, a privately configured build also refreshes setup
+state automatically if notification permission is already allowed. It checks
+iCloud availability and the fixed subscription, then confirms APNs registration
+only if that subscription matches. This refresh does not request permission or
+create, replace, or delete a subscription. Public builds with CloudKit disabled
+stop before those network checks.
+
 A subscription with the historical ID but different type, record/predicate/zone,
 triggers, notification copy/sound or extra payload settings is not ready.
 SettleBell reports **Subscription reset required** and does not delete, overwrite

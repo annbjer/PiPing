@@ -35,8 +35,15 @@ unread-ID set at 256. Runs under the selected threshold are ignored.
 | `SettleBellSignal` | Validate and atomically write one fixed signal plus UUID | None |
 | `SettleBellMac` | Listen locally, apply threshold, present Mac status and notifications | Cloud publishing requires valid private build configuration and explicit user enablement |
 | `SettleBellCloudKit` | Build one allowlisted rolling record and a fixed visual subscription | Explicit private container only |
-| `SettleBellIOS` | Check iCloud, request notifications, confirm APNs, and install the subscription | User-initiated setup only |
+| `SettleBellIOS` | Check iCloud, request notifications, confirm APNs, and install the subscription | User-initiated setup; automatic refresh of existing setup state when opened |
 | Pi hook | Translate two documented Pi lifecycle events and the current cycle's random UUID to native helper calls | None |
+
+In a privately configured iOS build with notification permission already allowed,
+opening the app automatically checks iCloud availability and the fixed
+subscription. It confirms APNs registration only after finding a matching
+subscription. This refresh does not request notification permission or create,
+replace, or delete a subscription. The public build's disabled CloudKit gate
+stops the refresh before those network checks.
 
 The macOS app delegate owns one long-lived `MacAppStore` and starts its FIFO
 listener from `applicationDidFinishLaunching`. Listener availability therefore
